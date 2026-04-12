@@ -627,12 +627,8 @@ export default function App() {
         )}
 
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-          <span style={{ fontSize:".68rem", color:"#3a2e10" }}>🎙️</span>
-          <select value={voiceIdx} onChange={e=>setVoiceIdx(+e.target.value)}
-            style={{ flex:1, background:"rgba(255,255,255,.04)", border:"1px solid rgba(200,134,10,.18)", borderRadius:8, color:"#f0ede5", fontFamily:"sans-serif", fontSize:".79rem", padding:"6px 9px", outline:"none", cursor:"pointer" }}>
-            {voices.map((v,i) => <option key={i} value={i}>{v.lang.startsWith("de")?"🇩🇪 ":"🌐 "}{v.name}</option>)}
-            {!voices.length && <option>Standard</option>}
-          </select>
+          <span style={{ fontSize:".68rem", color:"#3a2e10" }}>🎙</span>
+          <span style={{ flex:1, color:"#f0ede5", fontFamily:"sans-serif", fontSize:".79rem", padding:"6px 9px" }}>🎭 Helmut Stieglbauer</span>
         </div>
 
         {/* CTA */}
