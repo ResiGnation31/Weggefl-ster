@@ -23,6 +23,15 @@ export default async function handler(req) {
     const length = isWalking ? '300 Wörter' : isCycling ? '220 Wörter' : '180 Wörter';
     const mode = isWalking ? 'zu Fuß gehst' : isCycling ? 'Fahrrad fährst' : 'Auto fährst';
 
+    const apiKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
+
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: 'API key not configured' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
+    }
+
     const prompt = `Du bist ein faszinierender Reisebegleiter. Der Nutzer ${mode} gerade durch "${placeName}".
 
 Erzähle eine spannende, authentische Geschichte (ca. ${length}) über diesen Ort zum Thema "${category}".
@@ -39,7 +48,7 @@ Regeln:
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.VITE_ANTHROPIC_API_KEY,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
@@ -50,6 +59,13 @@ Regeln:
     });
 
     const data = await response.json();
+
+    if (!response.ok) {
+      return new Response(JSON.stringify({ error: data.error?.message || 'API error', status: response.status }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
+    }
 
     return new Response(JSON.stringify({ text: data.content[0].text }), {
       headers: {
