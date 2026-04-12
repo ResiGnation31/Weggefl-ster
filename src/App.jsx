@@ -183,7 +183,7 @@ Schreibe eine persönliche Einleitung (ca. 80 Wörter):
       // Build memory context
       const memoryContext = memory.length > 0
         ? `Bereits erzählt auf dieser Fahrt:
-${memory.map((m,i) => `${i+1}. Über "${m.place}": ${m.summary}`).join("
+${memory.map((m,i) => `${i+1}. Ueber '${m.place}': ${m.summary}`).join("
 ")}
 
 WICHTIG: Wiederhole KEINE der oben genannten Fakten. Knüpfe mit einem natürlichen Übergang an.`
