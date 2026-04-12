@@ -145,6 +145,9 @@ export default function App() {
     }
   }, []);
 
+  // ─── Story memory ────────────────────────────────────────────────────────
+  const storyMemory = useRef([]); // remembers what was told
+
   // ─── Generate story via API ───────────────────────────────────────────────
   const generateStory = useCallback(async (locationName, isIntro = false, introData = null) => {
     if (isGeneratingRef.current) return;
@@ -154,6 +157,7 @@ export default function App() {
     const cat = categoryRef.current;
     const { words } = getStoryLength(kmh);
     const count = storyCountRef.current;
+    const memory = storyMemory.current;
 
     let prompt;
     if (isIntro && introData) {
@@ -175,24 +179,38 @@ Schreibe eine persönliche Einleitung (ca. 80 Wörter):
 - Auf Deutsch, warm und einladend`;
     } else {
       const isFirst = count === 0;
-      const transition = isFirst
-        ? `Beginne sofort mit der Geschichte über diesen Ort.`
-        : `Dies ist Story Nummer ${count + 1} auf dieser Fahrt. Beginne direkt — der Hörer ist bereits unterwegs.`;
 
-      prompt = `Du bist ein faszinierender Reisebegleiter. Der Fahrer fährt mit ${kmh} km/h.
+      // Build memory context
+      const memoryContext = memory.length > 0
+        ? `Bereits erzählt auf dieser Fahrt:
+${memory.map((m,i) => `${i+1}. Über "${m.place}": ${m.summary}`).join("
+")}
+
+WICHTIG: Wiederhole KEINE der oben genannten Fakten. Knüpfe mit einem natürlichen Übergang an.`
+        : "";
+
+      const transition = isFirst
+        ? `Beginne sofort mit der Geschichte.`
+        : `Dies ist Story ${count + 1}. Beginne mit einem kurzen Übergang wie "Und während du weiterfährst...", "Apropos...", "Nur ein paar Meter weiter..." oder ähnlichem — dann direkt in die neue Geschichte.`;
+
+      prompt = `Du bist ein faszinierender Reisebegleiter auf einer Fahrt. Der Fahrer fährt mit ${kmh} km/h.
 
 Aktueller Ort: "${locationName}"
-Thema: "${cat}"
-Geschwindigkeit: ${kmh} km/h → Erzähle ca. ${words} Wörter
+Thema heute: "${cat}"
+Story-Länge: ca. ${words} Wörter
+
+${memoryContext}
 
 ${transition}
 
 Regeln:
-- Sprich direkt an: "Du fährst gerade...", "Rechts siehst du...", "Dieser Ort..."  
-- Konkrete Details: Namen, Jahreszahlen, echte Fakten über "${locationName}"
-- Lebendige, warme Erzählstimme — kein Wikipedia-Stil
-- Ende mit einer überraschenden Wendung oder nachdenklichem Satz
-- Nur fließender Text auf Deutsch`;
+- NIEMALS mit "Du fährst durch [Ort], eine/eines der..." beginnen — das klingt wie Wikipedia
+- Starte mit einer konkreten Szene, Person, Jahreszahl oder Anekdote
+- Sprich den Hörer direkt an: "Schau mal...", "Stell dir vor...", "Hier passierte..."
+- Echte, spezifische Details: Namen, Jahreszahlen, unbekannte Fakten
+- Lebendige Erzählstimme — wie ein lokaler Experte im Beifahrersitz
+- Ende mit einer Wendung oder einem Gedanken der nachhallt
+- Nur fließender Text auf Deutsch, keine Aufzählungen`;
     }
 
     setStoryLoading(true);
@@ -214,6 +232,9 @@ Regeln:
         if (!isIntro) {
           storyCountRef.current += 1;
           setStoryCount(c => c + 1);
+          // Save to memory — extract first 120 chars as summary
+          const summary = data.text.replace(/\n/g, " ").slice(0, 120) + "...";
+          storyMemory.current = [...storyMemory.current.slice(-4), { place: locationName, summary }];
         }
         isGeneratingRef.current = false;
         return;
@@ -391,6 +412,7 @@ Regeln:
     setActiveStory(null);
     setStoryText("");
     isGeneratingRef.current = false;
+    storyMemory.current = [];
 
     const places = await fetchRoute(startPlace, endPlace);
     setSimRunning(true);
