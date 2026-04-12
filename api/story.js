@@ -1,7 +1,7 @@
 export const config = { runtime: 'edge' };
 
 // Best German voice on ElevenLabs
-const GERMAN_VOICE_ID = 'pNInz6obpgDQGcFmaJgB'; // "Adam" - works well for German
+const GERMAN_VOICE_ID = 'JiW03c2Gt43XNUQAumRP'; // "Adam" - works well for German
 
 export default async function handler(req) {
   if (req.method === 'OPTIONS') {
