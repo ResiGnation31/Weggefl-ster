@@ -247,21 +247,16 @@ export default function App() {
     const prompt = buildPrompt(point.name, category, speedKmh);
 
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/api/story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 600,
-          messages: [{ role: "user", content: prompt }],
-        }),
+        body: JSON.stringify({ placeName: point.name, category, speedKmh }),
       });
       const data = await res.json();
-      if (res.ok && data.content?.[0]?.text) {
-        const text = data.content[0].text;
-        setStoryText(text);
+      if (res.ok && data.text) {
+        setStoryText(data.text);
         setStoryLoading(false);
-        speakText(text);
+        speakText(data.text);
         return;
       }
     } catch {}
