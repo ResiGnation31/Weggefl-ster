@@ -380,6 +380,53 @@ export default function App() {
   }, [addLog]);
 
   // ─── Simulation ─────────────────────────────────────────────────────────────
+  const generateIntro = useCallback(async (start, end, points) => {
+    if (triggeredRef.current.has("intro")) return;
+    triggeredRef.current.add("intro");
+    setTriggered(new Set(triggeredRef.current));
+
+    const placeNames = points.slice(0, -1).map(p => p.name).filter((v,i,a) => a.indexOf(v)===i).slice(0,4).join(", ");
+    const prompt = `Du bist ein begeisternder Reisebegleiter der eine Fahrt ankündigt.
+
+Start: "${start.name}"
+Ziel: "${end.name}"
+Thema heute: "${category}"
+Orte unterwegs: ${placeNames || "verschiedene Orte"}
+
+Schreibe eine persönliche, warme Einleitung (ca. 80-100 Wörter) die:
+- Die Fahrt von Start nach Ziel ankündigt
+- Das heutige Thema erwähnt
+- 2-3 der Orte unterwegs neugierig macht ohne zu verraten was kommt
+- Mit einem einladenden Satz endet wie "Lehn dich zurück — es geht los"
+- Direkt beginnt ohne "Gerne" oder "Willkommen"
+- Auf Deutsch, warm und persönlich klingt`;
+
+    setStoryLoading(true);
+    setActiveStory({ id: "intro", name: `${start.name} → ${end.name}`, isIntro: true });
+    setStoryText("");
+    addLog("🎙️ Einleitung wird generiert…", "story");
+
+    try {
+      const res = await fetch("/api/story", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ placeName: `${start.name} nach ${end.name}`, category, speedKmh, customPrompt: prompt }),
+      });
+      const data = await res.json();
+      if (res.ok && data.text) {
+        setStoryText(data.text);
+        setStoryLoading(false);
+        speakText(data.text);
+        return;
+      }
+    } catch {}
+
+    const fallback = `Du fährst heute von ${start.name} nach ${end.name} — eine Route voller ${category}. ${placeNames ? `Unterwegs kommen wir an ${placeNames} vorbei.` : ""} Lehn dich zurück — es geht los.`;
+    setStoryText(fallback);
+    setStoryLoading(false);
+    speakText(fallback);
+  }, [category, speedKmh, addLog, speakText]);
+
   const startSim = useCallback(() => {
     simDistRef.current = 0;
     triggeredRef.current = new Set();
@@ -395,7 +442,14 @@ export default function App() {
     setStoryText("");
     setSimRunning(true);
     addLog(`🚗 Simulation gestartet`, "start");
-  }, [stopSpeech, addLog]);
+
+    // Auto-trigger intro story
+    setTimeout(() => {
+      if (startPlace && endPlace) {
+        generateIntro(startPlace, endPlace, storyPoints);
+      }
+    }, 800);
+  }, [stopSpeech, addLog, startPlace, endPlace, storyPoints, generateIntro]);
 
   useEffect(() => {
     if (!simRunning || !routeWaypoints.length) return;

@@ -16,7 +16,7 @@ export default async function handler(req) {
   }
 
   try {
-    const { placeName, category, speedKmh } = await req.json();
+    const { placeName, category, speedKmh, customPrompt } = await req.json();
 
     const isWalking = speedKmh < 10;
     const isCycling = speedKmh >= 10 && speedKmh < 25;
@@ -32,7 +32,7 @@ export default async function handler(req) {
       });
     }
 
-    const prompt = `Du bist ein faszinierender Reisebegleiter. Der Nutzer ${mode} gerade durch "${placeName}".
+    const prompt = customPrompt || `Du bist ein faszinierender Reisebegleiter. Der Nutzer ${mode} gerade durch "${placeName}".
 
 Erzähle eine spannende, authentische Geschichte (ca. ${length}) über diesen Ort zum Thema "${category}".
 
