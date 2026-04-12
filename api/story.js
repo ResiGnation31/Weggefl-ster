@@ -1,5 +1,8 @@
 export const config = { runtime: 'edge' };
 
+// Best German voice on ElevenLabs
+const GERMAN_VOICE_ID = 'pNInz6obpgDQGcFmaJgB'; // "Adam" - works well for German
+
 export default async function handler(req) {
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -18,19 +21,20 @@ export default async function handler(req) {
   try {
     const { placeName, category, speedKmh, customPrompt } = await req.json();
 
-    const isWalking = speedKmh < 10;
-    const isCycling = speedKmh >= 10 && speedKmh < 25;
-    const length = isWalking ? '300 Wörter' : isCycling ? '220 Wörter' : '180 Wörter';
-    const mode = isWalking ? 'zu Fuß gehst' : isCycling ? 'Fahrrad fährst' : 'Auto fährst';
+    const anthropicKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
+    const elevenKey = process.env.ELEVENLABS_API_KEY;
 
-    const apiKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
-
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'API key not configured' }), {
+    if (!anthropicKey) {
+      return new Response(JSON.stringify({ error: 'Anthropic API key not configured' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });
     }
+
+    const isWalking = speedKmh < 10;
+    const isCycling = speedKmh >= 10 && speedKmh < 25;
+    const length = isWalking ? '300 Wörter' : isCycling ? '220 Wörter' : '180 Wörter';
+    const mode = isWalking ? 'zu Fuß gehst' : isCycling ? 'Fahrrad fährst' : 'Auto fährst';
 
     const prompt = customPrompt || `Du bist ein faszinierender Reisebegleiter. Der Nutzer ${mode} gerade durch "${placeName}".
 
@@ -38,17 +42,18 @@ Erzähle eine spannende, authentische Geschichte (ca. ${length}) über diesen Or
 
 Regeln:
 - Beginne SOFORT mit der Geschichte — keine Begrüßung, kein "Gerne"
-- Sprich den Hörer direkt an: "Du fährst gerade...", "Rechts siehst du...", "Gleich passierst du..."
+- Sprich den Hörer direkt an
 - Erzähle auf Deutsch, lebendige Erzählstimme
 - Konkrete Details: Namen, Jahreszahlen, echte Fakten
-- Ende mit einer überraschenden oder nachdenklichen Wendung
+- Ende mit einer überraschenden Wendung
 - Nur fließender Text, keine Aufzählungen`;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // Generate text with Claude
+    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
+        'x-api-key': anthropicKey,
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
@@ -58,28 +63,60 @@ Regeln:
       }),
     });
 
-    const data = await response.json();
+    const claudeData = await claudeRes.json();
 
-    if (!response.ok) {
-      return new Response(JSON.stringify({ error: data.error?.message || 'API error', status: response.status }), {
+    if (!claudeRes.ok) {
+      return new Response(JSON.stringify({ error: claudeData.error?.message || 'Claude error' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });
     }
 
-    return new Response(JSON.stringify({ text: data.content[0].text }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+    const text = claudeData.content[0].text;
+
+    // If ElevenLabs key available, generate audio
+    if (elevenKey) {
+      try {
+        const elevenRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${GERMAN_VOICE_ID}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'xi-api-key': elevenKey,
+          },
+          body: JSON.stringify({
+            text,
+            model_id: 'eleven_multilingual_v2',
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.75,
+              style: 0.3,
+              use_speaker_boost: true,
+            },
+          }),
+        });
+
+        if (elevenRes.ok) {
+          const audioBuffer = await elevenRes.arrayBuffer();
+          const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+          return new Response(JSON.stringify({ text, audio: base64Audio, audioType: 'mp3' }), {
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          });
+        }
+      } catch (e) {
+        // Fall through to text-only response
+        console.error('ElevenLabs error:', e);
+      }
+    }
+
+    // Return text only (browser TTS fallback)
+    return new Response(JSON.stringify({ text }), {
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
+
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
   }
 }
