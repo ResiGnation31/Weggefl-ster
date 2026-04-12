@@ -182,14 +182,16 @@ Schreibe eine persönliche Einleitung (ca. 80 Wörter):
 
       // Build memory context
       const memoryContext = memory.length > 0
-? `Bereits erzählt auf dieser Fahrt:\n${memory.map((m,i) => (i+1) + ". " + m.place + ": " + m.summary).join("\n")}`
+        ? `Bereits erzählt auf dieser Fahrt:
+${memory.map((m,i) => `${i+1}. Über "${m.place}": ${m.summary}`).join("
+")}
 
-WICHTIG: Wiederhole KEINE der oben genannten Fakten. Knüpfe mit einem natürlichen Uebergang an.`
+WICHTIG: Wiederhole KEINE der oben genannten Fakten. Knüpfe mit einem natürlichen Übergang an.`
         : "";
 
       const transition = isFirst
         ? `Beginne sofort mit der Geschichte.`
-        : `Dies ist Story ${count + 1}. Beginne mit einem kurzen Uebergang wie "Und während du weiterfährst...", "Apropos...", "Nur ein paar Meter weiter..." oder ähnlichem — dann direkt in die neue Geschichte.`;
+        : `Dies ist Story ${count + 1}. Beginne mit einem kurzen Übergang wie "Und während du weiterfährst...", "Apropos...", "Nur ein paar Meter weiter..." oder ähnlichem — dann direkt in die neue Geschichte.`;
 
       prompt = `Du bist ein faszinierender Reisebegleiter auf einer Fahrt. Der Fahrer fährt mit ${kmh} km/h.
 
@@ -226,17 +228,11 @@ Regeln:
       if (res.ok && data.text) {
         setStoryText(data.text);
         setStoryLoading(false);
-
-        // Use ElevenLabs audio if available, otherwise browser TTS
-        if (data.audio) {
-          playBase64Audio(data.audio, data.text);
-        } else {
-          speakStory(data.text);
-        }
-
+        speakStory(data.text);
         if (!isIntro) {
           storyCountRef.current += 1;
           setStoryCount(c => c + 1);
+          // Save to memory — extract first 120 chars as summary
           const summary = data.text.replace(/\n/g, " ").slice(0, 120) + "...";
           storyMemory.current = [...storyMemory.current.slice(-4), { place: locationName, summary }];
         }
@@ -254,73 +250,6 @@ Regeln:
     speakStory(fallback);
     isGeneratingRef.current = false;
   }, [addLog]);
-
-  // ─── Play ElevenLabs audio ───────────────────────────────────────────────
-  const audioRef = useRef(null);
-
-  const playBase64Audio = useCallback((base64, text) => {
-    // Stop any existing audio
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    window.speechSynthesis?.cancel();
-    clearInterval(progRef.current);
-    setSpeaking(true);
-    isSpeakingRef.current = true;
-    setSpProgress(0);
-
-    try {
-      const binary = atob(base64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const blob = new Blob([bytes], { type: 'audio/mp3' });
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audioRef.current = audio;
-
-      const estDur = text.length / 11.5;
-      const t0 = Date.now();
-      progRef.current = setInterval(() => {
-        setSpProgress(Math.min((Date.now()-t0)/1000/estDur*100, 100));
-      }, 300);
-
-      audio.onended = () => {
-        setSpeaking(false);
-        isSpeakingRef.current = false;
-        clearInterval(progRef.current);
-        setSpProgress(100);
-        URL.revokeObjectURL(url);
-        // Generate next story after 1.5s
-        if (simDistRef.current > 0 && simDistRef.current < totalDistRef.current && !arrivedRef.current) {
-          setTimeout(async () => {
-            if (isSpeakingRef.current || isGeneratingRef.current) return;
-            const wps = routeWPsRef.current;
-            if (!wps.length) return;
-            const idx = Math.min(Math.floor(simDistRef.current / totalDistRef.current * wps.length), wps.length-1);
-            const name = await geocodePosition(wps[idx].lat, wps[idx].lon);
-            generateStory(name);
-          }, 1500);
-        }
-      };
-
-      audio.onerror = () => {
-        setSpeaking(false);
-        isSpeakingRef.current = false;
-        clearInterval(progRef.current);
-        // Fallback to browser TTS
-        speakStory(text);
-      };
-
-      audio.play().catch(() => {
-        setSpeaking(false);
-        isSpeakingRef.current = false;
-        speakStory(text);
-      });
-    } catch(e) {
-      speakStory(text);
-    }
-  }, [geocodePosition, generateStory, speakStory]);
 
   // ─── Speak story ─────────────────────────────────────────────────────────
   const speakStory = useCallback((text) => {
