@@ -182,16 +182,14 @@ Schreibe eine persönliche Einleitung (ca. 80 Wörter):
 
       // Build memory context
       const memoryContext = memory.length > 0
-        ? `Bereits erzählt auf dieser Fahrt:
-${memory.map((m,i) => (i+1) + ". " + m.place + ": " + m.summary).join("
-")}
+? `Bereits erzählt auf dieser Fahrt:\n${memory.map((m,i) => (i+1) + ". " + m.place + ": " + m.summary).join("\n")}`
 
-WICHTIG: Wiederhole KEINE der oben genannten Fakten. Knüpfe mit einem natürlichen Übergang an.`
+WICHTIG: Wiederhole KEINE der oben genannten Fakten. Knüpfe mit einem natürlichen Uebergang an.`
         : "";
 
       const transition = isFirst
         ? `Beginne sofort mit der Geschichte.`
-        : `Dies ist Story ${count + 1}. Beginne mit einem kurzen Übergang wie "Und während du weiterfährst...", "Apropos...", "Nur ein paar Meter weiter..." oder ähnlichem — dann direkt in die neue Geschichte.`;
+        : `Dies ist Story ${count + 1}. Beginne mit einem kurzen Uebergang wie "Und während du weiterfährst...", "Apropos...", "Nur ein paar Meter weiter..." oder ähnlichem — dann direkt in die neue Geschichte.`;
 
       prompt = `Du bist ein faszinierender Reisebegleiter auf einer Fahrt. Der Fahrer fährt mit ${kmh} km/h.
 
@@ -322,7 +320,7 @@ Regeln:
     } catch(e) {
       speakStory(text);
     }
-  }, []);
+  }, [geocodePosition, generateStory, speakStory]);
 
   // ─── Speak story ─────────────────────────────────────────────────────────
   const speakStory = useCallback((text) => {
