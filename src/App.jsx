@@ -246,6 +246,7 @@ export default function App() {
       const data = await res.json();
       if (res.ok && data.text) {
         setStoryText(data.text);
+        setStoryAudio(data.audio || null);
         setStoryLoading(false);
         if (!isIntro) {
           const summary = data.text.slice(0, 120) + "...";
@@ -695,7 +696,7 @@ export default function App() {
 
             {storyText && (
               <div style={{ padding:"10px 17px 15px", borderTop:"1px solid rgba(200,134,10,.1)", display:"flex", alignItems:"center", gap:10 }}>
-                <button onClick={() => speaking ? stopAudio() : speakText(storyText, null)}
+                <button onClick={() => speaking ? stopAudio() : speakText(storyText, storyAudio || null)}
                   style={{ width:38, height:38, borderRadius:"50%", background:"#c8860a", border:"none", cursor:"pointer", fontSize:16, flexShrink:0 }}>
                   {speaking ? "⏸" : "▶"}
                 </button>
