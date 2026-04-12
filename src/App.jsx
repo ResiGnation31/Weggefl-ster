@@ -1,134 +1,293 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const LOOKAHEAD_M = 300; // trigger story this many meters before waypoint
-const GPS_INTERVAL = 4000; // check GPS every 4 seconds
-const STORY_RADIUS_M = 150; // trigger story when within this radius
+const STORY_RADIUS_M = 200;      // within this radius = "at this place"
+const CHECK_INTERVAL = 3000;     // check location every 3 seconds
+const GEOCODE_INTERVAL = 8000;   // reverse geocode every 8 seconds
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function deg2rad(d) { return d * Math.PI / 180; }
-
 function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371000;
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
-  const a = Math.sin(dLat/2)**2 + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2)**2;
+  const a = Math.sin(dLat/2)**2 + Math.cos(deg2rad(lat1))*Math.cos(deg2rad(lat2))*Math.sin(dLon/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
-
-function totalRouteDist(waypoints) {
+function totalRouteDist(wps) {
   let d = 0;
-  for (let i = 0; i < waypoints.length - 1; i++) {
-    d += haversine(waypoints[i].lat, waypoints[i].lon, waypoints[i+1].lat, waypoints[i+1].lon);
-  }
+  for (let i = 0; i < wps.length-1; i++) d += haversine(wps[i].lat, wps[i].lon, wps[i+1].lat, wps[i+1].lon);
   return d;
 }
-
-function distAlongRoute(waypoints, lat, lon) {
-  // find closest point on route and return distance traveled so far
-  let minDist = Infinity, bestIdx = 0;
-  for (let i = 0; i < waypoints.length; i++) {
-    const d = haversine(lat, lon, waypoints[i].lat, waypoints[i].lon);
-    if (d < minDist) { minDist = d; bestIdx = i; }
-  }
-  let traveled = 0;
-  for (let i = 0; i < bestIdx; i++) {
-    traveled += haversine(waypoints[i].lat, waypoints[i].lon, waypoints[i+1].lat, waypoints[i+1].lon);
-  }
-  return traveled;
+function getTimeOfDay() {
+  const h = new Date().getHours();
+  if (h < 12) return "Guten Morgen";
+  if (h < 18) return "Guten Tag";
+  return "Guten Abend";
 }
 
-// ─── Generate story prompt ────────────────────────────────────────────────────
-function buildPrompt(placeName, category, speedKmh) {
-  const isWalking = speedKmh < 10;
-  const isCycling = speedKmh >= 10 && speedKmh < 25;
-  const length = isWalking ? "300 Wörter" : isCycling ? "220 Wörter" : "180 Wörter";
-  const mode = isWalking ? "zu Fuß gehst" : isCycling ? "Fahrrad fährst" : "Auto fährst";
-
-  return `Du bist ein faszinierender Reisebegleiter. Der Nutzer ${mode} gerade durch "${placeName}".
-
-Erzähle eine spannende, authentische Geschichte (ca. ${length}) über diesen Ort. 
-
-Regeln:
-- Beginne SOFORT mit der Geschichte — keine Begrüßung, kein "Gerne"
-- Sprich den Hörer direkt an: "Du fährst gerade...", "Rechts siehst du...", "Gleich passierst du..."
-- Erzähle auf Deutsch, lebendige Erzählstimme
-- Konkrete Details: Namen, Jahreszahlen, echte Fakten
-- Ende mit einer überraschenden oder nachdenklichen Wendung
-- Nur fließender Text, keine Aufzählungen`;
+// ─── Story length based on speed ─────────────────────────────────────────────
+function getStoryLength(kmh) {
+  if (kmh < 8)  return { words: 350, label: "lang (zu Fuß)" };
+  if (kmh < 25) return { words: 250, label: "mittel (Fahrrad)" };
+  if (kmh < 60) return { words: 180, label: "kurz (Stadt)" };
+  return { words: 120, label: "sehr kurz (Autobahn)" };
 }
 
 // ─── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
-  // Route state
-  const [startInput, setStartInput]     = useState("");
-  const [endInput, setEndInput]         = useState("");
-  const [startSugg, setStartSugg]       = useState([]);
-  const [endSugg, setEndSugg]           = useState([]);
-  const [startPlace, setStartPlace]     = useState(null);
-  const [endPlace, setEndPlace]         = useState(null);
-  const [routeWaypoints, setRouteWaypoints] = useState([]);
-  const [storyPoints, setStoryPoints]   = useState([]); // interesting places along route
+  // Route
+  const [startInput, setStartInput] = useState("");
+  const [endInput, setEndInput]     = useState("");
+  const [startSugg, setStartSugg]   = useState([]);
+  const [endSugg, setEndSugg]       = useState([]);
+  const [startPlace, setStartPlace] = useState(null);
+  const [endPlace, setEndPlace]     = useState(null);
+  const [routeWPs, setRouteWPs]     = useState([]);
+  const [totalDist, setTotalDist]   = useState(0);
   const [routeLoading, setRouteLoading] = useState(false);
-  const [routeError, setRouteError]     = useState("");
+  const [routeError, setRouteError] = useState("");
 
-  // GPS state
-  const [gpsMode, setGpsMode]           = useState("sim"); // "sim" | "real"
-  const [gpsPos, setGpsPos]             = useState(null);
-  const [gpsError, setGpsError]         = useState("");
-  const [simDist, setSimDist]           = useState(0);
-  const [simSpeed, setSimSpeed]         = useState(10);
-  const [simRunning, setSimRunning]     = useState(false);
-  const [speedKmh, setSpeedKmh]         = useState(30);
+  // GPS / Sim
+  const [gpsMode, setGpsMode]       = useState("sim");
+  const [simDist, setSimDist]       = useState(0);
+  const [simSpeed, setSimSpeed]     = useState(10);
+  const [simRunning, setSimRunning] = useState(false);
+  const [currentDist, setCurrentDist] = useState(0);
+  const [speedKmh, setSpeedKmh]     = useState(36);
+  const [gpsPos, setGpsPos]         = useState(null);
+  const [gpsError, setGpsError]     = useState("");
 
-  // Story state
+  // Current location name (reverse geocoded)
+  const [currentLocationName, setCurrentLocationName] = useState("");
+  const [lastGeocodedDist, setLastGeocodedDist]       = useState(-99999);
+
+  // Story
   const [activeStory, setActiveStory]   = useState(null);
   const [storyText, setStoryText]       = useState("");
   const [storyLoading, setStoryLoading] = useState(false);
-  const [triggered, setTriggered]       = useState(new Set());
   const [speaking, setSpeaking]         = useState(false);
   const [spProgress, setSpProgress]     = useState(0);
-  const [queue, setQueue]               = useState([]);
+  const [category, setCategory]         = useState("Geschichte");
+  const [log, setLog]                   = useState([]);
+  const [arrived, setArrived]           = useState(false);
+  const [storyCount, setStoryCount]     = useState(0);
 
   // Voices
-  const [voices, setVoices]             = useState([]);
-  const [voiceIdx, setVoiceIdx]         = useState(0);
+  const [voices, setVoices]   = useState([]);
+  const [voiceIdx, setVoiceIdx] = useState(0);
 
-  // Misc
-  const [arrived, setArrived]           = useState(false);
-  const [totalDist, setTotalDist]       = useState(0);
-  const [currentDist, setCurrentDist]   = useState(0);
-  const [log, setLog]                   = useState([]);
-  const [category, setCategory]         = useState("Geschichte");
-
-  const simRef      = useRef(null);
-  const simDistRef  = useRef(0);
-  const triggeredRef = useRef(new Set());
-  const progRef     = useRef(null);
-  const queueRef    = useRef([]);
-  const gpsRef      = useRef(null);
-  const lastPosRef  = useRef(null);
-  const lastTimeRef = useRef(null);
-  const searchTimers = useRef({});
+  // Refs
+  const simRef          = useRef(null);
+  const simDistRef      = useRef(0);
+  const progRef         = useRef(null);
+  const gpsRef          = useRef(null);
+  const isSpeakingRef   = useRef(false);
+  const isGeneratingRef = useRef(false);
+  const routeWPsRef     = useRef([]);
+  const totalDistRef    = useRef(0);
+  const speedRef        = useRef(36);
+  const categoryRef     = useRef("Geschichte");
+  const currentLocRef   = useRef("");
+  const lastGeoRef      = useRef(-99999);
+  const storyCountRef   = useRef(0);
+  const searchTimers    = useRef({});
+  const startPlaceRef   = useRef(null);
+  const endPlaceRef     = useRef(null);
+  const arrivedRef      = useRef(false);
+  const voiceIdxRef     = useRef(0);
+  const voicesRef       = useRef([]);
 
   const CATEGORIES = ["Geschichte", "Natur", "Persönlichkeiten", "Mythen", "Kulinarik", "Architektur"];
+
+  // Sync refs
+  useEffect(() => { categoryRef.current = category; }, [category]);
+  useEffect(() => { speedRef.current = speedKmh; }, [speedKmh]);
+  useEffect(() => { routeWPsRef.current = routeWPs; }, [routeWPs]);
+  useEffect(() => { totalDistRef.current = totalDist; }, [totalDist]);
+  useEffect(() => { startPlaceRef.current = startPlace; }, [startPlace]);
+  useEffect(() => { endPlaceRef.current = endPlace; }, [endPlace]);
+  useEffect(() => { voiceIdxRef.current = voiceIdx; }, [voiceIdx]);
+  useEffect(() => { voicesRef.current = voices; }, [voices]);
 
   // Load voices
   useEffect(() => {
     const load = () => {
       const all = window.speechSynthesis?.getVoices() || [];
-      setVoices([...all.filter(v => v.lang.startsWith("de")), ...all.filter(v => !v.lang.startsWith("de"))]);
+      const sorted = [...all.filter(v => v.lang.startsWith("de")), ...all.filter(v => !v.lang.startsWith("de"))];
+      setVoices(sorted);
+      voicesRef.current = sorted;
     };
     load();
     if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = load;
   }, []);
 
   const addLog = useCallback((msg, type = "info") => {
-    const t = new Date().toLocaleTimeString("de", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-    setLog(prev => [{ msg, type, t }, ...prev].slice(0, 25));
+    const t = new Date().toLocaleTimeString("de", { hour:"2-digit", minute:"2-digit", second:"2-digit" });
+    setLog(prev => [{ msg, type, t }, ...prev].slice(0, 20));
   }, []);
 
-  // ─── Search places ──────────────────────────────────────────────────────────
+  // ─── Reverse geocode current position ────────────────────────────────────
+  const geocodePosition = useCallback(async (lat, lon) => {
+    try {
+      const r = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=de`,
+        { headers: { "User-Agent": "Weggefluesterer/1.0" } }
+      );
+      const d = await r.json();
+      const addr = d.address;
+      const name = addr.city || addr.town || addr.village || addr.hamlet || addr.suburb || addr.road || addr.county || "Niederrhein";
+      currentLocRef.current = name;
+      setCurrentLocationName(name);
+      return name;
+    } catch {
+      return currentLocRef.current || "Unbekannter Ort";
+    }
+  }, []);
+
+  // ─── Generate story via API ───────────────────────────────────────────────
+  const generateStory = useCallback(async (locationName, isIntro = false, introData = null) => {
+    if (isGeneratingRef.current) return;
+    isGeneratingRef.current = true;
+
+    const kmh = speedRef.current;
+    const cat = categoryRef.current;
+    const { words } = getStoryLength(kmh);
+    const count = storyCountRef.current;
+
+    let prompt;
+    if (isIntro && introData) {
+      const { start, end, places } = introData;
+      const tod = getTimeOfDay();
+      prompt = `Du bist ein begeisternder Reisebegleiter.
+
+${tod}! Kündige diese Fahrt an:
+Start: "${start}"
+Ziel: "${end}"  
+Thema: "${cat}"
+Orte unterwegs: ${places.join(", ")}
+
+Schreibe eine persönliche Einleitung (ca. 80 Wörter):
+- Beginne mit "${tod}! Du startest jetzt..."
+- Erwähne Start und Ziel
+- Mache 2-3 Orte neugierig ohne zu verraten was kommt
+- Ende mit "Lehn dich zurück — es geht los."
+- Auf Deutsch, warm und einladend`;
+    } else {
+      const isFirst = count === 0;
+      const transition = isFirst
+        ? `Beginne sofort mit der Geschichte über diesen Ort.`
+        : `Dies ist Story Nummer ${count + 1} auf dieser Fahrt. Beginne direkt — der Hörer ist bereits unterwegs.`;
+
+      prompt = `Du bist ein faszinierender Reisebegleiter. Der Fahrer fährt mit ${kmh} km/h.
+
+Aktueller Ort: "${locationName}"
+Thema: "${cat}"
+Geschwindigkeit: ${kmh} km/h → Erzähle ca. ${words} Wörter
+
+${transition}
+
+Regeln:
+- Sprich direkt an: "Du fährst gerade...", "Rechts siehst du...", "Dieser Ort..."  
+- Konkrete Details: Namen, Jahreszahlen, echte Fakten über "${locationName}"
+- Lebendige, warme Erzählstimme — kein Wikipedia-Stil
+- Ende mit einer überraschenden Wendung oder nachdenklichem Satz
+- Nur fließender Text auf Deutsch`;
+    }
+
+    setStoryLoading(true);
+    setActiveStory({ name: isIntro ? `${introData?.start} → ${introData?.end}` : locationName, isIntro });
+    setStoryText("");
+    addLog(`📖 ${isIntro ? "Einleitung" : locationName}`, "story");
+
+    try {
+      const res = await fetch("/api/story", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, customPrompt: prompt }),
+      });
+      const data = await res.json();
+      if (res.ok && data.text) {
+        setStoryText(data.text);
+        setStoryLoading(false);
+        speakStory(data.text);
+        if (!isIntro) {
+          storyCountRef.current += 1;
+          setStoryCount(c => c + 1);
+        }
+        isGeneratingRef.current = false;
+        return;
+      }
+    } catch {}
+
+    // Fallback
+    const fallback = isIntro
+      ? `${getTimeOfDay()}! Du startest jetzt deine Fahrt von ${introData?.start} nach ${introData?.end}. Unterwegs warten ${introData?.places?.slice(0,2).join(" und ")} auf dich. Lehn dich zurück — es geht los.`
+      : `Du befindest dich gerade in ${locationName} — einem Ort mit einer langen Geschichte am Niederrhein.`;
+    setStoryText(fallback);
+    setStoryLoading(false);
+    speakStory(fallback);
+    isGeneratingRef.current = false;
+  }, [addLog]);
+
+  // ─── Speak story ─────────────────────────────────────────────────────────
+  const speakStory = useCallback((text) => {
+    window.speechSynthesis?.cancel();
+    clearInterval(progRef.current);
+    setSpeaking(true);
+    isSpeakingRef.current = true;
+    setSpProgress(0);
+
+    const utter = new SpeechSynthesisUtterance(text);
+    const v = voicesRef.current[voiceIdxRef.current];
+    if (v) utter.voice = v;
+    utter.lang = "de-DE";
+    utter.rate = 0.88;
+
+    const estDur = text.length / 11.5;
+    const t0 = Date.now();
+    progRef.current = setInterval(() => {
+      setSpProgress(Math.min((Date.now()-t0)/1000/estDur*100, 100));
+    }, 300);
+
+    utter.onend = () => {
+      setSpeaking(false);
+      isSpeakingRef.current = false;
+      clearInterval(progRef.current);
+      setSpProgress(100);
+
+      // After story ends — wait a moment then generate next if still driving
+      if (simDistRef.current > 0 && simDistRef.current < totalDistRef.current && !arrivedRef.current) {
+        setTimeout(async () => {
+          if (isSpeakingRef.current || isGeneratingRef.current) return;
+          // Geocode current position and generate next story
+          const wps = routeWPsRef.current;
+          if (!wps.length) return;
+          const idx = Math.min(Math.floor(simDistRef.current / totalDistRef.current * wps.length), wps.length-1);
+          const pos = wps[idx];
+          const name = await geocodePosition(pos.lat, pos.lon);
+          generateStory(name);
+        }, 1500);
+      }
+    };
+    utter.onerror = () => {
+      setSpeaking(false);
+      isSpeakingRef.current = false;
+      clearInterval(progRef.current);
+    };
+
+    window.speechSynthesis?.speak(utter);
+  }, [geocodePosition, generateStory]);
+
+  const stopSpeech = useCallback(() => {
+    window.speechSynthesis?.cancel();
+    setSpeaking(false);
+    isSpeakingRef.current = false;
+    clearInterval(progRef.current);
+    isGeneratingRef.current = false;
+  }, []);
+
+  // ─── Search places ────────────────────────────────────────────────────────
   const searchPlaces = useCallback(async (query, setter) => {
     if (query.length < 2) { setter([]); return; }
     try {
@@ -145,374 +304,182 @@ export default function App() {
     clearTimeout(searchTimers.current.start);
     searchTimers.current.start = setTimeout(() => searchPlaces(val, setStartSugg), 350);
   };
-
   const onEndInput = (val) => {
     setEndInput(val);
     clearTimeout(searchTimers.current.end);
     searchTimers.current.end = setTimeout(() => searchPlaces(val, setEndSugg), 350);
   };
 
-  // ─── Fetch route from OSRM ──────────────────────────────────────────────────
+  // ─── Fetch route ──────────────────────────────────────────────────────────
   const fetchRoute = useCallback(async (start, end) => {
     setRouteLoading(true);
     setRouteError("");
-    setStoryPoints([]);
-    setTriggered(new Set());
-    triggeredRef.current = new Set();
     setArrived(false);
-    setActiveStory(null);
-    setStoryText("");
-    setLog([]);
+    arrivedRef.current = false;
+    stopSpeech();
     setSimDist(0);
     simDistRef.current = 0;
+    setCurrentDist(0);
+    setStoryCount(0);
+    storyCountRef.current = 0;
+    setLog([]);
+    setActiveStory(null);
+    setStoryText("");
+    isGeneratingRef.current = false;
 
     try {
-      // Get route from OSRM (free routing service)
-      const url = `https://router.project-osrm.org/route/v1/driving/${start.lon},${start.lat};${end.lon},${end.lat}?overview=full&geometries=geojson&steps=true`;
+      const url = `https://router.project-osrm.org/route/v1/driving/${start.lon},${start.lat};${end.lon},${end.lat}?overview=full&geometries=geojson`;
       const r = await fetch(url);
       const data = await r.json();
-
       if (!data.routes?.length) throw new Error("Keine Route gefunden");
 
       const coords = data.routes[0].geometry.coordinates.map(([lon, lat]) => ({ lat, lon }));
-      setRouteWaypoints(coords);
+      setRouteWPs(coords);
+      routeWPsRef.current = coords;
 
       const dist = totalRouteDist(coords);
       setTotalDist(dist);
+      totalDistRef.current = dist;
 
-      // Sample interesting points every ~500m along route
-      const points = [];
-      const step = Math.max(300, dist / 12);
-      let accumulated = 0;
-
-      for (let i = 0; i < coords.length - 1; i++) {
-        const segDist = haversine(coords[i].lat, coords[i].lon, coords[i+1].lat, coords[i+1].lon);
-        accumulated += segDist;
-        if (accumulated >= step * (points.length + 1) && points.length < 10) {
-          // Reverse geocode this point
-          try {
-            const gr = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${coords[i].lat}&lon=${coords[i].lon}&format=json&accept-language=de`,
-              { headers: { "User-Agent": "Weggefluesterer/1.0" } }
-            );
-            const gdata = await gr.json();
-            const addr = gdata.address;
-            const name = addr.city || addr.town || addr.village || addr.hamlet || addr.road || addr.county || "Unbekannter Ort";
-            // Only add if different from last point
-            if (!points.length || points[points.length-1].name !== name) {
-              points.push({
-                id: points.length,
-                lat: coords[i].lat,
-                lon: coords[i].lon,
-                name,
-                distAlong: accumulated,
-                triggered: false,
-              });
-            }
-          } catch {}
+      // Sample place names along route for intro
+      const places = [];
+      const step = dist / 4;
+      for (let i = 1; i <= 3; i++) {
+        const targetDist = step * i;
+        let acc = 0;
+        for (let j = 0; j < coords.length-1; j++) {
+          const seg = haversine(coords[j].lat, coords[j].lon, coords[j+1].lat, coords[j+1].lon);
+          if (acc + seg >= targetDist) {
+            try {
+              const gr = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?lat=${coords[j].lat}&lon=${coords[j].lon}&format=json&accept-language=de`,
+                { headers: { "User-Agent": "Weggefluesterer/1.0" } }
+              );
+              const gd = await gr.json();
+              const addr = gd.address;
+              const name = addr.city || addr.town || addr.village || addr.hamlet || "";
+              if (name && !places.includes(name)) places.push(name);
+            } catch {}
+            break;
+          }
+          acc += seg;
         }
       }
 
-      // Always add destination
-      points.push({
-        id: points.length,
-        lat: end.lat,
-        lon: end.lon,
-        name: end.name,
-        distAlong: dist,
-        isDestination: true,
-      });
-
-      setStoryPoints(points);
-      addLog(`✅ Route berechnet: ${(dist/1000).toFixed(1)} km, ${points.length} Story-Punkte`, "start");
+      addLog(`✅ Route: ${(dist/1000).toFixed(1)} km`, "start");
+      setRouteLoading(false);
+      return places;
     } catch (e) {
-      setRouteError("Route konnte nicht berechnet werden: " + e.message);
+      setRouteError("Route nicht gefunden: " + e.message);
+      setRouteLoading(false);
+      return [];
     }
-    setRouteLoading(false);
-  }, [addLog]);
+  }, [stopSpeech, addLog]);
 
-  // ─── Generate story via Claude API ─────────────────────────────────────────
-  const generateStory = useCallback(async (point) => {
-    if (triggeredRef.current.has(point.id)) return;
-    triggeredRef.current.add(point.id);
-    setTriggered(new Set(triggeredRef.current));
-
-    const label = point.isDestination ? `Angekommen: ${point.name}` : point.name;
-    addLog(`📖 ${label}`, "story");
-
-    setStoryLoading(true);
-    setActiveStory(point);
+  // ─── Start simulation ─────────────────────────────────────────────────────
+  const startSim = useCallback(async () => {
+    if (!startPlace || !endPlace) return;
+    stopSpeech();
+    setSimDist(0);
+    simDistRef.current = 0;
+    setCurrentDist(0);
+    setArrived(false);
+    arrivedRef.current = false;
+    setStoryCount(0);
+    storyCountRef.current = 0;
+    setLog([]);
+    setActiveStory(null);
     setStoryText("");
+    isGeneratingRef.current = false;
 
-    const prompt = buildPrompt(point.name, category, speedKmh);
+    const places = await fetchRoute(startPlace, endPlace);
+    setSimRunning(true);
+    addLog("🚗 Fahrt gestartet", "start");
 
-    try {
-      const res = await fetch("/api/story", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ placeName: point.name, category, speedKmh }),
+    // Generate intro immediately
+    setTimeout(() => {
+      generateStory(startPlace.name, true, {
+        start: startPlace.name,
+        end: endPlace.name,
+        places: places.length > 0 ? places : [startPlace.name, endPlace.name],
       });
-      const data = await res.json();
-      if (res.ok && data.text) {
-        setStoryText(data.text);
-        setStoryLoading(false);
-        speakText(data.text);
-        return;
+    }, 500);
+  }, [startPlace, endPlace, fetchRoute, stopSpeech, addLog, generateStory]);
+
+  // ─── Simulation tick ──────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!simRunning || !routeWPs.length) return;
+
+    simRef.current = setInterval(async () => {
+      simDistRef.current = Math.min(simDistRef.current + simSpeed * 0.4, totalDist);
+      const d = simDistRef.current;
+      setSimDist(d);
+      setCurrentDist(d);
+      setSpeedKmh(Math.round(simSpeed * 3.6));
+      speedRef.current = Math.round(simSpeed * 3.6);
+
+      // Reverse geocode periodically
+      if (d - lastGeoRef.current > 500) {
+        lastGeoRef.current = d;
+        const idx = Math.min(Math.floor(d / totalDist * routeWPs.length), routeWPs.length-1);
+        const pos = routeWPs[idx];
+        geocodePosition(pos.lat, pos.lon);
       }
-    } catch {}
 
-    // Fallback story
-    const fallback = `Du befindest dich gerade in ${point.name}. ${point.isDestination ? "Du hast dein Ziel erreicht!" : "Dieser Ort hat eine reiche Geschichte, die Jahrhunderte zurückreicht. Die Menschen hier haben diese Landschaft geprägt und hinterlassen Spuren, die bis heute sichtbar sind. Schau um dich — jeder Stein, jede Straße erzählt eine Geschichte."}`;
-    setStoryText(fallback);
-    setStoryLoading(false);
-    speakText(fallback);
-  }, [category, speedKmh, addLog]);
-
-  // ─── Speech ─────────────────────────────────────────────────────────────────
-  const speakText = useCallback((text) => {
-    window.speechSynthesis?.cancel();
-    clearInterval(progRef.current);
-    setSpeaking(true);
-    setSpProgress(0);
-
-    const utter = new SpeechSynthesisUtterance(text);
-    if (voices[voiceIdx]) utter.voice = voices[voiceIdx];
-    utter.lang = "de-DE";
-    utter.rate = 0.88;
-
-    const estDur = text.length / 11.5;
-    const t0 = Date.now();
-    progRef.current = setInterval(() => {
-      setSpProgress(Math.min((Date.now() - t0) / 1000 / estDur * 100, 100));
-    }, 250);
-
-    utter.onend = () => {
-      setSpeaking(false);
-      clearInterval(progRef.current);
-      setSpProgress(100);
-      if (queueRef.current.length > 0) {
-        const next = queueRef.current.shift();
-        setQueue([...queueRef.current]);
-        setTimeout(() => generateStory(next), 800);
-      }
-    };
-    utter.onerror = () => { setSpeaking(false); clearInterval(progRef.current); };
-    window.speechSynthesis?.speak(utter);
-  }, [voices, voiceIdx, generateStory]);
-
-  const stopSpeech = useCallback(() => {
-    window.speechSynthesis?.cancel();
-    setSpeaking(false);
-    clearInterval(progRef.current);
-  }, []);
-
-  // ─── Check proximity to story points ────────────────────────────────────────
-  const checkProximity = useCallback((lat, lon, distTraveled) => {
-    storyPoints.forEach(point => {
-      if (triggeredRef.current.has(point.id)) return;
-      const distToPoint = haversine(lat, lon, point.lat, point.lon);
-      const distAlongToPoint = Math.abs(point.distAlong - distTraveled);
-
-      if (distToPoint < STORY_RADIUS_M || distAlongToPoint < LOOKAHEAD_M) {
-        if (triggeredRef.current.has("speaking")) {
-          queueRef.current.push(point);
-          setQueue([...queueRef.current]);
-          addLog(`⏳ Warteschlange: ${point.name}`, "queue");
-          triggeredRef.current.add(point.id);
-          setTriggered(new Set(triggeredRef.current));
-        } else {
-          generateStory(point);
-        }
-      }
-    });
-
-    // Check arrival
-    if (storyPoints.length > 0) {
-      const dest = storyPoints[storyPoints.length - 1];
-      const distToDest = haversine(lat, lon, dest.lat, dest.lon);
-      if (distToDest < 100 && !triggeredRef.current.has("arrived")) {
-        triggeredRef.current.add("arrived");
+      // Check arrival
+      if (d >= totalDist && !arrivedRef.current) {
+        arrivedRef.current = true;
         setArrived(true);
+        clearInterval(simRef.current);
+        setSimRunning(false);
         addLog("🏁 Ziel erreicht!", "arrival");
-      }
-    }
-  }, [storyPoints, generateStory, addLog]);
-
-  // ─── Real GPS ───────────────────────────────────────────────────────────────
-  const startRealGPS = useCallback(() => {
-    if (!navigator.geolocation) {
-      setGpsError("GPS wird von diesem Browser nicht unterstützt");
-      return;
-    }
-    addLog("📡 GPS aktiviert", "start");
-    gpsRef.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        const { latitude: lat, longitude: lon, speed } = pos.coords;
-        const now = Date.now();
-
-        // Calculate speed
-        if (lastPosRef.current && lastTimeRef.current) {
-          const dist = haversine(lastPosRef.current.lat, lastPosRef.current.lon, lat, lon);
-          const time = (now - lastTimeRef.current) / 1000;
-          const kmh = time > 0 ? (dist / time) * 3.6 : 0;
-          setSpeedKmh(Math.round(kmh));
+        if (!isSpeakingRef.current && !isGeneratingRef.current) {
+          generateStory(endPlace?.name || "Ziel", false);
         }
+      }
+    }, 400);
 
-        lastPosRef.current = { lat, lon };
-        lastTimeRef.current = now;
+    return () => clearInterval(simRef.current);
+  }, [simRunning, simSpeed, totalDist, routeWPs, geocodePosition, generateStory, endPlace, addLog]);
+
+  // ─── Real GPS ─────────────────────────────────────────────────────────────
+  const startRealGPS = useCallback(() => {
+    if (!navigator.geolocation) { setGpsError("GPS nicht verfügbar"); return; }
+    addLog("📡 GPS aktiv", "start");
+    gpsRef.current = navigator.geolocation.watchPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lon } = pos.coords;
         setGpsPos({ lat, lon });
         setGpsError("");
 
-        if (routeWaypoints.length > 0) {
-          const traveled = distAlongRoute(routeWaypoints, lat, lon);
-          setCurrentDist(traveled);
-          checkProximity(lat, lon, traveled);
+        // Geocode and generate story if not speaking
+        if (!isSpeakingRef.current && !isGeneratingRef.current) {
+          const name = await geocodePosition(lat, lon);
+          if (name !== currentLocRef.current) generateStory(name);
         }
       },
-      (err) => setGpsError("GPS-Fehler: " + err.message),
-      { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
+      (err) => setGpsError("GPS Fehler: " + err.message),
+      { enableHighAccuracy: true, maximumAge: 3000 }
     );
-  }, [routeWaypoints, checkProximity, addLog]);
+  }, [addLog, geocodePosition, generateStory]);
 
   const stopRealGPS = useCallback(() => {
     if (gpsRef.current) navigator.geolocation.clearWatch(gpsRef.current);
-    addLog("📡 GPS gestoppt", "info");
-  }, [addLog]);
+  }, []);
 
-  // ─── Simulation ─────────────────────────────────────────────────────────────
-  const generateIntro = useCallback(async (start, end, points) => {
-    if (triggeredRef.current.has("intro")) return;
-    triggeredRef.current.add("intro");
-    setTriggered(new Set(triggeredRef.current));
-
-    const placeNames = points.slice(0, -1).map(p => p.name).filter((v,i,a) => a.indexOf(v)===i).slice(0,4).join(", ");
-    const prompt = `Du bist ein begeisternder Reisebegleiter der eine Fahrt ankündigt.
-
-Start: "${start.name}"
-Ziel: "${end.name}"
-Thema heute: "${category}"
-Orte unterwegs: ${placeNames || "verschiedene Orte"}
-
-Schreibe eine persönliche, warme Einleitung (ca. 80-100 Wörter) die:
-- Die Fahrt von Start nach Ziel ankündigt
-- Das heutige Thema erwähnt
-- 2-3 der Orte unterwegs neugierig macht ohne zu verraten was kommt
-- Mit einem einladenden Satz endet wie "Lehn dich zurück — es geht los"
-- Direkt beginnt ohne "Gerne" oder "Willkommen"
-- Auf Deutsch, warm und persönlich klingt`;
-
-    setStoryLoading(true);
-    setActiveStory({ id: "intro", name: `${start.name} → ${end.name}`, isIntro: true });
-    setStoryText("");
-    addLog("🎙️ Einleitung wird generiert…", "story");
-
-    try {
-      const res = await fetch("/api/story", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ placeName: `${start.name} nach ${end.name}`, category, speedKmh, customPrompt: prompt }),
-      });
-      const data = await res.json();
-      if (res.ok && data.text) {
-        setStoryText(data.text);
-        setStoryLoading(false);
-        speakText(data.text);
-        return;
-      }
-    } catch {}
-
-    const fallback = `Du fährst heute von ${start.name} nach ${end.name} — eine Route voller ${category}. ${placeNames ? `Unterwegs kommen wir an ${placeNames} vorbei.` : ""} Lehn dich zurück — es geht los.`;
-    setStoryText(fallback);
-    setStoryLoading(false);
-    speakText(fallback);
-  }, [category, speedKmh, addLog, speakText]);
-
-  const startSim = useCallback(() => {
-    simDistRef.current = 0;
-    triggeredRef.current = new Set();
-    queueRef.current = [];
-    stopSpeech();
-    setSimDist(0);
-    setCurrentDist(0);
-    setTriggered(new Set());
-    setQueue([]);
-    setLog([]);
-    setArrived(false);
-    setActiveStory(null);
-    setStoryText("");
-    setSimRunning(true);
-    addLog(`🚗 Simulation gestartet`, "start");
-
-    // Auto-trigger intro story
-    setTimeout(() => {
-      if (startPlace && endPlace) {
-        generateIntro(startPlace, endPlace, storyPoints);
-      }
-    }, 800);
-  }, [stopSpeech, addLog, startPlace, endPlace, storyPoints, generateIntro]);
-
-  useEffect(() => {
-    if (!simRunning || !routeWaypoints.length) return;
-    simRef.current = setInterval(() => {
-      simDistRef.current = Math.min(simDistRef.current + simSpeed * 0.4, totalDist);
-      setSimDist(simDistRef.current);
-      setCurrentDist(simDistRef.current);
-      setSpeedKmh(Math.round(simSpeed * 3.6));
-
-      // Find position at current dist
-      let accumulated = 0;
-      for (let i = 0; i < routeWaypoints.length - 1; i++) {
-        const seg = haversine(routeWaypoints[i].lat, routeWaypoints[i].lon, routeWaypoints[i+1].lat, routeWaypoints[i+1].lon);
-        if (accumulated + seg >= simDistRef.current) {
-          const t = (simDistRef.current - accumulated) / seg;
-          const lat = routeWaypoints[i].lat + (routeWaypoints[i+1].lat - routeWaypoints[i].lat) * t;
-          const lon = routeWaypoints[i].lon + (routeWaypoints[i+1].lon - routeWaypoints[i].lon) * t;
-          checkProximity(lat, lon, simDistRef.current);
-          break;
-        }
-        accumulated += seg;
-      }
-
-      if (simDistRef.current >= totalDist) {
-        clearInterval(simRef.current);
-        setSimRunning(false);
-        setArrived(true);
-        addLog("🏁 Simulation beendet", "arrival");
-      }
-    }, 400);
-    return () => clearInterval(simRef.current);
-  }, [simRunning, simSpeed, totalDist, routeWaypoints, checkProximity, addLog]);
-
-  // ─── SVG Map ────────────────────────────────────────────────────────────────
+  // ─── Map ──────────────────────────────────────────────────────────────────
   const W = 340, H = 140, P = 12;
-  const mapEl = routeWaypoints.length > 0 ? (() => {
-    const lats = routeWaypoints.map(w => w.lat);
-    const lons = routeWaypoints.map(w => w.lon);
+  const mapData = routeWPs.length > 0 ? (() => {
+    const lats = routeWPs.map(w => w.lat), lons = routeWPs.map(w => w.lon);
     const minLat = Math.min(...lats), maxLat = Math.max(...lats);
     const minLon = Math.min(...lons), maxLon = Math.max(...lons);
-    const px = lon => P + (lon - minLon) / (Math.max(maxLon - minLon, 0.001)) * (W - P*2);
-    const py = lat => H - P - (lat - minLat) / (Math.max(maxLat - minLat, 0.001)) * (H - P*2);
-
-    // Car position
-    let carX = px(routeWaypoints[0].lon), carY = py(routeWaypoints[0].lat);
-    let accumulated = 0;
-    const cd = gpsMode === "sim" ? simDist : currentDist;
-    for (let i = 0; i < routeWaypoints.length - 1; i++) {
-      const seg = haversine(routeWaypoints[i].lat, routeWaypoints[i].lon, routeWaypoints[i+1].lat, routeWaypoints[i+1].lon);
-      if (accumulated + seg >= cd) {
-        const t = (cd - accumulated) / seg;
-        carX = px(routeWaypoints[i].lon + (routeWaypoints[i+1].lon - routeWaypoints[i].lon) * t);
-        carY = py(routeWaypoints[i].lat + (routeWaypoints[i+1].lat - routeWaypoints[i].lat) * t);
-        break;
-      }
-      accumulated += seg;
-    }
-
-    return { px, py, carX, carY, minLat, maxLat, minLon, maxLon };
+    const px = lon => P + (lon-minLon)/Math.max(maxLon-minLon,0.001)*(W-P*2);
+    const py = lat => H-P - (lat-minLat)/Math.max(maxLat-minLat,0.001)*(H-P*2);
+    const idx = Math.min(Math.floor(currentDist/Math.max(totalDist,1)*routeWPs.length), routeWPs.length-1);
+    return { px, py, carX: px(routeWPs[idx].lon), carY: py(routeWPs[idx].lat) };
   })() : null;
 
-  const pct = totalDist > 0 ? Math.min(currentDist / totalDist * 100, 100) : 0;
-  const fmt = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`;
+  const pct = totalDist > 0 ? Math.min(currentDist/totalDist*100,100) : 0;
 
   return (
     <div style={{ minHeight:"100vh", background:"linear-gradient(170deg,#09090f 0%,#110e08 55%,#080f08 100%)", fontFamily:"Georgia,serif", color:"#f0ede5", overflowX:"hidden" }}>
@@ -533,7 +500,7 @@ Schreibe eine persönliche, warme Einleitung (ca. 80-100 Wörter) die:
       <div style={{ maxWidth:480, margin:"0 auto", padding:"0 16px 64px" }}>
 
         {/* Header */}
-        <div style={{ textAlign:"center", padding:"26px 0 14px" }}>
+        <div style={{ textAlign:"center", padding:"24px 0 12px" }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:9, marginBottom:3 }}>
             <span style={{ fontSize:20 }}>🧭</span>
             <span style={{ fontSize:"1.65rem", fontWeight:700, letterSpacing:"-.02em" }}>
@@ -546,14 +513,10 @@ Schreibe eine persönliche, warme Einleitung (ca. 80-100 Wörter) die:
         </div>
 
         {/* Mode toggle */}
-        <div style={{ display:"flex", gap:8, marginBottom:14 }}>
+        <div style={{ display:"flex", gap:8, marginBottom:12 }}>
           {["sim","real"].map(m => (
             <button key={m} onClick={() => { setGpsMode(m); if(m==="real") startRealGPS(); else stopRealGPS(); }}
-              style={{ flex:1, padding:"9px", borderRadius:10,
-                border:`1px solid ${gpsMode===m?"#c8860a":"rgba(200,134,10,.2)"}`,
-                background:gpsMode===m?"rgba(200,134,10,.12)":"transparent",
-                color:gpsMode===m?"#c8860a":"#6a5830",
-                fontFamily:"sans-serif", fontSize:".8rem", cursor:"pointer", transition:"all .2s" }}>
+              style={{ flex:1, padding:"9px", borderRadius:10, border:`1px solid ${gpsMode===m?"#c8860a":"rgba(200,134,10,.2)"}`, background:gpsMode===m?"rgba(200,134,10,.12)":"transparent", color:gpsMode===m?"#c8860a":"#6a5830", fontFamily:"sans-serif", fontSize:".8rem", cursor:"pointer", transition:"all .2s" }}>
               {m==="sim" ? "🚗 Simulation" : "📡 Echtes GPS"}
             </button>
           ))}
@@ -563,110 +526,99 @@ Schreibe eine persönliche, warme Einleitung (ca. 80-100 Wörter) die:
 
         {/* Route input */}
         <div style={{ background:"rgba(255,255,255,.03)", border:"1px solid rgba(200,134,10,.2)", borderRadius:16, padding:16, marginBottom:12 }}>
-          <div style={{ fontSize:".66rem", color:"#5a4820", textTransform:"uppercase", letterSpacing:".1em", marginBottom:10 }}>Route eingeben</div>
+          <div style={{ fontSize:".66rem", color:"#5a4820", textTransform:"uppercase", letterSpacing:".1em", marginBottom:10 }}>Route</div>
 
           {/* Start */}
           <div style={{ position:"relative", marginBottom:8 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
               <div style={{ width:8, height:8, borderRadius:"50%", background:"#5ab05a", flexShrink:0 }}/>
               <span style={{ fontSize:".72rem", color:"#6a5830" }}>Start</span>
             </div>
             <input value={startInput} onChange={e=>onStartInput(e.target.value)}
-              placeholder="z.B. Grenzweg 9, Walbeck…"
+              placeholder="z.B. Walbeck, Geldern…"
               style={{ width:"100%", background:"rgba(255,255,255,.06)", border:"1px solid rgba(200,134,10,.25)", borderRadius:9, padding:"9px 12px", color:"#f0ede5", fontFamily:"sans-serif", fontSize:".85rem", outline:"none" }}/>
             {startSugg.length > 0 && (
               <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, background:"#1a1208", border:"1px solid rgba(200,134,10,.2)", borderRadius:9, overflow:"hidden", zIndex:100, boxShadow:"0 8px 24px rgba(0,0,0,.6)" }}>
-                {startSugg.map((s,i) => {
-                  const parts = s.display_name.split(", ");
-                  return <div key={i} onClick={()=>{ setStartPlace({name:parts[0], lat:parseFloat(s.lat), lon:parseFloat(s.lon)}); setStartInput(parts[0]); setStartSugg([]); }}
+                {startSugg.map((s,i) => { const p=s.display_name.split(", "); return (
+                  <div key={i} onClick={()=>{ setStartPlace({name:p[0],lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setStartInput(p[0]); setStartSugg([]); }}
                     style={{ padding:"9px 12px", cursor:"pointer", borderBottom:"1px solid rgba(200,134,10,.08)" }}
                     onMouseEnter={e=>e.currentTarget.style.background="rgba(200,134,10,.1)"}
                     onMouseLeave={e=>e.currentTarget.style.background=""}>
-                    <div style={{ fontSize:".85rem" }}>{parts[0]}</div>
-                    <div style={{ fontSize:".7rem", color:"#5a4820", marginTop:2 }}>{parts.slice(1,3).join(", ")}</div>
-                  </div>;
-                })}
+                    <div style={{ fontSize:".85rem" }}>{p[0]}</div>
+                    <div style={{ fontSize:".7rem", color:"#5a4820", marginTop:2 }}>{p.slice(1,3).join(", ")}</div>
+                  </div>
+                ); })}
               </div>
             )}
           </div>
 
           {/* End */}
           <div style={{ position:"relative", marginBottom:12 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
               <div style={{ width:8, height:8, borderRadius:"50%", background:"#c84030", flexShrink:0 }}/>
               <span style={{ fontSize:".72rem", color:"#6a5830" }}>Ziel</span>
             </div>
             <input value={endInput} onChange={e=>onEndInput(e.target.value)}
-              placeholder="z.B. Südwall 21, Geldern…"
+              placeholder="z.B. Kevelaer, Geldern…"
               style={{ width:"100%", background:"rgba(255,255,255,.06)", border:"1px solid rgba(200,134,10,.25)", borderRadius:9, padding:"9px 12px", color:"#f0ede5", fontFamily:"sans-serif", fontSize:".85rem", outline:"none" }}/>
             {endSugg.length > 0 && (
               <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, background:"#1a1208", border:"1px solid rgba(200,134,10,.2)", borderRadius:9, overflow:"hidden", zIndex:100, boxShadow:"0 8px 24px rgba(0,0,0,.6)" }}>
-                {endSugg.map((s,i) => {
-                  const parts = s.display_name.split(", ");
-                  return <div key={i} onClick={()=>{ setEndPlace({name:parts[0], lat:parseFloat(s.lat), lon:parseFloat(s.lon)}); setEndInput(parts[0]); setEndSugg([]); }}
+                {endSugg.map((s,i) => { const p=s.display_name.split(", "); return (
+                  <div key={i} onClick={()=>{ setEndPlace({name:p[0],lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setEndInput(p[0]); setEndSugg([]); }}
                     style={{ padding:"9px 12px", cursor:"pointer", borderBottom:"1px solid rgba(200,134,10,.08)" }}
                     onMouseEnter={e=>e.currentTarget.style.background="rgba(200,134,10,.1)"}
                     onMouseLeave={e=>e.currentTarget.style.background=""}>
-                    <div style={{ fontSize:".85rem" }}>{parts[0]}</div>
-                    <div style={{ fontSize:".7rem", color:"#5a4820", marginTop:2 }}>{parts.slice(1,3).join(", ")}</div>
-                  </div>;
-                })}
+                    <div style={{ fontSize:".85rem" }}>{p[0]}</div>
+                    <div style={{ fontSize:".7rem", color:"#5a4820", marginTop:2 }}>{p.slice(1,3).join(", ")}</div>
+                  </div>
+                ); })}
               </div>
             )}
           </div>
 
-          <button onClick={()=>{ if(startPlace&&endPlace) fetchRoute(startPlace,endPlace); }}
-            disabled={!startPlace||!endPlace||routeLoading}
-            style={{ width:"100%", padding:"11px", background:startPlace&&endPlace?"linear-gradient(135deg,#c8860a,#9a6408)":"rgba(200,134,10,.2)", border:"none", borderRadius:10, color:startPlace&&endPlace?"#120e06":"#5a4820", fontFamily:"sans-serif", fontSize:".88rem", fontWeight:600, cursor:startPlace&&endPlace?"pointer":"default", transition:"all .2s" }}>
-            {routeLoading ? "Route wird berechnet…" : "🗺️ Route berechnen"}
-          </button>
+          {/* Category */}
+          <div style={{ fontSize:".66rem", color:"#5a4820", textTransform:"uppercase", letterSpacing:".08em", marginBottom:7 }}>Thema</div>
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:12 }}>
+            {CATEGORIES.map(c => (
+              <button key={c} onClick={()=>setCategory(c)} style={{ padding:"5px 11px", borderRadius:16, border:`1px solid ${category===c?"#c8860a":"#3a2f1a"}`, background:category===c?"rgba(200,134,10,.12)":"transparent", color:category===c?"#c8860a":"#6a5830", fontFamily:"sans-serif", fontSize:".73rem", cursor:"pointer" }}>
+                {c}
+              </button>
+            ))}
+          </div>
 
-          {routeError && <div style={{ marginTop:8, fontSize:".75rem", color:"#c88070" }}>⚠️ {routeError}</div>}
-        </div>
-
-        {/* Category */}
-        <div style={{ display:"flex", gap:7, overflowX:"auto", padding:"4px 0 8px", scrollbarWidth:"none" }}>
-          {CATEGORIES.map(c => (
-            <button key={c} onClick={()=>setCategory(c)} style={{ flexShrink:0, padding:"6px 12px", borderRadius:18, border:`1px solid ${category===c?"#c8860a":"#3a2f1a"}`, background:category===c?"rgba(200,134,10,.12)":"transparent", color:category===c?"#c8860a":"#6a5830", fontFamily:"sans-serif", fontSize:".74rem", cursor:"pointer", whiteSpace:"nowrap" }}>
-              {c}
-            </button>
-          ))}
+          {routeError && <div style={{ fontSize:".75rem", color:"#c88070", marginBottom:8 }}>⚠️ {routeError}</div>}
         </div>
 
         {/* Map */}
-        {routeWaypoints.length > 0 && mapEl && (
+        {routeWPs.length > 0 && mapData && (
           <div style={{ background:"rgba(0,0,0,.45)", border:"1px solid rgba(200,134,10,.12)", borderRadius:12, overflow:"hidden", marginBottom:11, position:"relative" }}>
             <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display:"block" }}>
-              {routeWaypoints.slice(0,-1).map((wp,i) => {
-                const nx = routeWaypoints[i+1];
-                return <line key={i} x1={mapEl.px(wp.lon)} y1={mapEl.py(wp.lat)} x2={mapEl.px(nx.lon)} y2={mapEl.py(nx.lat)} stroke="rgba(200,134,10,.2)" strokeWidth="2" strokeLinecap="round"/>;
-              })}
-
-              {storyPoints.map(sp => (
-                <circle key={sp.id} cx={mapEl.px(sp.lon)} cy={mapEl.py(sp.lat)} r={triggered.has(sp.id)?5:3.5}
-                  fill={triggered.has(sp.id)?"#c8860a":"rgba(200,134,10,.3)"}
-                  stroke={triggered.has(sp.id)?"#e8a820":"rgba(200,134,10,.5)"} strokeWidth="1.5"/>
+              {routeWPs.slice(0,-1).map((wp,i) => (
+                <line key={i} x1={mapData.px(wp.lon)} y1={mapData.py(wp.lat)} x2={mapData.px(routeWPs[i+1].lon)} y2={mapData.py(routeWPs[i+1].lat)} stroke="rgba(200,134,10,.2)" strokeWidth="2" strokeLinecap="round"/>
               ))}
-
-              <circle cx={mapEl.px(routeWaypoints[0].lon)} cy={mapEl.py(routeWaypoints[0].lat)} r={5} fill="#5ab05a" stroke="#7ad07a" strokeWidth="1.5"/>
-              <circle cx={mapEl.px(routeWaypoints[routeWaypoints.length-1].lon)} cy={mapEl.py(routeWaypoints[routeWaypoints.length-1].lat)} r={5} fill="#c84030" stroke="#e86050" strokeWidth="1.5"/>
-
-              {(simDist > 0 || gpsPos) && (
+              <circle cx={mapData.px(routeWPs[0].lon)} cy={mapData.py(routeWPs[0].lat)} r={5} fill="#5ab05a" stroke="#7ad07a" strokeWidth="1.5"/>
+              <circle cx={mapData.px(routeWPs[routeWPs.length-1].lon)} cy={mapData.py(routeWPs[routeWPs.length-1].lat)} r={5} fill="#c84030" stroke="#e86050" strokeWidth="1.5"/>
+              {currentDist > 0 && (
                 <g style={{ animation:(simRunning||gpsMode==="real")?"carAnim .5s ease-in-out infinite":"none" }}>
-                  <circle cx={mapEl.carX} cy={mapEl.carY} r={8} fill="rgba(200,134,10,.2)" stroke="#c8860a" strokeWidth="1.5"/>
-                  <text x={mapEl.carX} y={mapEl.carY+5.5} textAnchor="middle" fontSize="10" style={{userSelect:"none"}}>
+                  <circle cx={mapData.carX} cy={mapData.carY} r={8} fill="rgba(200,134,10,.2)" stroke="#c8860a" strokeWidth="1.5"/>
+                  <text x={mapData.carX} y={mapData.carY+5.5} textAnchor="middle" fontSize="10" style={{userSelect:"none"}}>
                     {speedKmh < 8 ? "🚶" : speedKmh < 25 ? "🚴" : "🚗"}
                   </text>
                 </g>
               )}
             </svg>
+            {currentLocationName && (
+              <div style={{ position:"absolute", bottom:6, left:8, fontSize:".65rem", color:"#6a5830" }}>
+                📍 {currentLocationName}
+              </div>
+            )}
           </div>
         )}
 
         {/* Progress */}
         {totalDist > 0 && (
           <div style={{ marginBottom:11 }}>
-            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:5 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
               <span style={{ fontSize:".7rem", color:"#5a4820" }}>{startPlace?.name}</span>
               <span style={{ fontSize:".72rem", color:"#c8860a", fontWeight:600 }}>{pct.toFixed(1)}%</span>
               <span style={{ fontSize:".7rem", color:"#5a4820" }}>{endPlace?.name}</span>
@@ -676,77 +628,78 @@ Schreibe eine persönliche, warme Einleitung (ca. 80-100 Wörter) die:
             </div>
             <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
               <span style={{ fontSize:".67rem", color:"#3a2e10" }}>{(currentDist/1000).toFixed(2)} km</span>
-              <span style={{ fontSize:".67rem", color:"#3a2e10" }}>{speedKmh} km/h</span>
-              <span style={{ fontSize:".67rem", color:"#3a2e10" }}>{((totalDist-currentDist)/1000).toFixed(2)} km verbleibend</span>
+              <span style={{ fontSize:".67rem", color:"#c8860a" }}>{speedKmh} km/h · {storyCount} Stories</span>
+              <span style={{ fontSize:".67rem", color:"#3a2e10" }}>{((totalDist-currentDist)/1000).toFixed(2)} km</span>
             </div>
           </div>
         )}
 
-        {/* Voice + Speed */}
-        {routeWaypoints.length > 0 && (
-          <>
-            {gpsMode === "sim" && (
-              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                <span style={{ fontSize:".68rem", color:"#3a2e10", flexShrink:0 }}>🚗</span>
-                <input type="range" min={3} max={30} value={simSpeed} onChange={e=>setSimSpeed(+e.target.value)} style={{ flex:1, accentColor:"#c8860a" }}/>
-                <span style={{ fontSize:".73rem", color:"#c8860a", width:48, textAlign:"right" }}>{Math.round(simSpeed*3.6)} km/h</span>
-              </div>
-            )}
-
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-              <span style={{ fontSize:".68rem", color:"#3a2e10", flexShrink:0 }}>🎙️</span>
-              <select value={voiceIdx} onChange={e=>setVoiceIdx(+e.target.value)}
-                style={{ flex:1, background:"rgba(255,255,255,.04)", border:"1px solid rgba(200,134,10,.18)", borderRadius:8, color:"#f0ede5", fontFamily:"sans-serif", fontSize:".79rem", padding:"6px 9px", outline:"none", cursor:"pointer" }}>
-                {voices.map((v,i)=><option key={i} value={i}>{v.lang.startsWith("de")?"🇩🇪 ":"🌐 "}{v.name}</option>)}
-                {!voices.length && <option>Standard</option>}
-              </select>
-            </div>
-
-            {/* CTA */}
-            {gpsMode === "sim" && (
-              <div style={{ display:"flex", gap:9, marginBottom:14 }}>
-                {!simRunning && currentDist === 0 ? (
-                  <button onClick={startSim} style={{ flex:1, padding:15, background:"linear-gradient(135deg,#c8860a,#9a6408)", border:"none", borderRadius:13, color:"#120e06", fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:"pointer", boxShadow:"0 4px 22px rgba(200,134,10,.3)" }}>
-                    🚗 Fahrt simulieren
-                  </button>
-                ) : (
-                  <>
-                    <button onClick={()=>setSimRunning(r=>!r)} style={{ flex:1, padding:13, background:simRunning?"rgba(200,134,10,.12)":"linear-gradient(135deg,#c8860a,#9a6408)", border:`1px solid ${simRunning?"rgba(200,134,10,.3)":"transparent"}`, borderRadius:12, color:simRunning?"#c8860a":"#120e06", fontFamily:"sans-serif", fontSize:".88rem", fontWeight:600, cursor:"pointer" }}>
-                      {simRunning?"⏸ Pause":"▶ Weiter"}
-                    </button>
-                    <button onClick={startSim} style={{ padding:"13px 16px", background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.08)", borderRadius:12, color:"#5a4820", fontFamily:"sans-serif", fontSize:".88rem", cursor:"pointer" }}>
-                      ↺ Neu
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-
-            {gpsMode === "real" && (
-              <div style={{ padding:"12px 16px", background:"rgba(200,134,10,.06)", border:"1px solid rgba(200,134,10,.2)", borderRadius:12, marginBottom:14, fontSize:".82rem", color:"#8a7840" }}>
-                📡 GPS aktiv — fahre einfach los. Stories spielen automatisch ab wenn du an einem Punkt vorbeikommst.
-                {gpsPos && <div style={{ marginTop:4, fontSize:".72rem", color:"#5a4820" }}>Position: {gpsPos.lat.toFixed(5)}°N, {gpsPos.lon.toFixed(5)}°E</div>}
-              </div>
-            )}
-          </>
+        {/* Speed + Voice */}
+        {routeWPs.length > 0 && gpsMode === "sim" && (
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+            <span style={{ fontSize:".68rem", color:"#3a2e10", flexShrink:0 }}>🚗</span>
+            <input type="range" min={3} max={30} value={simSpeed} onChange={e=>setSimSpeed(+e.target.value)} style={{ flex:1, accentColor:"#c8860a" }}/>
+            <span style={{ fontSize:".73rem", color:"#c8860a", width:48, textAlign:"right" }}>{Math.round(simSpeed*3.6)} km/h</span>
+          </div>
         )}
 
-        {/* Active story */}
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+          <span style={{ fontSize:".68rem", color:"#3a2e10", flexShrink:0 }}>🎙️</span>
+          <select value={voiceIdx} onChange={e=>setVoiceIdx(+e.target.value)}
+            style={{ flex:1, background:"rgba(255,255,255,.04)", border:"1px solid rgba(200,134,10,.18)", borderRadius:8, color:"#f0ede5", fontFamily:"sans-serif", fontSize:".79rem", padding:"6px 9px", outline:"none", cursor:"pointer" }}>
+            {voices.map((v,i)=><option key={i} value={i}>{v.lang.startsWith("de")?"🇩🇪 ":"🌐 "}{v.name}</option>)}
+            {!voices.length && <option>Standard</option>}
+          </select>
+        </div>
+
+        {/* CTA */}
+        {gpsMode === "sim" && (
+          <div style={{ display:"flex", gap:9, marginBottom:14 }}>
+            {!simRunning && !arrived ? (
+              <button onClick={startSim} disabled={!startPlace||!endPlace||routeLoading}
+                style={{ flex:1, padding:15, background:startPlace&&endPlace?"linear-gradient(135deg,#c8860a,#9a6408)":"rgba(200,134,10,.2)", border:"none", borderRadius:13, color:startPlace&&endPlace?"#120e06":"#5a4820", fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:startPlace&&endPlace?"pointer":"default", boxShadow:startPlace&&endPlace?"0 4px 22px rgba(200,134,10,.3)":"none" }}>
+                {routeLoading ? "Route wird berechnet…" : !startPlace||!endPlace ? "← Start & Ziel eingeben" : "🚗 Fahrt starten"}
+              </button>
+            ) : (
+              <>
+                <button onClick={()=>setSimRunning(r=>!r)}
+                  style={{ flex:1, padding:13, background:simRunning?"rgba(200,134,10,.12)":"linear-gradient(135deg,#c8860a,#9a6408)", border:`1px solid ${simRunning?"rgba(200,134,10,.3)":"transparent"}`, borderRadius:12, color:simRunning?"#c8860a":"#120e06", fontFamily:"sans-serif", fontSize:".88rem", fontWeight:600, cursor:"pointer" }}>
+                  {simRunning?"⏸ Pause":"▶ Weiter"}
+                </button>
+                <button onClick={startSim}
+                  style={{ padding:"13px 16px", background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.08)", borderRadius:12, color:"#5a4820", fontFamily:"sans-serif", fontSize:".88rem", cursor:"pointer" }}>
+                  ↺ Neu
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        {gpsMode === "real" && (
+          <div style={{ padding:"12px 16px", background:"rgba(200,134,10,.06)", border:"1px solid rgba(200,134,10,.2)", borderRadius:12, marginBottom:14, fontSize:".82rem", color:"#8a7840" }}>
+            📡 GPS aktiv — fahre einfach los. Stories starten automatisch und passen sich deiner Geschwindigkeit an.
+            {gpsPos && <div style={{ marginTop:4, fontSize:".72rem", color:"#5a4820" }}>📍 {gpsPos.lat.toFixed(4)}°N, {gpsPos.lon.toFixed(4)}°E</div>}
+          </div>
+        )}
+
+        {/* Story panel */}
         {(activeStory || storyLoading) && (
           <div style={{ background:"rgba(200,134,10,.07)", border:"1px solid rgba(200,134,10,.28)", borderRadius:18, overflow:"hidden", marginBottom:13, animation:"slideIn .35s ease" }}>
             <div style={{ padding:"15px 17px 0", display:"flex", alignItems:"flex-start", justifyContent:"space-between" }}>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:".66rem", color:"#6a5228", textTransform:"uppercase", letterSpacing:".12em", marginBottom:3 }}>
-                  {activeStory?.isDestination ? "🏁 Ziel erreicht" : "📍 Story"}
+                  {activeStory?.isIntro ? "🎙️ Einleitung" : `📍 Story ${storyCount}`}
                 </div>
                 <div style={{ fontStyle:"italic", fontSize:"1.1rem", color:"#c8860a", lineHeight:1.25 }}>{activeStory?.name}</div>
+                {!activeStory?.isIntro && speedKmh > 0 && (
+                  <div style={{ fontSize:".68rem", color:"#5a4820", marginTop:4 }}>
+                    {getStoryLength(speedKmh).label} · {category}
+                  </div>
+                )}
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:2.5, paddingTop:5 }}>
                 {[8,13,18,22,17,12,9,16,20,13].map((h,i)=>(
-                  <div key={i} style={{ width:2.5, borderRadius:2, background:"#c8860a",
-                    height:speaking?undefined:h+"px", opacity:speaking?.85:.2,
-                    animation:speaking?`wb ${.28+(i%4)*.13}s ${i*.05}s ease-in-out infinite alternate`:"none",
-                    minHeight:speaking?"3px":undefined, maxHeight:speaking?"22px":undefined }}/>
+                  <div key={i} style={{ width:2.5, borderRadius:2, background:"#c8860a", height:speaking?undefined:h+"px", opacity:speaking?.85:.2, animation:speaking?`wb ${.28+(i%4)*.13}s ${i*.05}s ease-in-out infinite alternate`:"none", minHeight:speaking?"3px":undefined, maxHeight:speaking?"22px":undefined }}/>
                 ))}
               </div>
             </div>
@@ -765,7 +718,7 @@ Schreibe eine persönliche, warme Einleitung (ca. 80-100 Wörter) die:
 
             {storyText && (
               <div style={{ padding:"10px 17px 15px", borderTop:"1px solid rgba(200,134,10,.1)", display:"flex", alignItems:"center", gap:10 }}>
-                <button onClick={()=>speaking?stopSpeech():speakText(storyText)}
+                <button onClick={()=>speaking?stopSpeech():speakStory(storyText)}
                   style={{ width:38, height:38, borderRadius:"50%", background:"#c8860a", border:"none", cursor:"pointer", fontSize:16, flexShrink:0 }}>
                   {speaking?"⏸":"▶"}
                 </button>
@@ -778,50 +731,18 @@ Schreibe eine persönliche, warme Einleitung (ca. 80-100 Wörter) die:
           </div>
         )}
 
-        {/* Story points list */}
-        {storyPoints.length > 0 && (
-          <div style={{ marginBottom:13 }}>
-            <div style={{ fontSize:".65rem", color:"#3a2e10", textTransform:"uppercase", letterSpacing:".13em", marginBottom:8 }}>Story-Punkte</div>
-            <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-              {storyPoints.map(sp => {
-                const done = triggered.has(sp.id);
-                const rem = Math.max(0, sp.distAlong - currentDist);
-                const isCur = activeStory?.id === sp.id;
-                return (
-                  <div key={sp.id} style={{ display:"flex", alignItems:"center", gap:9, padding:"7px 11px", borderRadius:10,
-                    background:isCur?"rgba(200,134,10,.1)":"rgba(255,255,255,.02)",
-                    border:`1px solid ${isCur?"rgba(200,134,10,.28)":"rgba(255,255,255,.04)"}`,
-                    opacity:done?.55:1, transition:"all .3s" }}>
-                    <div style={{ width:7, height:7, borderRadius:"50%", flexShrink:0,
-                      background:done?"#c8860a":rem<300?"#e8a820":"rgba(200,134,10,.28)",
-                      border:`1.5px solid ${done?"#e8a820":"rgba(200,134,10,.4)"}` }}/>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontSize:".78rem", color:done?"#5a4820":"#c0b898" }}>
-                        {sp.isDestination ? "🏁 " : ""}{sp.name}
-                      </div>
-                    </div>
-                    <div style={{ fontSize:".69rem", color:done?"#3a2e10":rem<100?"#e8a820":"#4a3810", flexShrink:0 }}>
-                      {done?"✓":rem<50?"jetzt":`${Math.round(rem)}m`}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Empty state */}
-        {routeWaypoints.length === 0 && (
-          <div style={{ textAlign:"center", padding:"30px 20px", color:"#4a3a1a", fontSize:".87rem", lineHeight:1.7 }}>
+        {!activeStory && !storyLoading && routeWPs.length === 0 && (
+          <div style={{ textAlign:"center", padding:"28px 20px", color:"#4a3a1a", fontSize:".87rem", lineHeight:1.7 }}>
             <div style={{ fontSize:"2.4rem", marginBottom:11 }}>🗺️</div>
-            Start und Ziel eingeben<br/>dann Route berechnen — los geht's!
+            Start und Ziel eingeben<br/>Thema wählen → Fahrt starten<br/>
+            <span style={{ fontSize:".75rem", color:"#3a2a10" }}>Die App erzählt durchgehend — angepasst an deinen Ort und deine Geschwindigkeit</span>
           </div>
         )}
 
         {/* Log */}
         {log.length > 0 && (
-          <div style={{ background:"rgba(0,0,0,.35)", border:"1px solid rgba(255,255,255,.04)", borderRadius:10, padding:"9px 12px", maxHeight:110, overflowY:"auto" }}>
-            <div style={{ fontSize:".63rem", color:"#2a2010", textTransform:"uppercase", letterSpacing:".1em", marginBottom:6 }}>Log</div>
+          <div style={{ background:"rgba(0,0,0,.35)", border:"1px solid rgba(255,255,255,.04)", borderRadius:10, padding:"9px 12px", maxHeight:100, overflowY:"auto" }}>
             {log.map((e,i)=>(
               <div key={i} style={{ fontSize:".71rem", color:e.type==="story"?"#c8860a":e.type==="arrival"?"#5ab05a":"#3a2e10", marginBottom:3, display:"flex", gap:8 }}>
                 <span style={{ flexShrink:0, opacity:.5 }}>{e.t}</span><span>{e.msg}</span>
