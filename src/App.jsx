@@ -515,16 +515,15 @@ export default function App() {
 
         {/* Route card */}
         <div style={{ background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:18, padding:18, marginBottom:14, boxShadow:isDark?"none":"0 2px 12px rgba(0,0,0,0.06)" }}>
-          <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".1em", marginBottom:14, textAlign:"center" }}>Route</div>
+          <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".1em", marginBottom:14 }}>Route</div>
 
           <div style={{ position:"relative", marginBottom:10 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
-              <div style={{ width:8, height:8, borderRadius:"50%", background:"#34C759" }}/>
-              <span style={{ fontSize:".72rem", color:T.textMuted }}>Start</span>
+            <div style={{ position:"relative" }}>
+              <div style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", width:8, height:8, borderRadius:"50%", background:"#34C759", pointerEvents:"none" }}/>
+              <input value={startInput} onChange={e=>onStartInput(e.target.value)}
+                placeholder="z.B. Walbeck, Geldern..."
+                style={{ width:"100%", background:T.bgInput, border:`1px solid ${T.accentBorder}`, borderRadius:10, padding:"10px 14px 10px 28px", color:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none" }}/>
             </div>
-            <input value={startInput} onChange={e=>onStartInput(e.target.value)}
-              placeholder="z.B. Walbeck, Geldern..."
-              style={{ width:"100%", background:T.bgInput, border:`1px solid ${T.accentBorder}`, borderRadius:10, padding:"10px 14px", color:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none" }}/>
             {startSugg.length > 0 && (
               <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, background:T.bgSugg, border:`1px solid ${T.border}`, borderRadius:12, overflow:"hidden", zIndex:100, boxShadow:"0 8px 24px rgba(0,0,0,0.15)" }}>
                 {startSugg.map((s,i) => {
@@ -544,13 +543,12 @@ export default function App() {
           </div>
 
           <div style={{ position:"relative", marginBottom:16 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
-              <div style={{ width:8, height:8, borderRadius:"50%", background:"#FF3B30" }}/>
-              <span style={{ fontSize:".72rem", color:T.textMuted }}>Ziel</span>
+            <div style={{ position:"relative" }}>
+              <div style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", width:8, height:8, borderRadius:"50%", background:"#FF3B30", pointerEvents:"none" }}/>
+              <input value={endInput} onChange={e=>onEndInput(e.target.value)}
+                placeholder="z.B. Kevelaer, Geldern..."
+                style={{ width:"100%", background:T.bgInput, border:`1px solid ${T.accentBorder}`, borderRadius:10, padding:"10px 14px 10px 28px", color:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none" }}/>
             </div>
-            <input value={endInput} onChange={e=>onEndInput(e.target.value)}
-              placeholder="z.B. Kevelaer, Geldern..."
-              style={{ width:"100%", background:T.bgInput, border:`1px solid ${T.accentBorder}`, borderRadius:10, padding:"10px 14px", color:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none" }}/>
             {endSugg.length > 0 && (
               <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, background:T.bgSugg, border:`1px solid ${T.border}`, borderRadius:12, overflow:"hidden", zIndex:100, boxShadow:"0 8px 24px rgba(0,0,0,0.15)" }}>
                 {endSugg.map((s,i) => {
@@ -569,7 +567,7 @@ export default function App() {
             )}
           </div>
 
-          <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".08em", marginBottom:8, textAlign:"center" }}>Thema</div>
+          <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".08em", marginBottom:8 }}>Thema</div>
           <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
             {CATEGORIES.map(c => (
               <button key={c} onClick={() => setCategory(c)}
