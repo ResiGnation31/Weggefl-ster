@@ -506,7 +506,7 @@ export default function App() {
           {["sim","real"].map(m => (
             <button key={m} onClick={() => { setGpsMode(m); if(m==="real") startGPS(); else stopGPS(); }}
               style={{ flex:1, padding:"9px", borderRadius:9, border:"none", background:gpsMode===m?T.bgCard:"transparent", color:gpsMode===m?T.text:T.textMuted, fontFamily:"sans-serif", fontSize:".82rem", fontWeight:gpsMode===m?600:400, cursor:"pointer", transition:"all 0.2s", boxShadow:gpsMode===m?"0 1px 4px rgba(0,0,0,0.08)":"none" }}>
-              {m==="sim" ? "Simulation" : "Echtes GPS"}
+              {m==="sim" ? "Simulation" : "GPS"}
             </button>
           ))}
         </div>
@@ -515,7 +515,7 @@ export default function App() {
 
         {/* Route card */}
         <div style={{ background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:18, padding:18, marginBottom:14, boxShadow:isDark?"none":"0 2px 12px rgba(0,0,0,0.06)" }}>
-          <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".1em", marginBottom:14 }}>Route</div>
+          <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".1em", marginBottom:14, textAlign:"center" }}>Route</div>
 
           <div style={{ position:"relative", marginBottom:10 }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
@@ -569,7 +569,7 @@ export default function App() {
             )}
           </div>
 
-          <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".08em", marginBottom:8 }}>Thema</div>
+          <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".08em", marginBottom:8, textAlign:"center" }}>Thema</div>
           <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
             {CATEGORIES.map(c => (
               <button key={c} onClick={() => setCategory(c)}
