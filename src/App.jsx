@@ -418,9 +418,12 @@ export default function App() {
       async (pos) => {
         setGpsPos({ lat: pos.coords.latitude, lon: pos.coords.longitude });
         setGpsError("");
-        if (!speakingR.current && !generatingR.current) {
-          const name = await geocode(pos.coords.latitude, pos.coords.longitude);
-          if (name) { setCurrentLoc(name); generateStory(name, false, null); }
+        const name = await geocode(pos.coords.latitude, pos.coords.longitude);
+        if (name) {
+          setCurrentLoc(name);
+          if (!speakingR.current && !generatingR.current) {
+            generateStory(name, false, null);
+          }
         }
       },
       (err) => setGpsError("GPS Fehler: " + err.message),
