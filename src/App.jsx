@@ -373,6 +373,8 @@ export default function App() {
   // ── Start simulation ───────────────────────────────────────────────────────
   async function startSim() {
     if (!startPlace || !endPlace) return;
+    // Unlock audio on user gesture (Safari Autoplay Policy)
+    try { const a = new Audio(); a.play().catch(()=>{}); } catch(e) {}
     clearInterval(simRef.current);
     stopAudio();
     simDistR.current = 0;
