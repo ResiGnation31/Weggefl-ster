@@ -29,16 +29,9 @@ function getWordCount(kmh) {
 const CATEGORIES = ["Geschichte", "Natur", "Persönlichkeiten", "Mythen", "Kulinarik", "Architektur"];
 
 export default function App() {
-  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const prefersDark = !(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
   const [isDark, setIsDark] = useState(prefersDark);
-  const toggleTheme = () => {
-    const next = !isDark;
-    setIsDark(next);
-    document.documentElement.setAttribute('data-theme', next ? 'dark' : 'light');
-  };
-  React.useEffect(() => {
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  }, []);
+
   const [startInput, setStartInput] = useState("");
   const [endInput, setEndInput]     = useState("");
   const [startSugg, setStartSugg]   = useState([]);
@@ -58,7 +51,7 @@ export default function App() {
   const [gpsPos, setGpsPos]         = useState(null);
   const [gpsError, setGpsError]     = useState("");
   const [currentLoc, setCurrentLoc] = useState("");
-  const [storyAudio, setStoryAudio]   = useState(null);
+  const [storyAudio, setStoryAudio] = useState(null);
   const [category, setCategory]     = useState("Geschichte");
   const [storyTitle, setStoryTitle] = useState("");
   const [storyText, setStoryText]   = useState("");
@@ -71,26 +64,24 @@ export default function App() {
   const [voiceIdx, setVoiceIdx]     = useState(0);
   const [log, setLog]               = useState([]);
 
-  // Refs for use inside intervals/callbacks
-  const simRef       = useRef(null);
-  const simDistR     = useRef(0);
-  const routeR       = useRef([]);
-  const routeDistR   = useRef(0);
-  const speedR       = useRef(36);
-  const categoryR    = useRef("Geschichte");
-  const speakingR    = useRef(false);
-  const generatingR  = useRef(false);
-  const arrivedR     = useRef(false);
-  const progRef      = useRef(null);
-  const gpsRef       = useRef(null);
-  const audioRef     = useRef(null);
-  const memoryR      = useRef([]);
-  const searchT      = useRef({});
-  const voicesR      = useRef([]);
-  const voiceIdxR    = useRef(0);
-  const geocodeT     = useRef(0);
+  const simRef      = useRef(null);
+  const simDistR    = useRef(0);
+  const routeR      = useRef([]);
+  const routeDistR  = useRef(0);
+  const speedR      = useRef(36);
+  const categoryR   = useRef("Geschichte");
+  const speakingR   = useRef(false);
+  const generatingR = useRef(false);
+  const arrivedR    = useRef(false);
+  const progRef     = useRef(null);
+  const gpsRef      = useRef(null);
+  const audioRef    = useRef(null);
+  const memoryR     = useRef([]);
+  const searchT     = useRef({});
+  const voicesR     = useRef([]);
+  const voiceIdxR   = useRef(0);
+  const geocodeT    = useRef(0);
 
-  // Sync refs
   useEffect(() => { categoryR.current = category; }, [category]);
   useEffect(() => { speedR.current = speedKmh; }, [speedKmh]);
   useEffect(() => { routeR.current = route; }, [route]);
@@ -98,7 +89,15 @@ export default function App() {
   useEffect(() => { voicesR.current = voices; }, [voices]);
   useEffect(() => { voiceIdxR.current = voiceIdx; }, [voiceIdx]);
 
-  // Load voices
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDark) {
+      root.removeAttribute('data-theme');
+    } else {
+      root.setAttribute('data-theme', 'light');
+    }
+  }, [isDark]);
+
   useEffect(() => {
     const load = () => {
       const all = window.speechSynthesis?.getVoices() || [];
@@ -115,7 +114,6 @@ export default function App() {
     setLog(prev => [{ msg, type: type||"info", t }, ...prev].slice(0, 20));
   }
 
-  // ── Reverse geocode ────────────────────────────────────────────────────────
   async function geocode(lat, lon) {
     try {
       const r = await fetch(
@@ -128,7 +126,6 @@ export default function App() {
     } catch { return ""; }
   }
 
-  // ── Speak with ElevenLabs or browser TTS ──────────────────────────────────
   function stopAudio() {
     window.speechSynthesis?.cancel();
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
@@ -142,7 +139,6 @@ export default function App() {
     speakingR.current = false;
     clearInterval(progRef.current);
     setSpProgress(100);
-    // After 2s, generate next story if still driving
     setTimeout(() => {
       if (!speakingR.current && !generatingR.current && simDistR.current > 0 && simDistR.current < routeDistR.current && !arrivedR.current) {
         triggerNextStory();
@@ -155,14 +151,11 @@ export default function App() {
     setSpeaking(true);
     speakingR.current = true;
     setSpProgress(0);
-
     const estDur = text.length / 11.5;
     const t0 = Date.now();
     progRef.current = setInterval(() => {
       setSpProgress(Math.min((Date.now()-t0)/1000/estDur*100, 100));
     }, 300);
-
-    // Try ElevenLabs audio first
     if (audioBase64) {
       try {
         const binary = atob(audioBase64);
@@ -176,16 +169,10 @@ export default function App() {
         audio.onerror = (e) => { console.error("Audio error:", e); URL.revokeObjectURL(url); fallbackTTS(text); };
         const playPromise = audio.play();
         if (playPromise !== undefined) {
-          playPromise.catch(err => {
-            console.error("Play failed:", err);
-            URL.revokeObjectURL(url);
-            fallbackTTS(text);
-          });
+          playPromise.catch(err => { console.error("Play failed:", err); URL.revokeObjectURL(url); fallbackTTS(text); });
         }
         return;
-      } catch(err) {
-        console.error("ElevenLabs decode error:", err);
-      }
+      } catch(err) { console.error("ElevenLabs decode error:", err); }
     }
     fallbackTTS(text);
   }
@@ -201,16 +188,13 @@ export default function App() {
     window.speechSynthesis?.speak(utter);
   }
 
-  // ── Generate story ─────────────────────────────────────────────────────────
   async function generateStory(locationName, isIntro, introData) {
     if (generatingR.current) return;
     generatingR.current = true;
-
     const kmh = speedR.current;
     const cat = categoryR.current;
     const words = getWordCount(kmh);
     const memory = memoryR.current;
-
     let prompt;
     if (isIntro && introData) {
       const tod = getTimeOfDay();
@@ -236,7 +220,6 @@ export default function App() {
       const transition = count === 0
         ? "Beginne sofort mit der Geschichte."
         : "Dies ist Story " + (count+1) + ". Beginne mit einem kurzen Uebergang wie 'Und waehrend du weiterfaehrst...', 'Apropos...', oder aehnlichem.";
-
       prompt = memCtx +
         "Du bist ein faszinierender Reisebegleiter. Der Fahrer faehrt mit " + kmh + " km/h.\n" +
         "Aktueller Ort: " + locationName + "\n" +
@@ -251,12 +234,10 @@ export default function App() {
         "- Ende mit einer Wendung oder einem Gedanken\n" +
         "- Nur fliesender Text auf Deutsch";
     }
-
     setStoryLoading(true);
     setStoryTitle(isIntro ? (introData.start + " -> " + introData.end) : locationName);
     setStoryText("");
     addLog((isIntro ? "Einleitung" : locationName), "story");
-
     try {
       const res = await fetch("/api/story", {
         method: "POST",
@@ -278,8 +259,6 @@ export default function App() {
         return;
       }
     } catch(e) { console.error(e); }
-
-    // Fallback
     const fallback = isIntro
       ? getTimeOfDay() + "! Du startest jetzt von " + introData.start + " nach " + introData.end + ". Lehn dich zurueck - es geht los."
       : "Du befindest dich gerade in " + locationName + " am Niederrhein.";
@@ -289,7 +268,6 @@ export default function App() {
     await speakText(fallback, null);
   }
 
-  // ── Trigger next story based on position ──────────────────────────────────
   async function triggerNextStory() {
     if (speakingR.current || generatingR.current) return;
     const wps = routeR.current;
@@ -300,7 +278,6 @@ export default function App() {
     if (name) generateStory(name, false, null);
   }
 
-  // ── Search places ──────────────────────────────────────────────────────────
   async function searchPlaces(q, setter) {
     if (q.length < 2) { setter([]); return; }
     try {
@@ -323,7 +300,6 @@ export default function App() {
     searchT.current.e = setTimeout(() => searchPlaces(val, setEndSugg), 350);
   }
 
-  // ── Fetch route ────────────────────────────────────────────────────────────
   async function fetchRoute(start, end) {
     setRouteLoading(true);
     setRouteError("");
@@ -339,22 +315,17 @@ export default function App() {
     setStoryText("");
     setStoryTitle("");
     generatingR.current = false;
-
     try {
       const url = "https://router.project-osrm.org/route/v1/driving/" + start.lon + "," + start.lat + ";" + end.lon + "," + end.lat + "?overview=full&geometries=geojson";
       const r = await fetch(url);
       const data = await r.json();
       if (!data.routes?.length) throw new Error("Keine Route gefunden");
-
       const coords = data.routes[0].geometry.coordinates.map(function(c) { return { lat: c[1], lon: c[0] }; });
       setRoute(coords);
       routeR.current = coords;
-
       const dist = totalDist(coords);
       setRouteDist(dist);
       routeDistR.current = dist;
-
-      // Sample places for intro
       const places = [];
       const step = dist / 4;
       for (let i = 1; i <= 3; i++) {
@@ -369,7 +340,6 @@ export default function App() {
           acc += seg;
         }
       }
-
       addLog("Route: " + (dist/1000).toFixed(1) + " km", "start");
       setRouteLoading(false);
       return places;
@@ -380,10 +350,8 @@ export default function App() {
     }
   }
 
-  // ── Start simulation ───────────────────────────────────────────────────────
   async function startSim() {
     if (!startPlace || !endPlace) return;
-    // Unlock audio context on user gesture (Safari Autoplay Policy)
     try {
       const silence = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAABAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
       const a = new Audio(silence);
@@ -401,12 +369,9 @@ export default function App() {
     setLog([]);
     setStoryText("");
     generatingR.current = false;
-
     const places = await fetchRoute(startPlace, endPlace);
     setSimRunning(true);
     addLog("Fahrt gestartet", "start");
-
-    // Intro story
     setTimeout(() => {
       generateStory(startPlace.name, true, {
         start: startPlace.name,
@@ -416,18 +381,14 @@ export default function App() {
     }, 800);
   }
 
-  // ── Simulation tick ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!simRunning || !route.length) return;
-
     simRef.current = setInterval(async () => {
       simDistR.current = Math.min(simDistR.current + simSpeed * 0.4, routeDist);
       setSimDist(simDistR.current);
       setCurrentDist(simDistR.current);
       setSpeedKmh(Math.round(simSpeed * 3.6));
       speedR.current = Math.round(simSpeed * 3.6);
-
-      // Geocode periodically
       const now = Date.now();
       if (now - geocodeT.current > 8000) {
         geocodeT.current = now;
@@ -435,8 +396,6 @@ export default function App() {
         const name = await geocode(route[idx].lat, route[idx].lon);
         if (name) setCurrentLoc(name);
       }
-
-      // Arrival
       if (simDistR.current >= routeDist && !arrivedR.current) {
         arrivedR.current = true;
         setArrived(true);
@@ -448,11 +407,9 @@ export default function App() {
         }
       }
     }, 400);
-
     return () => clearInterval(simRef.current);
   }, [simRunning, simSpeed, routeDist, route]);
 
-  // ── Real GPS ───────────────────────────────────────────────────────────────
   function startGPS() {
     if (!navigator.geolocation) { setGpsError("GPS nicht verfügbar"); return; }
     addLog("GPS aktiv", "start");
@@ -473,7 +430,6 @@ export default function App() {
     if (gpsRef.current) navigator.geolocation.clearWatch(gpsRef.current);
   }
 
-  // ── Map ────────────────────────────────────────────────────────────────────
   const W = 340, H = 140, P = 12;
   let mapData = null;
   if (route.length > 0) {
@@ -488,8 +444,32 @@ export default function App() {
 
   const pct = routeDist > 0 ? Math.min(currentDist/routeDist*100,100) : 0;
 
+  const T = isDark ? {
+    bg:"#0f0e0b", bgCard:"rgba(255,255,255,0.04)", bgInput:"rgba(255,255,255,0.06)", bgSugg:"#1a1208", bgMap:"rgba(0,0,0,0.45)",
+    text:"#f0ede5", textMuted:"#6a5830", textFaint:"#3a2e10",
+    accent:"#c8860a", accentDim:"rgba(200,134,10,0.12)", accentBorder:"rgba(200,134,10,0.25)", accentGlow:"rgba(200,134,10,0.2)",
+    border:"rgba(200,134,10,0.2)", borderFaint:"rgba(200,134,10,0.08)",
+    btnPrimary:"linear-gradient(135deg,#c8860a,#9a6408)", btnText:"#120e06",
+    segBg:"rgba(255,255,255,0.06)", storyBg:"rgba(200,134,10,0.07)", storyBorder:"rgba(200,134,10,0.28)", storyText:"#b0a890",
+    logBg:"rgba(0,0,0,0.35)", logBorder:"rgba(255,255,255,0.04)",
+    toggleBg:"rgba(255,255,255,0.08)", toggleBorder:"rgba(200,134,10,0.3)",
+    errorBg:"rgba(180,50,30,0.1)", errorBorder:"rgba(180,50,30,0.25)", errorText:"#c88070",
+    gpsBg:"rgba(200,134,10,0.06)", inputColor:"#f0ede5",
+  } : {
+    bg:"#FAF7F2", bgCard:"#ffffff", bgInput:"#F2EFE8", bgSugg:"#ffffff", bgMap:"rgba(230,220,205,0.9)",
+    text:"#1C1C1E", textMuted:"#A89880", textFaint:"#C5B99A",
+    accent:"#B25E00", accentDim:"rgba(178,94,0,0.10)", accentBorder:"rgba(178,94,0,0.3)", accentGlow:"rgba(178,94,0,0.15)",
+    border:"rgba(178,94,0,0.2)", borderFaint:"rgba(178,94,0,0.1)",
+    btnPrimary:"linear-gradient(135deg,#B25E00,#8B4800)", btnText:"#ffffff",
+    segBg:"#EDE8E0", storyBg:"rgba(178,94,0,0.05)", storyBorder:"rgba(178,94,0,0.25)", storyText:"#5C4A30",
+    logBg:"rgba(0,0,0,0.04)", logBorder:"rgba(0,0,0,0.08)",
+    toggleBg:"#EDE8E0", toggleBorder:"rgba(178,94,0,0.3)",
+    errorBg:"rgba(180,50,30,0.08)", errorBorder:"rgba(180,50,30,0.2)", errorText:"#c84030",
+    gpsBg:"rgba(178,94,0,0.05)", inputColor:"#1C1C1E",
+  };
+
   return (
-    <div style={{ minHeight:"100vh", background:"var(--bg-main)", fontFamily:"Georgia,serif", color:"var(--text-main)", overflowX:"hidden" }}>
+    <div style={{ minHeight:"100vh", background:T.bg, fontFamily:"Georgia,serif", color:T.text, overflowX:"hidden", transition:"background 0.3s, color 0.3s" }}>
       <style>{`
         @keyframes pulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
         @keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -497,88 +477,66 @@ export default function App() {
         @keyframes wb{from{height:3px}to{height:18px}}
         @keyframes car{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
         *{box-sizing:border-box}
-        :root{
-          --bg-main:#09090f;
-          --bg-card:rgba(255,255,255,0.03);
-          --bg-input:rgba(255,255,255,0.06);
-          --text-main:#f0ede5;
-          --text-muted:#6a5830;
-          --accent:#c8860a;
-          --accent-btn:#c8860a;
-          --border:rgba(200,134,10,0.2);
-          --seg-active:rgba(200,134,10,0.12);
-        }
-        [data-theme="light"]{
-          --bg-main:#FAF7F2;
-          --bg-card:#fff;
-          --bg-input:#F2EFE8;
-          --text-main:#1C1C1E;
-          --text-muted:#A89880;
-          --accent:#B25E00;
-          --accent-btn:#B25E00;
-          --border:rgba(178,94,0,0.2);
-          --seg-active:rgba(178,94,0,0.1);
-        }
-        input::placeholder{color:var(--text-muted)}
-        input{caret-color:#c8860a}
-        select option{background:#120e06}
+        input::placeholder{color:${T.textMuted}}
+        input{caret-color:${T.accent}}
         ::-webkit-scrollbar{width:3px}
-        ::-webkit-scrollbar-thumb{background:#2a1f0a;border-radius:2px}
+        ::-webkit-scrollbar-thumb{background:${T.accentDim};border-radius:2px}
       `}</style>
 
       <div style={{ maxWidth:480, margin:"0 auto", padding:"0 16px 64px" }}>
 
         {/* Header */}
-        <div style={{ textAlign:"center", padding:"24px 0 12px" }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:9, marginBottom:3, position:"relative" }}>
-            <span style={{ fontSize:20 }}>⏱</span>
-            <span style={{ fontSize:"1.65rem", fontWeight:700, letterSpacing:"-.02em" }}>
-              Weg<em style={{ color:"var(--accent)", fontStyle:"italic" }}>geflüster</em>
+        <div style={{ textAlign:"center", padding:"28px 0 16px", position:"relative" }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:9, marginBottom:4 }}>
+            <span style={{ fontSize:22 }}>🗺️</span>
+            <span style={{ fontSize:"1.7rem", fontWeight:700, letterSpacing:"-.02em", color:T.text }}>
+              Weg<em style={{ color:T.accent, fontStyle:"italic" }}>geflüster</em>
             </span>
-            <button onClick={toggleTheme} style={{ position:"absolute", right:0, width:32, height:32, borderRadius:"50%", border:"1px solid var(--border)", background:"var(--bg-input)", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>
-              {isDark ? "☀️" : "🌙"}
-            </button>
           </div>
-          <div style={{ fontSize:".67rem", color:"var(--text-muted)", letterSpacing:".18em", textTransform:"uppercase" }}>
+          <div style={{ fontSize:".67rem", color:T.textMuted, letterSpacing:".18em", textTransform:"uppercase" }}>
             Dein Reisebegleiter
           </div>
+          <button onClick={() => setIsDark(d => !d)}
+            style={{ position:"absolute", right:0, top:28, width:36, height:36, borderRadius:"50%", border:`1px solid ${T.toggleBorder}`, background:T.toggleBg, cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", transition:"background 0.2s" }}>
+            {isDark ? "☀️" : "🌙"}
+          </button>
+        </div>
 
-        {/* Mode */}
-        <div style={{ display:"flex", gap:8, marginBottom:12 }}>
+        {/* Mode toggle */}
+        <div style={{ display:"flex", gap:8, marginBottom:14, background:T.segBg, borderRadius:12, padding:3 }}>
           {["sim","real"].map(m => (
             <button key={m} onClick={() => { setGpsMode(m); if(m==="real") startGPS(); else stopGPS(); }}
-              style={{ flex:1, padding:"9px", borderRadius:10, border:`1px solid ${gpsMode===m?"#c8860a":"rgba(200,134,10,.2)"}`, background:gpsMode===m?"rgba(200,134,10,.12)":"transparent", color:gpsMode===m?"#c8860a":"#6a5830", fontFamily:"sans-serif", fontSize:".8rem", cursor:"pointer" }}>
+              style={{ flex:1, padding:"10px", borderRadius:9, border:"none", background:gpsMode===m?T.accentDim:"transparent", color:gpsMode===m?T.accent:T.textMuted, fontFamily:"sans-serif", fontSize:".82rem", fontWeight:gpsMode===m?600:400, cursor:"pointer", transition:"all 0.2s" }}>
               {m==="sim" ? "🚗 Simulation" : "📡 Echtes GPS"}
             </button>
           ))}
         </div>
 
-        {gpsError && <div style={{ marginBottom:10, padding:"8px 12px", background:"rgba(180,50,30,.1)", border:"1px solid rgba(180,50,30,.25)", borderRadius:8, fontSize:".78rem", color:"#c88070" }}>⚠️ {gpsError}</div>}
+        {gpsError && <div style={{ marginBottom:10, padding:"10px 14px", background:T.errorBg, border:`1px solid ${T.errorBorder}`, borderRadius:10, fontSize:".78rem", color:T.errorText }}>⚠️ {gpsError}</div>}
 
-        {/* Route input */}
-        <div style={{ background:"rgba(255,255,255,.03)", border:"1px solid rgba(200,134,10,.2)", borderRadius:16, padding:16, marginBottom:12 }}>
-          <div style={{ fontSize:".66rem", color:"#5a4820", textTransform:"uppercase", letterSpacing:".1em", marginBottom:10 }}>Route</div>
+        {/* Route card */}
+        <div style={{ background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:18, padding:18, marginBottom:14, boxShadow:isDark?"none":"0 2px 12px rgba(0,0,0,0.06)" }}>
+          <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".1em", marginBottom:14 }}>Route</div>
 
-          {/* Start */}
-          <div style={{ position:"relative", marginBottom:8 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-              <div style={{ width:8, height:8, borderRadius:"50%", background:"#5ab05a" }}/>
-              <span style={{ fontSize:".72rem", color:"#6a5830" }}>Start</span>
+          <div style={{ position:"relative", marginBottom:10 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
+              <div style={{ width:8, height:8, borderRadius:"50%", background:"#34C759" }}/>
+              <span style={{ fontSize:".72rem", color:T.textMuted }}>Start</span>
             </div>
             <input value={startInput} onChange={e=>onStartInput(e.target.value)}
               placeholder="z.B. Walbeck, Geldern..."
-              style={{ width:"100%", background:"rgba(255,255,255,.06)", border:"1px solid rgba(200,134,10,.25)", borderRadius:9, padding:"9px 12px", color:"#f0ede5", fontFamily:"sans-serif", fontSize:".85rem", outline:"none" }}/>
+              style={{ width:"100%", background:T.bgInput, border:`1px solid ${T.accentBorder}`, borderRadius:10, padding:"10px 14px", color:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none" }}/>
             {startSugg.length > 0 && (
-              <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, background:"#1a1208", border:"1px solid rgba(200,134,10,.2)", borderRadius:9, overflow:"hidden", zIndex:100, boxShadow:"0 8px 24px rgba(0,0,0,.6)" }}>
+              <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, background:T.bgSugg, border:`1px solid ${T.border}`, borderRadius:12, overflow:"hidden", zIndex:100, boxShadow:"0 8px 24px rgba(0,0,0,0.15)" }}>
                 {startSugg.map((s,i) => {
                   const p = s.display_name.split(", ");
                   return (
                     <div key={i} onClick={() => { setStartPlace({name:p[0],lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setStartInput(p[0]); setStartSugg([]); }}
-                      style={{ padding:"9px 12px", cursor:"pointer", borderBottom:"1px solid rgba(200,134,10,.08)" }}
-                      onMouseEnter={e=>e.currentTarget.style.background="rgba(200,134,10,.1)"}
+                      style={{ padding:"10px 14px", cursor:"pointer", borderBottom:`1px solid ${T.borderFaint}` }}
+                      onMouseEnter={e=>e.currentTarget.style.background=T.accentDim}
                       onMouseLeave={e=>e.currentTarget.style.background=""}>
-                      <div style={{ fontSize:".85rem" }}>{p[0]}</div>
-                      <div style={{ fontSize:".7rem", color:"#5a4820", marginTop:2 }}>{p.slice(1,3).join(", ")}</div>
+                      <div style={{ fontSize:".85rem", color:T.text }}>{p[0]}</div>
+                      <div style={{ fontSize:".7rem", color:T.textMuted, marginTop:2 }}>{p.slice(1,3).join(", ")}</div>
                     </div>
                   );
                 })}
@@ -586,26 +544,25 @@ export default function App() {
             )}
           </div>
 
-          {/* End */}
-          <div style={{ position:"relative", marginBottom:12 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-              <div style={{ width:8, height:8, borderRadius:"50%", background:"#c84030" }}/>
-              <span style={{ fontSize:".72rem", color:"#6a5830" }}>Ziel</span>
+          <div style={{ position:"relative", marginBottom:16 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
+              <div style={{ width:8, height:8, borderRadius:"50%", background:"#FF3B30" }}/>
+              <span style={{ fontSize:".72rem", color:T.textMuted }}>Ziel</span>
             </div>
             <input value={endInput} onChange={e=>onEndInput(e.target.value)}
               placeholder="z.B. Kevelaer, Geldern..."
-              style={{ width:"100%", background:"rgba(255,255,255,.06)", border:"1px solid rgba(200,134,10,.25)", borderRadius:9, padding:"9px 12px", color:"#f0ede5", fontFamily:"sans-serif", fontSize:".85rem", outline:"none" }}/>
+              style={{ width:"100%", background:T.bgInput, border:`1px solid ${T.accentBorder}`, borderRadius:10, padding:"10px 14px", color:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none" }}/>
             {endSugg.length > 0 && (
-              <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, background:"#1a1208", border:"1px solid rgba(200,134,10,.2)", borderRadius:9, overflow:"hidden", zIndex:100, boxShadow:"0 8px 24px rgba(0,0,0,.6)" }}>
+              <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, background:T.bgSugg, border:`1px solid ${T.border}`, borderRadius:12, overflow:"hidden", zIndex:100, boxShadow:"0 8px 24px rgba(0,0,0,0.15)" }}>
                 {endSugg.map((s,i) => {
                   const p = s.display_name.split(", ");
                   return (
                     <div key={i} onClick={() => { setEndPlace({name:p[0],lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setEndInput(p[0]); setEndSugg([]); }}
-                      style={{ padding:"9px 12px", cursor:"pointer", borderBottom:"1px solid rgba(200,134,10,.08)" }}
-                      onMouseEnter={e=>e.currentTarget.style.background="rgba(200,134,10,.1)"}
+                      style={{ padding:"10px 14px", cursor:"pointer", borderBottom:`1px solid ${T.borderFaint}` }}
+                      onMouseEnter={e=>e.currentTarget.style.background=T.accentDim}
                       onMouseLeave={e=>e.currentTarget.style.background=""}>
-                      <div style={{ fontSize:".85rem" }}>{p[0]}</div>
-                      <div style={{ fontSize:".7rem", color:"#5a4820", marginTop:2 }}>{p.slice(1,3).join(", ")}</div>
+                      <div style={{ fontSize:".85rem", color:T.text }}>{p[0]}</div>
+                      <div style={{ fontSize:".7rem", color:T.textMuted, marginTop:2 }}>{p.slice(1,3).join(", ")}</div>
                     </div>
                   );
                 })}
@@ -613,90 +570,90 @@ export default function App() {
             )}
           </div>
 
-          {/* Category */}
-          <div style={{ fontSize:".66rem", color:"#5a4820", textTransform:"uppercase", letterSpacing:".08em", marginBottom:7 }}>Thema</div>
-          <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:4 }}>
+          <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".08em", marginBottom:8 }}>Thema</div>
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
             {CATEGORIES.map(c => (
               <button key={c} onClick={() => setCategory(c)}
-                style={{ padding:"5px 11px", borderRadius:16, border:`1px solid ${category===c?"#c8860a":"#3a2f1a"}`, background:category===c?"rgba(200,134,10,.12)":"transparent", color:category===c?"#c8860a":"#6a5830", fontFamily:"sans-serif", fontSize:".73rem", cursor:"pointer" }}>
+                style={{ padding:"6px 13px", borderRadius:20, border:`1px solid ${category===c?T.accent:T.border}`, background:category===c?T.accentDim:"transparent", color:category===c?T.accent:T.textMuted, fontFamily:"sans-serif", fontSize:".75rem", fontWeight:category===c?600:400, cursor:"pointer", transition:"all 0.15s" }}>
                 {c}
               </button>
             ))}
           </div>
-          {routeError && <div style={{ fontSize:".75rem", color:"#c88070", marginTop:8 }}>⚠️ {routeError}</div>}
+          {routeError && <div style={{ fontSize:".75rem", color:T.errorText, marginTop:10 }}>⚠️ {routeError}</div>}
         </div>
 
         {/* Map */}
         {route.length > 0 && mapData && (
-          <div style={{ background:"rgba(0,0,0,.45)", border:"1px solid rgba(200,134,10,.12)", borderRadius:12, overflow:"hidden", marginBottom:11, position:"relative" }}>
+          <div style={{ background:T.bgMap, border:`1px solid ${T.border}`, borderRadius:14, overflow:"hidden", marginBottom:12, position:"relative" }}>
             <svg width="100%" viewBox={"0 0 " + W + " " + H} style={{ display:"block" }}>
               {route.slice(0,-1).map((wp,i) => (
-                <line key={i} x1={mapData.px(wp.lon)} y1={mapData.py(wp.lat)} x2={mapData.px(route[i+1].lon)} y2={mapData.py(route[i+1].lat)} stroke="rgba(200,134,10,.2)" strokeWidth="2" strokeLinecap="round"/>
+                <line key={i} x1={mapData.px(wp.lon)} y1={mapData.py(wp.lat)} x2={mapData.px(route[i+1].lon)} y2={mapData.py(route[i+1].lat)} stroke={T.accent} strokeWidth="1.5" strokeOpacity="0.35" strokeLinecap="round"/>
               ))}
-              <circle cx={mapData.px(route[0].lon)} cy={mapData.py(route[0].lat)} r={5} fill="#5ab05a" stroke="#7ad07a" strokeWidth="1.5"/>
-              <circle cx={mapData.px(route[route.length-1].lon)} cy={mapData.py(route[route.length-1].lat)} r={5} fill="#c84030" stroke="#e86050" strokeWidth="1.5"/>
+              <circle cx={mapData.px(route[0].lon)} cy={mapData.py(route[0].lat)} r={5} fill="#34C759" stroke="#5ad079" strokeWidth="1.5"/>
+              <circle cx={mapData.px(route[route.length-1].lon)} cy={mapData.py(route[route.length-1].lat)} r={5} fill="#FF3B30" stroke="#ff6b60" strokeWidth="1.5"/>
               {currentDist > 0 && (
                 <g style={{ animation:simRunning?"car .5s ease-in-out infinite":"none" }}>
-                  <circle cx={mapData.carX} cy={mapData.carY} r={8} fill="rgba(200,134,10,.2)" stroke="#c8860a" strokeWidth="1.5"/>
+                  <circle cx={mapData.carX} cy={mapData.carY} r={8} fill={T.accentGlow} stroke={T.accent} strokeWidth="1.5"/>
                   <text x={mapData.carX} y={mapData.carY+5.5} textAnchor="middle" fontSize="10" style={{userSelect:"none"}}>
                     {speedKmh < 8 ? "🚶" : speedKmh < 25 ? "🚴" : "🚗"}
                   </text>
                 </g>
               )}
             </svg>
-            {currentLoc && <div style={{ position:"absolute", bottom:6, left:8, fontSize:".65rem", color:"#6a5830" }}>📍 {currentLoc}</div>}
+            {currentLoc && <div style={{ position:"absolute", bottom:6, left:8, fontSize:".65rem", color:T.textMuted }}>📍 {currentLoc}</div>}
           </div>
         )}
 
         {/* Progress */}
         {routeDist > 0 && (
-          <div style={{ marginBottom:11 }}>
-            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-              <span style={{ fontSize:".7rem", color:"#5a4820" }}>{startPlace?.name}</span>
-              <span style={{ fontSize:".72rem", color:"#c8860a", fontWeight:600 }}>{pct.toFixed(1)}%</span>
-              <span style={{ fontSize:".7rem", color:"#5a4820" }}>{endPlace?.name}</span>
+          <div style={{ marginBottom:12 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:5 }}>
+              <span style={{ fontSize:".7rem", color:T.textMuted }}>{startPlace?.name}</span>
+              <span style={{ fontSize:".72rem", color:T.accent, fontWeight:600 }}>{pct.toFixed(1)}%</span>
+              <span style={{ fontSize:".7rem", color:T.textMuted }}>{endPlace?.name}</span>
             </div>
-            <div style={{ height:4, background:"rgba(200,134,10,.1)", borderRadius:2, overflow:"hidden" }}>
-              <div style={{ height:"100%", width:pct+"%", background:"linear-gradient(90deg,#c8860a,#e8a820)", borderRadius:2, transition:"width .4s linear" }}/>
+            <div style={{ height:4, background:T.accentDim, borderRadius:2, overflow:"hidden" }}>
+              <div style={{ height:"100%", width:pct+"%", background:`linear-gradient(90deg,${T.accent},${isDark?"#e8a820":"#D4820A"})`, borderRadius:2, transition:"width .4s linear" }}/>
             </div>
-            <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
-              <span style={{ fontSize:".67rem", color:"#3a2e10" }}>{(currentDist/1000).toFixed(2)} km</span>
-              <span style={{ fontSize:".67rem", color:"#c8860a" }}>{speedKmh} km/h · {storyCount} Stories</span>
-              <span style={{ fontSize:".67rem", color:"#3a2e10" }}>{((routeDist-currentDist)/1000).toFixed(2)} km</span>
+            <div style={{ display:"flex", justifyContent:"space-between", marginTop:5 }}>
+              <span style={{ fontSize:".67rem", color:T.textFaint }}>{(currentDist/1000).toFixed(2)} km</span>
+              <span style={{ fontSize:".67rem", color:T.accent }}>{speedKmh} km/h · {storyCount} Stories</span>
+              <span style={{ fontSize:".67rem", color:T.textFaint }}>{((routeDist-currentDist)/1000).toFixed(2)} km</span>
             </div>
           </div>
         )}
 
-        {/* Speed + Voice */}
+        {/* Speed */}
         {route.length > 0 && gpsMode === "sim" && (
-          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-            <span style={{ fontSize:".68rem", color:"#3a2e10" }}>🚗</span>
-            <input type="range" min={3} max={30} value={simSpeed} onChange={e=>setSimSpeed(+e.target.value)} style={{ flex:1, accentColor:"#c8860a" }}/>
-            <span style={{ fontSize:".73rem", color:"#c8860a", width:48, textAlign:"right" }}>{Math.round(simSpeed*3.6)} km/h</span>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10, background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:12, padding:"10px 14px" }}>
+            <span style={{ fontSize:".75rem", color:T.textMuted }}>🚗</span>
+            <input type="range" min={3} max={30} value={simSpeed} onChange={e=>setSimSpeed(+e.target.value)} style={{ flex:1, accentColor:T.accent }}/>
+            <span style={{ fontSize:".75rem", color:T.accent, width:52, textAlign:"right", fontWeight:600 }}>{Math.round(simSpeed*3.6)} km/h</span>
           </div>
         )}
 
-        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-          <span style={{ fontSize:".68rem", color:"#3a2e10" }}>🎙</span>
-          <span style={{ flex:1, color:"#f0ede5", fontFamily:"sans-serif", fontSize:".79rem", padding:"6px 9px" }}>🎭 Helmut Stieglbauer</span>
+        {/* Voice */}
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:12, padding:"10px 14px" }}>
+          <span style={{ fontSize:".75rem", color:T.textMuted }}>🎙</span>
+          <span style={{ flex:1, color:T.text, fontFamily:"sans-serif", fontSize:".82rem" }}>🎭 Helmut Stieglbauer</span>
         </div>
 
         {/* CTA */}
         {gpsMode === "sim" && (
-          <div style={{ display:"flex", gap:9, marginBottom:14 }}>
+          <div style={{ display:"flex", gap:9, marginBottom:16 }}>
             {!simRunning && !arrived ? (
               <button onClick={startSim} disabled={!startPlace||!endPlace||routeLoading}
-                style={{ flex:1, padding:15, background:startPlace&&endPlace?"linear-gradient(135deg,#c8860a,#9a6408)":"rgba(200,134,10,.2)", border:"none", borderRadius:13, color:startPlace&&endPlace?"#120e06":"#5a4820", fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:startPlace&&endPlace?"pointer":"default", boxShadow:startPlace&&endPlace?"0 4px 22px rgba(200,134,10,.3)":"none" }}>
+                style={{ flex:1, padding:16, background:startPlace&&endPlace?T.btnPrimary:T.accentDim, border:"none", borderRadius:14, color:startPlace&&endPlace?T.btnText:T.textMuted, fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:startPlace&&endPlace?"pointer":"default", boxShadow:startPlace&&endPlace?`0 4px 20px ${T.accentGlow}`:"none", transition:"all 0.2s" }}>
                 {routeLoading ? "Berechne Route..." : !startPlace||!endPlace ? "Start & Ziel eingeben" : "🚗 Fahrt starten"}
               </button>
             ) : (
               <>
                 <button onClick={() => setSimRunning(r => !r)}
-                  style={{ flex:1, padding:13, background:simRunning?"rgba(200,134,10,.12)":"linear-gradient(135deg,#c8860a,#9a6408)", border:`1px solid ${simRunning?"rgba(200,134,10,.3)":"transparent"}`, borderRadius:12, color:simRunning?"#c8860a":"#120e06", fontFamily:"sans-serif", fontSize:".88rem", fontWeight:600, cursor:"pointer" }}>
+                  style={{ flex:1, padding:14, background:simRunning?T.accentDim:T.btnPrimary, border:`1px solid ${simRunning?T.accentBorder:"transparent"}`, borderRadius:13, color:simRunning?T.accent:T.btnText, fontFamily:"sans-serif", fontSize:".9rem", fontWeight:600, cursor:"pointer" }}>
                   {simRunning ? "⏸ Pause" : "▶ Weiter"}
                 </button>
                 <button onClick={startSim}
-                  style={{ padding:"13px 16px", background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.08)", borderRadius:12, color:"#5a4820", fontFamily:"sans-serif", fontSize:".88rem", cursor:"pointer" }}>
+                  style={{ padding:"14px 18px", background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:13, color:T.textMuted, fontFamily:"sans-serif", fontSize:".9rem", cursor:"pointer" }}>
                   ↺ Neu
                 </button>
               </>
@@ -705,51 +662,49 @@ export default function App() {
         )}
 
         {gpsMode === "real" && (
-          <div style={{ padding:"12px 16px", background:"rgba(200,134,10,.06)", border:"1px solid rgba(200,134,10,.2)", borderRadius:12, marginBottom:14, fontSize:".82rem", color:"#8a7840" }}>
+          <div style={{ padding:"14px 16px", background:T.gpsBg, border:`1px solid ${T.border}`, borderRadius:14, marginBottom:16, fontSize:".84rem", color:T.textMuted }}>
             📡 GPS aktiv — fahre los. Stories starten automatisch.
-            {gpsPos && <div style={{ marginTop:4, fontSize:".72rem", color:"#5a4820" }}>📍 {gpsPos.lat.toFixed(4)}N, {gpsPos.lon.toFixed(4)}E</div>}
+            {gpsPos && <div style={{ marginTop:4, fontSize:".72rem" }}>📍 {gpsPos.lat.toFixed(4)}N, {gpsPos.lon.toFixed(4)}E</div>}
           </div>
         )}
 
         {/* Story panel */}
         {(storyTitle || storyLoading) && (
-          <div style={{ background:"rgba(200,134,10,.07)", border:"1px solid rgba(200,134,10,.28)", borderRadius:18, overflow:"hidden", marginBottom:13, animation:"slideIn .35s ease" }}>
-            <div style={{ padding:"15px 17px 0", display:"flex", alignItems:"flex-start", justifyContent:"space-between" }}>
+          <div style={{ background:T.storyBg, border:`1px solid ${T.storyBorder}`, borderRadius:18, overflow:"hidden", marginBottom:14, animation:"slideIn .35s ease", boxShadow:isDark?"none":"0 2px 16px rgba(0,0,0,0.06)" }}>
+            <div style={{ padding:"16px 18px 0", display:"flex", alignItems:"flex-start", justifyContent:"space-between" }}>
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:".66rem", color:"#6a5228", textTransform:"uppercase", letterSpacing:".12em", marginBottom:3 }}>
+                <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".12em", marginBottom:4 }}>
                   {storyCount === 0 ? "🎙️ Einleitung" : "📍 Story " + storyCount}
                 </div>
-                <div style={{ fontStyle:"italic", fontSize:"1.1rem", color:"#c8860a", lineHeight:1.25 }}>{storyTitle}</div>
+                <div style={{ fontStyle:"italic", fontSize:"1.1rem", color:T.accent, lineHeight:1.25 }}>{storyTitle}</div>
               </div>
-              <div style={{ display:"flex", alignItems:"center", gap:2.5, paddingTop:5 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:2.5, paddingTop:4 }}>
                 {[8,13,18,22,17,12,9,16,20,13].map((h,i) => (
-                  <div key={i} style={{ width:2.5, borderRadius:2, background:"#c8860a", height:speaking?undefined:h+"px", opacity:speaking?.85:.2, animation:speaking?("wb "+(.28+(i%4)*.13)+"s "+(i*.05)+"s ease-in-out infinite alternate"):"none", minHeight:speaking?"3px":undefined, maxHeight:speaking?"22px":undefined }}/>
+                  <div key={i} style={{ width:2.5, borderRadius:2, background:T.accent, height:speaking?undefined:h+"px", opacity:speaking?.85:.2, animation:speaking?("wb "+(.28+(i%4)*.13)+"s "+(i*.05)+"s ease-in-out infinite alternate"):"none", minHeight:speaking?"3px":undefined, maxHeight:speaking?"22px":undefined }}/>
                 ))}
               </div>
             </div>
-
-            <div style={{ padding:"12px 17px", maxHeight:220, overflowY:"auto" }}>
+            <div style={{ padding:"12px 18px", maxHeight:220, overflowY:"auto" }}>
               {storyLoading ? (
-                <div style={{ display:"flex", gap:6, justifyContent:"center", padding:"12px 0" }}>
-                  {[0,1,2].map(i => <div key={i} style={{ width:8, height:8, borderRadius:"50%", background:"#c8860a", animation:"dp 1.2s "+(i*.2)+"s infinite" }}/>)}
+                <div style={{ display:"flex", gap:6, justifyContent:"center", padding:"14px 0" }}>
+                  {[0,1,2].map(i => <div key={i} style={{ width:8, height:8, borderRadius:"50%", background:T.accent, animation:"dp 1.2s "+(i*.2)+"s infinite" }}/>)}
                 </div>
               ) : (
-                <div style={{ fontSize:".9rem", lineHeight:1.9, color:"#b0a890", fontWeight:300 }}>
+                <div style={{ fontSize:".9rem", lineHeight:1.9, color:T.storyText, fontWeight:300 }}>
                   {storyText.split("\n\n").map((p,i) => <p key={i} style={{ marginBottom:10 }}>{p}</p>)}
                 </div>
               )}
             </div>
-
             {storyText && (
-              <div style={{ padding:"10px 17px 15px", borderTop:"1px solid rgba(200,134,10,.1)", display:"flex", alignItems:"center", gap:10 }}>
+              <div style={{ padding:"10px 18px 16px", borderTop:`1px solid ${T.borderFaint}`, display:"flex", alignItems:"center", gap:10 }}>
                 <button onClick={() => speaking ? stopAudio() : speakText(storyText, storyAudio || null)}
-                  style={{ width:38, height:38, borderRadius:"50%", background:"#c8860a", border:"none", cursor:"pointer", fontSize:16, flexShrink:0 }}>
+                  style={{ width:40, height:40, borderRadius:"50%", background:T.accent, border:"none", cursor:"pointer", fontSize:16, flexShrink:0, color:T.btnText }}>
                   {speaking ? "⏸" : "▶"}
                 </button>
-                <div style={{ flex:1, height:3, background:"rgba(255,255,255,.06)", borderRadius:2, overflow:"hidden" }}>
-                  <div style={{ height:"100%", width:spProgress+"%", background:"#c8860a", transition:"width .3s linear" }}/>
+                <div style={{ flex:1, height:3, background:T.accentDim, borderRadius:2, overflow:"hidden" }}>
+                  <div style={{ height:"100%", width:spProgress+"%", background:T.accent, transition:"width .3s linear" }}/>
                 </div>
-                {speaking && <span style={{ fontSize:".67rem", color:"#c8860a" }}>● LIVE</span>}
+                {speaking && <span style={{ fontSize:".67rem", color:T.accent }}>● LIVE</span>}
               </div>
             )}
           </div>
@@ -757,18 +712,18 @@ export default function App() {
 
         {/* Empty state */}
         {!storyTitle && !storyLoading && route.length === 0 && (
-          <div style={{ textAlign:"center", padding:"28px 20px", color:"#4a3a1a", fontSize:".87rem", lineHeight:1.7 }}>
-            <div style={{ fontSize:"2.4rem", marginBottom:11 }}>🗺️</div>
+          <div style={{ textAlign:"center", padding:"32px 20px", color:T.textMuted, fontSize:".87rem", lineHeight:1.7 }}>
+            <div style={{ fontSize:"2.8rem", marginBottom:12 }}>🗺️</div>
             Start und Ziel eingeben<br/>Thema wählen → Fahrt starten<br/>
-            <span style={{ fontSize:".75rem", color:"#3a2a10" }}>Durchgehende Stories, angepasst an Ort und Geschwindigkeit</span>
+            <span style={{ fontSize:".75rem", color:T.textFaint }}>Durchgehende Stories, angepasst an Ort und Geschwindigkeit</span>
           </div>
         )}
 
         {/* Log */}
         {log.length > 0 && (
-          <div style={{ background:"rgba(0,0,0,.35)", border:"1px solid rgba(255,255,255,.04)", borderRadius:10, padding:"9px 12px", maxHeight:100, overflowY:"auto" }}>
+          <div style={{ background:T.logBg, border:`1px solid ${T.logBorder}`, borderRadius:10, padding:"10px 14px", maxHeight:100, overflowY:"auto" }}>
             {log.map((e,i) => (
-              <div key={i} style={{ fontSize:".71rem", color:e.type==="story"?"#c8860a":e.type==="arrival"?"#5ab05a":"#3a2e10", marginBottom:3, display:"flex", gap:8 }}>
+              <div key={i} style={{ fontSize:".71rem", color:e.type==="story"?T.accent:e.type==="arrival"?"#34C759":T.textFaint, marginBottom:3, display:"flex", gap:8 }}>
                 <span style={{ flexShrink:0, opacity:.5 }}>{e.t}</span><span>{e.msg}</span>
               </div>
             ))}
