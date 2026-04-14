@@ -157,24 +157,15 @@ export default function App() {
         const binary = atob(audioBase64);
         const bytes = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        const blob = new Blob([bytes], { type: "audio/mpeg" });
+        const blob = new Blob([bytes], { type: "audio/mp3" });
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
         audioRef.current = audio;
         audio.onended = () => { URL.revokeObjectURL(url); onStoryEnd(); };
-        audio.onerror = (e) => { console.error("Audio error:", e); URL.revokeObjectURL(url); fallbackTTS(text); };
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(err => {
-            console.error("Play failed:", err);
-            URL.revokeObjectURL(url);
-            fallbackTTS(text);
-          });
-        }
+        audio.onerror = () => { URL.revokeObjectURL(url); fallbackTTS(text); };
+        await audio.play();
         return;
-      } catch(err) {
-        console.error("ElevenLabs decode error:", err);
-      }
+      } catch { /* fall through to TTS */ }
     }
     fallbackTTS(text);
   }
