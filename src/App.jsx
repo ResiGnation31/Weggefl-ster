@@ -48,6 +48,7 @@ export default function App() {
   const [gpsPos, setGpsPos]         = useState(null);
   const [gpsError, setGpsError]     = useState("");
   const [currentLoc, setCurrentLoc] = useState("");
+  const [storyAudio, setStoryAudio]   = useState(null);
   const [category, setCategory]     = useState("Geschichte");
   const [storyTitle, setStoryTitle] = useState("");
   const [storyText, setStoryText]   = useState("");
