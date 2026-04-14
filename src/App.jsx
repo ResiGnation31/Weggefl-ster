@@ -635,7 +635,7 @@ export default function App() {
           <div style={{ display:"flex", gap:9, marginBottom:16 }}>
             {!simRunning && !arrived ? (
               <button onClick={startSim} disabled={!startPlace||!endPlace||routeLoading}
-                style={{ flex:1, padding:16, background:startPlace&&endPlace?T.btnPrimary:T.accentDim, border:"none", borderRadius:14, color:startPlace&&endPlace?T.btnText:T.textMuted, fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:startPlace&&endPlace?"pointer":"default", boxShadow:startPlace&&endPlace?`0 4px 20px ${T.accentGlow}`:"none", transition:"all 0.2s" }}>
+              style={{ flex:1, padding:16, background:T.btnPrimary, border:"none", borderRadius:14, color:T.btnText, fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:"pointer", boxShadow:`0 4px 20px ${T.accentGlow}`, transition:"all 0.2s" }}>
                 {routeLoading ? "Berechne Route..." : !startPlace||!endPlace ? "Start & Ziel eingeben" : "🚗 Fahrt starten"}
               </button>
             ) : (
@@ -659,8 +659,8 @@ export default function App() {
               try { const a = new Audio("data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAABAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA//////////////////////////////////////////////////////////////////8AAAA"); await a.play(); } catch(e) {}
               startGPS();
             }}
-              style={{ flex:1, padding:16, background:endPlace?T.btnPrimary:T.accentDim, border:"none", borderRadius:14, color:endPlace?T.btnText:T.textMuted, fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:endPlace?"pointer":"default", boxShadow:endPlace?`0 4px 20px ${T.accentGlow}`:"none", transition:"all 0.2s" }}>
-              {endPlace ? "📡 GPS Fahrt starten" : "Ziel eingeben"}
+              style={{ flex:1, padding:16, background:T.btnPrimary, border:"none", borderRadius:14, color:T.btnText, fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:"pointer", boxShadow:`0 4px 20px ${T.accentGlow}`, transition:"all 0.2s" }}>
+              GPS Fahrt starten
             </button>
           </div>
         )}
