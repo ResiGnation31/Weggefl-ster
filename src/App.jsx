@@ -520,9 +520,10 @@ export default function App() {
           <div style={{ position:"relative", marginBottom:10 }}>
             <div style={{ position:"relative" }}>
               <div style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", width:8, height:8, borderRadius:"50%", background:"#34C759", pointerEvents:"none" }}/>
-              <input value={startInput} onChange={e=>onStartInput(e.target.value)}
-                placeholder="z.B. Walbeck, Geldern..."
-                style={{ width:"100%", background:T.bgInput, border:`1px solid ${T.accentBorder}`, borderRadius:10, padding:"10px 14px 10px 28px", color:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none" }}/>
+              <input value={gpsMode==="real" ? "Dein Standort" : startInput} onChange={e=>gpsMode==="sim"&&onStartInput(e.target.value)}
+                placeholder="z.B. Berlin..."
+                readOnly={gpsMode==="real"}
+                style={{ width:"100%", background:T.bgInput, border:`1px solid ${T.accentBorder}`, borderRadius:10, padding:"10px 14px 10px 28px", color:gpsMode==="real"?T.textMuted:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none", cursor:gpsMode==="real"?"default":"text" }}/>
             </div>
             {startSugg.length > 0 && (
               <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, background:T.bgSugg, border:`1px solid ${T.border}`, borderRadius:12, overflow:"hidden", zIndex:100, boxShadow:"0 8px 24px rgba(0,0,0,0.15)" }}>
@@ -546,7 +547,7 @@ export default function App() {
             <div style={{ position:"relative" }}>
               <div style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", width:8, height:8, borderRadius:"50%", background:"#FF3B30", pointerEvents:"none" }}/>
               <input value={endInput} onChange={e=>onEndInput(e.target.value)}
-                placeholder="z.B. Kevelaer, Geldern..."
+                placeholder="z.B. Paris..."
                 style={{ width:"100%", background:T.bgInput, border:`1px solid ${T.accentBorder}`, borderRadius:10, padding:"10px 14px 10px 28px", color:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none" }}/>
             </div>
             {endSugg.length > 0 && (
@@ -659,9 +660,14 @@ export default function App() {
         )}
 
         {gpsMode === "real" && (
-          <div style={{ padding:"14px 16px", background:T.gpsBg, border:`1px solid ${T.border}`, borderRadius:14, marginBottom:16, fontSize:".84rem", color:T.textMuted }}>
-            📡 GPS aktiv — fahre los. Stories starten automatisch.
-            {gpsPos && <div style={{ marginTop:4, fontSize:".72rem" }}>📍 {gpsPos.lat.toFixed(4)}N, {gpsPos.lon.toFixed(4)}E</div>}
+          <div style={{ display:"flex", gap:9, marginBottom:16 }}>
+            <button onClick={async () => {
+              try { const a = new Audio("data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAABAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA//////////////////////////////////////////////////////////////////8AAAA"); await a.play(); } catch(e) {}
+              startGPS();
+            }}
+              style={{ flex:1, padding:16, background:endPlace?T.btnPrimary:T.accentDim, border:"none", borderRadius:14, color:endPlace?T.btnText:T.textMuted, fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:endPlace?"pointer":"default", boxShadow:endPlace?`0 4px 20px ${T.accentGlow}`:"none", transition:"all 0.2s" }}>
+              {endPlace ? "📡 GPS Fahrt starten" : "Ziel eingeben"}
+            </button>
           </div>
         )}
 
