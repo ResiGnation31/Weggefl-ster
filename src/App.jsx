@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import MapView from "./MapView";
 
 function deg2rad(d) { return d * Math.PI / 180; }
 function haversine(lat1, lon1, lat2, lon2) {
@@ -581,25 +582,15 @@ export default function App() {
         </div>
 
         {/* Map */}
-        {route.length > 0 && mapData && (
-          <div style={{ background:T.bgMap, border:`1px solid ${T.border}`, borderRadius:14, overflow:"hidden", marginBottom:12, position:"relative" }}>
-            <svg width="100%" viewBox={"0 0 " + W + " " + H} style={{ display:"block" }}>
-              {route.slice(0,-1).map((wp,i) => (
-                <line key={i} x1={mapData.px(wp.lon)} y1={mapData.py(wp.lat)} x2={mapData.px(route[i+1].lon)} y2={mapData.py(route[i+1].lat)} stroke={T.accent} strokeWidth="1.5" strokeOpacity="0.35" strokeLinecap="round"/>
-              ))}
-              <circle cx={mapData.px(route[0].lon)} cy={mapData.py(route[0].lat)} r={5} fill="#34C759" stroke="#5ad079" strokeWidth="1.5"/>
-              <circle cx={mapData.px(route[route.length-1].lon)} cy={mapData.py(route[route.length-1].lat)} r={5} fill="#FF3B30" stroke="#ff6b60" strokeWidth="1.5"/>
-              {currentDist > 0 && (
-                <g style={{ animation:simRunning?"car .5s ease-in-out infinite":"none" }}>
-                  <circle cx={mapData.carX} cy={mapData.carY} r={8} fill={T.accentGlow} stroke={T.accent} strokeWidth="1.5"/>
-                  <text x={mapData.carX} y={mapData.carY+5.5} textAnchor="middle" fontSize="10" style={{userSelect:"none"}}>
-                    {speedKmh < 8 ? "🚶" : speedKmh < 25 ? "🚴" : "🚗"}
-                  </text>
-                </g>
-              )}
-            </svg>
-            {currentLoc && <div style={{ position:"absolute", bottom:6, left:8, fontSize:".65rem", color:T.textMuted }}>📍 {currentLoc}</div>}
-          </div>
+        {route.length > 0 && (
+          <MapView
+            route={route}
+            currentDist={currentDist}
+            routeDist={routeDist}
+            simRunning={simRunning}
+            speedKmh={speedKmh}
+            currentLoc={currentLoc}
+          />
         )}
 
         {/* Progress */}
