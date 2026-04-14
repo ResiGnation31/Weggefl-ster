@@ -505,7 +505,7 @@ export default function App() {
         {/* Mode toggle */}
         <div style={{ display:"flex", gap:4, marginBottom:14, background:T.segBg, borderRadius:12, padding:3 }}>
           {["sim","real"].map(m => (
-            <button key={m} onClick={() => { setGpsMode(m); if(m==="real") startGPS(); else stopGPS(); }}
+            <button key={m} onClick={() => { setGpsMode(m); if(m==="sim") stopGPS(); }}
               style={{ flex:1, padding:"9px", borderRadius:9, border:"none", background:gpsMode===m?T.bgCard:"transparent", color:gpsMode===m?T.text:T.textMuted, fontFamily:"sans-serif", fontSize:".82rem", fontWeight:gpsMode===m?600:400, cursor:"pointer", transition:"all 0.2s", boxShadow:gpsMode===m?"0 1px 4px rgba(0,0,0,0.08)":"none" }}>
               {m==="sim" ? "Simulation" : "GPS"}
             </button>
