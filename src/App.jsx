@@ -487,13 +487,12 @@ export default function App() {
 
         {/* Header */}
         <div style={{ textAlign:"center", padding:"28px 0 16px", position:"relative" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:9, marginBottom:4 }}>
-            <span style={{ fontSize:22 }}>🗺️</span>
-            <span style={{ fontSize:"1.7rem", fontWeight:700, letterSpacing:"-.02em", color:T.text }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", marginBottom:4 }}>
+            <span style={{ fontSize:"1.8rem", fontWeight:700, letterSpacing:"-.02em", color:T.text, fontFamily:"Georgia,serif" }}>
               Weg<em style={{ color:T.accent, fontStyle:"italic" }}>geflüster</em>
             </span>
           </div>
-          <div style={{ fontSize:".67rem", color:T.textMuted, letterSpacing:".18em", textTransform:"uppercase" }}>
+          <div style={{ fontSize:".72rem", color:T.textMuted, letterSpacing:".06em" }}>
             Dein Reisebegleiter
           </div>
           <button onClick={() => setIsDark(d => !d)}
@@ -503,11 +502,11 @@ export default function App() {
         </div>
 
         {/* Mode toggle */}
-        <div style={{ display:"flex", gap:8, marginBottom:14, background:T.segBg, borderRadius:12, padding:3 }}>
+        <div style={{ display:"flex", gap:4, marginBottom:14, background:T.segBg, borderRadius:12, padding:3 }}>
           {["sim","real"].map(m => (
             <button key={m} onClick={() => { setGpsMode(m); if(m==="real") startGPS(); else stopGPS(); }}
-              style={{ flex:1, padding:"10px", borderRadius:9, border:"none", background:gpsMode===m?T.accentDim:"transparent", color:gpsMode===m?T.accent:T.textMuted, fontFamily:"sans-serif", fontSize:".82rem", fontWeight:gpsMode===m?600:400, cursor:"pointer", transition:"all 0.2s" }}>
-              {m==="sim" ? "🚗 Simulation" : "📡 Echtes GPS"}
+              style={{ flex:1, padding:"9px", borderRadius:9, border:"none", background:gpsMode===m?T.bgCard:"transparent", color:gpsMode===m?T.text:T.textMuted, fontFamily:"sans-serif", fontSize:".82rem", fontWeight:gpsMode===m?600:400, cursor:"pointer", transition:"all 0.2s", boxShadow:gpsMode===m?"0 1px 4px rgba(0,0,0,0.08)":"none" }}>
+              {m==="sim" ? "Simulation" : "Echtes GPS"}
             </button>
           ))}
         </div>
