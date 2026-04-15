@@ -93,6 +93,7 @@ export default function App() {
   const arrivedR    = useRef(false);
   const progRef     = useRef(null);
   const gpsRef      = useRef(null);
+  const transportR  = useRef("car");
   const audioRef    = useRef(null);
   const memoryR     = useRef([]);
   const searchT     = useRef({});
@@ -102,6 +103,7 @@ export default function App() {
 
   useEffect(() => { categoryR.current = category; }, [category]);
   useEffect(() => { speedR.current = speedKmh; }, [speedKmh]);
+  useEffect(() => { transportR.current = transport; }, [transport]);
   useEffect(() => { routeR.current = route; }, [route]);
   useEffect(() => { routeDistR.current = routeDist; }, [routeDist]);
   useEffect(() => { voicesR.current = voices; }, [voices]);
@@ -256,7 +258,7 @@ export default function App() {
       const res = await fetch("/api/story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, customPrompt: prompt }),
+        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, transport: transportR.current, customPrompt: prompt }),
       });
       const data = await res.json();
       if (res.ok && data.text) {

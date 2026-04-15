@@ -19,7 +19,7 @@ export default async function handler(req) {
   }
 
   try {
-    const { placeName, category, speedKmh, customPrompt } = await req.json();
+    const { placeName, category, speedKmh, transport, customPrompt } = await req.json();
 
     const anthropicKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
     const elevenKey = process.env.ELEVENLABS_API_KEY;
@@ -38,7 +38,7 @@ export default async function handler(req) {
 
     const prompt = customPrompt || `Du bist ein faszinierender Reisebegleiter. Der Nutzer ${mode} gerade durch "${placeName}".
 
-Erzähle eine spannende, authentische Geschichte (ca. ${length}) über diesen Ort zum Thema "${category}".
+Erzähle eine spannende, authentische Geschichte (ca. ${length}, ${storyStyle}) über diesen Ort zum Thema "${category}".
 
 Regeln:
 - Beginne SOFORT mit der Geschichte — keine Begrüßung, kein "Gerne"
