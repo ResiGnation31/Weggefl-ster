@@ -687,17 +687,6 @@ export default function App() {
           </div>
         )}
 
-        {gpsMode === "real" && (
-          <div style={{ display:"flex", gap:9, marginBottom:16 }}>
-            <button onClick={async () => {
-              try { const a = new Audio("data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAABAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA//////////////////////////////////////////////////////////////////8AAAA"); await a.play(); } catch(e) {}
-              startGPS();
-            }}
-              style={{ flex:1, padding:16, background:T.btnPrimary, border:"none", borderRadius:14, color:T.btnText, fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:"pointer", boxShadow:`0 4px 20px ${T.accentGlow}`, transition:"all 0.2s" }}>
-              GPS Fahrt starten
-            </button>
-          </div>
-        )}
 
         {/* Story panel */}
         {(storyTitle || storyLoading) && (
