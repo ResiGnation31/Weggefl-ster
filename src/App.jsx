@@ -65,6 +65,15 @@ export default function App() {
   const [voiceIdx, setVoiceIdx]     = useState(0);
   const [log, setLog]               = useState([]);
   const [gpsSubMode, setGpsSubMode]   = useState(null);
+
+  useEffect(() => {
+    if (gpsMode === "real" && !currentLoc) {
+      navigator.geolocation && navigator.geolocation.getCurrentPosition(async pos => {
+        const name = await geocode(pos.coords.latitude, pos.coords.longitude);
+        if (name) setCurrentLoc(name);
+      });
+    }
+  }, [gpsMode]);
   const [gpsEndPlace, setGpsEndPlace] = useState(null);
   const [gpsEndInput, setGpsEndInput] = useState("");
   const [gpsEndSugg, setGpsEndSugg]   = useState([]);
@@ -589,17 +598,20 @@ export default function App() {
             )}
           </div>
 
+          {routeError && <div style={{ fontSize:".75rem", color:T.errorText, marginTop:10 }}>⚠️ {routeError}</div>}
+        </div>}
+
+        <div style={{ background:T.bgCard, border:"1px solid " + T.border, borderRadius:14, padding:"12px 14px", marginBottom:14 }}>
           <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".08em", marginBottom:8 }}>Thema</div>
           <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
             {CATEGORIES.map(c => (
               <button key={c} onClick={() => setCategory(c)}
-                style={{ padding:"6px 13px", borderRadius:20, border:`1px solid ${category===c?T.accent:T.border}`, background:category===c?T.accentDim:"transparent", color:category===c?T.accent:T.textMuted, fontFamily:"sans-serif", fontSize:".75rem", fontWeight:category===c?600:400, cursor:"pointer", transition:"all 0.15s" }}>
+                style={{ padding:"6px 13px", borderRadius:20, border:"1px solid " + (category===c?T.accent:T.border), background:category===c?T.accentDim:"transparent", color:category===c?T.accent:T.textMuted, fontFamily:"sans-serif", fontSize:".75rem", fontWeight:category===c?600:400, cursor:"pointer", transition:"all 0.15s" }}>
                 {c}
               </button>
             ))}
           </div>
-          {routeError && <div style={{ fontSize:".75rem", color:T.errorText, marginTop:10 }}>⚠️ {routeError}</div>}
-        </div>}
+        </div>
 
         {/* Map */}
         {route.length > 0 && (
