@@ -20,7 +20,10 @@ function getTimeOfDay() {
   if (h < 18) return "Guten Tag";
   return "Guten Abend";
 }
-function getWordCount(kmh) {
+function getWordCount(kmh, transport) {
+  if (transport === "walk") return 400;
+  if (transport === "bike") return 300;
+  if (transport === "bus") return 250;
   if (kmh < 8) return 350;
   if (kmh < 25) return 250;
   if (kmh < 60) return 180;
@@ -65,6 +68,7 @@ export default function App() {
   const [voiceIdx, setVoiceIdx]     = useState(0);
   const [log, setLog]               = useState([]);
   const [gpsSubMode, setGpsSubMode]   = useState(null);
+  const [transport, setTransport]     = useState("car");
 
   useEffect(() => {
     if (gpsMode === "real" && !currentLoc) {
@@ -822,6 +826,31 @@ export default function App() {
           </div>
         )}
 
+      </div>
+
+      {/* Transport Bar */}
+      <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background:T.bgCard, borderTop:"1px solid " + T.border, padding:"10px 16px 24px", zIndex:200, boxShadow:"0 -4px 24px rgba(0,0,0,0.08)" }}>
+        <div style={{ display:"flex", justifyContent:"space-around", alignItems:"center" }}>
+          {[
+            { id:"car", label:"Auto", svg:<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3v-5l2-5h14l2 5v5h-2"/><rect x="1" y="17" width="4" height="3" rx="1"/><rect x="19" y="17" width="4" height="3" rx="1"/><path d="M5 17h14"/><circle cx="7.5" cy="17" r="1"/><circle cx="16.5" cy="17" r="1"/></svg> },
+            { id:"bus", label:"Bus", svg:<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="15" rx="2"/><path d="M3 9h18"/><path d="M3 14h18"/><circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/><path d="M7 3v6M17 3v6"/></svg> },
+            { id:"bike", label:"Fahrrad", svg:<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5L9 10l-3 2h4l3.5 5.5"/><path d="M15 6l1 4-4.5 1.5"/></svg> },
+            { id:"walk", label:"Zu Fuß", svg:<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="4" r="1.5"/><path d="M9 8l3 2 2-2"/><path d="M12 10v4l-2 4"/><path d="M12 14l2 4"/><path d="M9 12l-2 4"/><path d="M15 12l2 4"/></svg> },
+          ].map(({ id, label, svg }) => (
+            <button key={id} onClick={() => setTransport(id)}
+              style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4, background:"none", border:"none", cursor:"pointer",
+                color: transport===id ? T.accent : T.textMuted,
+                transform: transport===id ? "translateY(-4px)" : "none",
+                transition:"all 0.2s" }}>
+              <div style={{ padding:"8px 16px", borderRadius:16,
+                background: transport===id ? T.accentDim : "transparent",
+                transition:"all 0.2s" }}>
+                {svg}
+              </div>
+              <span style={{ fontSize:".65rem", fontFamily:"sans-serif", fontWeight: transport===id ? 600 : 400 }}>{label}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
