@@ -117,13 +117,9 @@ export default function App() {
 
   async function geocode(lat, lon) {
     try {
-      const r = await fetch(
-        "https://nominatim.openstreetmap.org/reverse?lat=" + lat + "&lon=" + lon + "&format=json&accept-language=de",
-        { headers: { "User-Agent": "Weggefluesterer/1.0" } }
-      );
+      const r = await fetch("/api/geocode?lat=" + lat + "&lon=" + lon);
       const d = await r.json();
-      const a = d.address;
-      return a.city || a.town || a.village || a.hamlet || a.suburb || a.road || a.county || "Unbekannter Ort";
+      return d.name || "";
     } catch { return ""; }
   }
 
