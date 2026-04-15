@@ -673,19 +673,13 @@ export default function App() {
           <div style={{ marginBottom:16 }}>
             {!gpsSubMode && (
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                <button onClick={() => {
-                  setGpsSubMode("free");
-                  try { const a = new Audio("data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAABAAABIADAwMDAwMDA"); a.play().catch(()=>{}); } catch(e) {}
-                  startGPS("free", null);
-                }}
-                  style={{ width:"100%", padding:16, background:T.btnPrimary, border:"none", borderRadius:14, color:T.btnText, fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:"pointer", boxShadow:`0 4px 20px ${T.accentGlow}` }}>
-                  Frei erkunden
-                </button>
-                <div style={{ fontSize:".72rem", color:T.textMuted, textAlign:"center" }}>oder</div>
                 <div style={{ background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:14, padding:14 }}>
                   <div style={{ fontSize:".72rem", color:T.textMuted, marginBottom:10 }}>Ziel für geführte Fahrt eingeben:</div>
                   <div style={{ position:"relative", marginBottom:10 }}>
-                    <div style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", width:8, height:8, borderRadius:"50%", background:"#FF3B30", pointerEvents:"none" }}/>
+                    <div style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", width:8, height:8, borderRadius:"50%", background:"#34C759", pointerEvents:"none" }}/>
+                    <input value="Dein Standort" readOnly
+                      style={{ width:"100%", background:T.bgInput, border:`1px solid ${T.accentBorder}`, borderRadius:10, padding:"10px 14px 10px 28px", color:T.textMuted, fontFamily:"sans-serif", fontSize:".88rem", outline:"none", cursor:"default", marginBottom:8 }}/>
+                    <div style={{ position:"absolute", left:12, top:"calc(50% + 28px)", transform:"translateY(-50%)", width:8, height:8, borderRadius:"50%", background:"#FF3B30", pointerEvents:"none" }}/>
                     <input value={gpsEndInput} onChange={e => { setGpsEndInput(e.target.value); clearTimeout(searchT.current.ge); searchT.current.ge = setTimeout(() => searchPlaces(e.target.value, setGpsEndSugg), 350); }}
                       placeholder="z.B. Paris..."
                       style={{ width:"100%", background:T.bgInput, border:`1px solid ${T.accentBorder}`, borderRadius:10, padding:"10px 14px 10px 28px", color:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none" }}/>
@@ -705,6 +699,41 @@ export default function App() {
                         })}
                       </div>
                     )}
+                  </div>
+                  <button onClick={() => {
+                    if (!gpsEndPlace) return;
+                    setGpsSubMode("guided");
+                    try { const a = new Audio("data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAABAAABIADAwMDAwMDA"); a.play().catch(()=>{}); } catch(e) {}
+                    startGPS("guided", gpsEndPlace);
+                  }}
+                    style={{ width:"100%", padding:14, background:gpsEndPlace?T.btnPrimary:T.accentDim, border:"none", borderRadius:12, color:gpsEndPlace?T.btnText:T.textMuted, fontFamily:"Georgia,serif", fontSize:".95rem", fontWeight:700, cursor:gpsEndPlace?"pointer":"default" }}>
+                    {gpsEndPlace ? "Mit Ziel fahren" : "Ziel eingeben"}
+                  </button>
+                </div>
+                <div style={{ fontSize:".72rem", color:T.textMuted, textAlign:"center" }}>oder</div>
+                <button onClick={() => {
+                  setGpsSubMode("free");
+                  try { const a = new Audio("data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAABAAABIADAwMDAwMDA"); a.play().catch(()=>{}); } catch(e) {}
+                  startGPS("free", null);
+                }}
+                  style={{ width:"100%", padding:16, background:"transparent", border:`1px solid ${T.border}`, borderRadius:14, color:T.textMuted, fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:600, cursor:"pointer" }}>
+                  Frei erkunden
+                </button>
+              </div>
+            )}
+            {gpsSubMode && (
+              <div style={{ display:"flex", gap:9 }}>
+                <div style={{ flex:1, padding:"12px 16px", background:T.gpsBg, border:`1px solid ${T.border}`, borderRadius:14, fontSize:".84rem", color:T.textMuted }}>
+                  GPS aktiv — {gpsSubMode === "free" ? "Freies Erkunden" : "Geführte Fahrt nach " + (gpsEndPlace?.name || "")}
+                </div>
+                <button onClick={() => { stopGPS(); setGpsSubMode(null); setGpsEndPlace(null); setGpsEndInput(""); }}
+                  style={{ padding:"12px 16px", background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:14, color:T.textMuted, fontFamily:"sans-serif", fontSize:".88rem", cursor:"pointer" }}>
+                  Stop
+                </button>
+              </div>
+            )}
+          </div>
+        )}
                   </div>
                   <button onClick={() => {
                     if (!gpsEndPlace) return;
