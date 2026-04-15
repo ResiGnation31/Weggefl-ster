@@ -535,7 +535,7 @@ export default function App() {
         {gpsError && <div style={{ marginBottom:10, padding:"10px 14px", background:T.errorBg, border:`1px solid ${T.errorBorder}`, borderRadius:10, fontSize:".78rem", color:T.errorText }}>⚠️ {gpsError}</div>}
 
         {/* Route card */}
-        <div style={{ background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:18, padding:18, marginBottom:14, boxShadow:isDark?"none":"0 2px 12px rgba(0,0,0,0.06)" }}>
+        {gpsMode === "sim" && <div style={{ background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:18, padding:18, marginBottom:14, boxShadow:isDark?"none":"0 2px 12px rgba(0,0,0,0.06)" }}>
           <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".1em", marginBottom:14 }}>Route</div>
 
           <div style={{ position:"relative", marginBottom:10 }}>
@@ -599,7 +599,7 @@ export default function App() {
             ))}
           </div>
           {routeError && <div style={{ fontSize:".75rem", color:T.errorText, marginTop:10 }}>⚠️ {routeError}</div>}
-        </div>
+        </div>}
 
         {/* Map */}
         {route.length > 0 && (
@@ -676,6 +676,10 @@ export default function App() {
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 <div style={{ background:T.bgCard, border:"1px solid " + T.border, borderRadius:14, padding:14 }}>
                   <div style={{ fontSize:".72rem", color:T.textMuted, marginBottom:8, textTransform:"uppercase", letterSpacing:".1em" }}>Mit Ziel fahren</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12, padding:"8px 12px", background:T.bgInput, borderRadius:10 }}>
+                    <div style={{ width:8, height:8, borderRadius:"50%", background:"#34C759", flexShrink:0 }}/>
+                    <span style={{ fontSize:".83rem", color:T.textMuted }}>{currentLoc || "Warte auf GPS..."}</span>
+                  </div>
                   <div style={{ position:"relative", marginBottom:10 }}>
                     <input value={gpsEndInput} onChange={e => onGpsEndInput(e.target.value)} placeholder="z.B. München Hauptbahnhof"
                       style={{ width:"100%", background:T.bgInput, border:"1px solid " + T.border, borderRadius:10, padding:"10px 14px", color:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none", boxSizing:"border-box" }} />
