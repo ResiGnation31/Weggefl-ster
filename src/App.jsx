@@ -635,6 +635,40 @@ export default function App() {
           <div style={{ display:"flex", gap:9, marginBottom:16 }}>
             {!simRunning && !arrived ? (
               <button onClick={startSim} disabled={!startPlace||!endPlace||routeLoading}
+                style={{ flex:1, padding:16, background:startPlace&&endPlace?T.btnPrimary:T.accentDim, border:"none", borderRadius:14, color:startPlace&&endPlace?T.btnText:T.textMuted, fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:startPlace&&endPlace?"pointer":"default", boxShadow:startPlace&&endPlace?`0 4px 20px ${T.accentGlow}`:"none", transition:"all 0.2s" }}>
+                {routeLoading ? "Berechne Route..." : !startPlace||!endPlace ? "Start & Ziel eingeben" : "Fahrt starten"}
+              </button>
+            ) : (
+              <>
+                <button onClick={() => setSimRunning(r => !r)}
+                  style={{ flex:1, padding:14, background:simRunning?T.accentDim:T.btnPrimary, border:`1px solid ${simRunning?T.accentBorder:"transparent"}`, borderRadius:13, color:simRunning?T.accent:T.btnText, fontFamily:"sans-serif", fontSize:".9rem", fontWeight:600, cursor:"pointer" }}>
+                  {simRunning ? "Pause" : "Weiter"}
+                </button>
+                <button onClick={startSim}
+                  style={{ padding:"14px 18px", background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:13, color:T.textMuted, fontFamily:"sans-serif", fontSize:".9rem", cursor:"pointer" }}>
+                  Neu
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        {gpsMode === "real" && (
+          <div style={{ marginBottom:16 }}>
+            <button onClick={async () => {
+              try { const a = new Audio("data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAABAAABIADAwMDAwMDAwMDAwMDAwMDA"); await a.play(); } catch(e) {}
+              startGPS();
+            }}
+              style={{ width:"100%", padding:16, background:T.btnPrimary, border:"none", borderRadius:14, color:T.btnText, fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:"pointer", boxShadow:`0 4px 20px ${T.accentGlow}`, transition:"all 0.2s" }}>
+              GPS Fahrt starten
+            </button>
+          </div>
+        )}
+        {/* CTA */}
+        {gpsMode === "sim" && (
+          <div style={{ display:"flex", gap:9, marginBottom:16 }}>
+            {!simRunning && !arrived ? (
+              <button onClick={startSim} disabled={!startPlace||!endPlace||routeLoading}
               style={{ flex:1, padding:16, background:T.btnPrimary, border:"none", borderRadius:14, color:T.btnText, fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:"pointer", boxShadow:`0 4px 20px ${T.accentGlow}`, transition:"all 0.2s" }}>
                 {routeLoading ? "Berechne Route..." : !startPlace||!endPlace ? "Start & Ziel eingeben" : "🚗 Fahrt starten"}
               </button>
