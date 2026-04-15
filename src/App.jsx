@@ -414,6 +414,7 @@ export default function App() {
   function startGPS() {
     if (!navigator.geolocation) { setGpsError("GPS nicht verfügbar"); return; }
     addLog("GPS aktiv", "start");
+    let firstPosition = true;
     gpsRef.current = navigator.geolocation.watchPosition(
       async (pos) => {
         setGpsPos({ lat: pos.coords.latitude, lon: pos.coords.longitude });
@@ -421,7 +422,10 @@ export default function App() {
         const name = await geocode(pos.coords.latitude, pos.coords.longitude);
         if (name) {
           setCurrentLoc(name);
-          if (!speakingR.current && !generatingR.current) {
+          if (firstPosition) {
+            firstPosition = false;
+            generateStory(name, false, null);
+          } else if (!speakingR.current && !generatingR.current) {
             generateStory(name, false, null);
           }
         }
