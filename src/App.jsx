@@ -597,7 +597,7 @@ export default function App() {
               </button>
             ))}
           </div>
-          {routeError && <div style={{ fontSize:".75rem", color:T.errorText, marginTop:10 }}>⚠️ {routeError}</div>}}
+          {routeError && <div style={{ fontSize:".75rem", color:T.errorText, marginTop:10 }}>⚠️ {routeError}</div>}
         </div>}
 
         {/* Map */}
