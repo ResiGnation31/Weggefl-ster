@@ -64,6 +64,10 @@ export default function App() {
   const [voices, setVoices]         = useState([]);
   const [voiceIdx, setVoiceIdx]     = useState(0);
   const [log, setLog]               = useState([]);
+  const [gpsSubMode, setGpsSubMode]   = useState(null);
+  const [gpsEndPlace, setGpsEndPlace] = useState(null);
+  const [gpsEndInput, setGpsEndInput] = useState("");
+  const [gpsEndSugg, setGpsEndSugg]   = useState([]);
 
   const simRef      = useRef(null);
   const simDistR    = useRef(0);
@@ -407,7 +411,7 @@ export default function App() {
     return () => clearInterval(simRef.current);
   }, [simRunning, simSpeed, routeDist, route]);
 
-  function startGPS() {
+  function startGPS(subMode, endDest) {
     if (!navigator.geolocation) { setGpsError("GPS nicht verfügbar"); return; }
     addLog("GPS aktiv", "start");
     let firstPosition = true;
@@ -434,6 +438,15 @@ export default function App() {
       { enableHighAccuracy: true, maximumAge: 15000 }
     );
   }
+  async function onGpsEndInput(val) {
+    setGpsEndInput(val);
+    if (val.length < 2) { setGpsEndSugg([]); return; }
+    try {
+      const r = await fetch("https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(val) + "&format=json&limit=4&accept-language=de", { headers: { "User-Agent": "Weggefluesterer/1.0" } });
+      setGpsEndSugg(await r.json());
+    } catch { setGpsEndSugg([]); }
+  }
+
   function stopGPS() {
     if (gpsRef.current) navigator.geolocation.clearWatch(gpsRef.current);
   }
