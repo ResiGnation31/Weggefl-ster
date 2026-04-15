@@ -9,7 +9,9 @@ export default async function handler(req, res) {
     );
     const data = await r.json();
     const a = data.address;
-    const name = a.city || a.town || a.village || a.hamlet || a.suburb || a.road || a.county || 'Unbekannter Ort';
+    const street = a.road ? (a.house_number ? a.road + ' ' + a.house_number : a.road) : null;
+    const place = a.city || a.town || a.village || a.hamlet || a.suburb || a.county || 'Unbekannter Ort';
+    const name = street ? street + ', ' + place : place;
     res.setHeader('Cache-Control', 's-maxage=60');
     res.json({ name });
   } catch(e) {
