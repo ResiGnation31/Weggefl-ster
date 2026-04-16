@@ -502,7 +502,7 @@ export default function App() {
     gpsBg:"rgba(255,255,255,0.75)",
   };
   return (
-    <div style={{ minHeight:"100vh", background:T.bg, fontFamily:"Georgia,serif", color:T.text, overflowX:"hidden", transition:"background 0.3s, color 0.3s" }}>
+    <div style={{ minHeight:"100vh", background:T.bg, fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif", color:T.text, overflowX:"hidden", transition:"background 0.3s, color 0.3s" }}>
       <style>{`
         @keyframes pulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
         @keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
