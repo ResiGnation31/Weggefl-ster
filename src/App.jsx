@@ -875,27 +875,6 @@ export default function App() {
         )}
 
         {/* Empty state */}
-        {!storyTitle && !storyLoading && route.length === 0 && (
-          <div style={{ textAlign:"left", padding:"32px 0", color:T.textMuted, fontSize:".87rem", lineHeight:1.7 }}>
-            <div style={{ display:"flex", justifyContent:"center", gap:24, marginBottom:20 }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ opacity:.6 }}>
-                <circle cx="12" cy="12" r="10"/>
-                <polygon points="12,2 15,9 12,7 9,9" fill={T.accent} opacity=".9"/>
-                <polygon points="12,22 9,15 12,17 15,15" fill={T.textMuted} opacity=".6"/>
-                <line x1="12" y1="2" x2="12" y2="22"/>
-                <line x1="2" y1="12" x2="22" y2="12" strokeOpacity=".3"/>
-              </svg>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ opacity:.6 }}>
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M2 12h20"/>
-                <path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/>
-                <path d="M2 7h20M2 17h20" strokeOpacity=".4"/>
-              </svg>
-            </div>
-            Start und Ziel eingeben<br/>Thema wählen → Fahrt starten<br/>
-            <span style={{ fontSize:".75rem", color:T.textFaint }}>Durchgehende Stories, angepasst an Ort und Geschwindigkeit</span>
-          </div>
-        )}
 
         {/* Log */}
         {log.length > 0 && (
