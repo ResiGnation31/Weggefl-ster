@@ -403,6 +403,8 @@ export default function App() {
   const voicesR     = useRef([]);
   const voiceIdxR   = useRef(0);
   const geocodeT    = useRef(0);
+  const lastStoryDistR = useRef(0);
+  const surroundingsR  = useRef("");
 
   useEffect(() => { categoryR.current = category; }, [category]);
   useEffect(() => { speedR.current = speedKmh; }, [speedKmh]);
@@ -436,6 +438,31 @@ export default function App() {
   function addLog(msg, type) {
     const t = new Date().toLocaleTimeString("de", { hour:"2-digit", minute:"2-digit", second:"2-digit" });
     setLog(prev => [{ msg, type: type||"info", t }, ...prev].slice(0, 20));
+  }
+
+  async function getSurroundings(lat, lon) {
+    try {
+      const r = 300;
+      const q = `[out:json][timeout:5];(
+        way["landuse"](around:${r},${lat},${lon});
+        way["natural"](around:${r},${lat},${lon});
+        node["amenity"](around:${r},${lat},${lon});
+        node["tourism"](around:${r},${lat},${lon});
+        node["historic"](around:${r},${lat},${lon});
+        way["building"="church"](around:${r},${lat},${lon});
+      );out body;`;
+      const res = await fetch("https://overpass-api.de/api/interpreter", {
+        method:"POST", body:"data=" + encodeURIComponent(q),
+        headers:{"Content-Type":"application/x-www-form-urlencoded"}
+      });
+      const data = await res.json();
+      const tags = data.elements.map(e => {
+        const t = e.tags || {};
+        return t.name || t.landuse || t.natural || t.amenity || t.tourism || t.historic || t.building;
+      }).filter(Boolean);
+      const unique = [...new Set(tags)].slice(0, 8);
+      return unique.join(", ");
+    } catch { return ""; }
   }
 
   async function geocode(lat, lon) {
@@ -559,9 +586,10 @@ export default function App() {
       const transition = count === 0
         ? "Beginne sofort mit der Geschichte."
         : "Dies ist Story " + (count+1) + ". Beginne mit einem kurzen Uebergang wie 'Und waehrend du weiterfaehrst...', 'Apropos...', oder aehnlichem.";
+      const surr = surroundingsR.current ? "\nUmgebung sichtbar: " + surroundingsR.current : "";
       prompt = memCtx +
         "Du bist ein faszinierender Reisebegleiter. Der Fahrer faehrt mit " + kmh + " km/h.\n" +
-        "Aktueller Ort: " + locationName + "\n" +
+        "Aktueller Ort: " + locationName + surr + "\n" +
         "Thema: " + cat + "\n" +
         "Laenge: ca. " + words + " Woerter\n\n" +
         transition + "\n\n" +
@@ -729,11 +757,20 @@ export default function App() {
       setSpeedKmh(Math.round(simSpeed * 3.6));
       speedR.current = Math.round(simSpeed * 3.6);
       const now = Date.now();
-      if (now - geocodeT.current > 8000) {
+      if (now - geocodeT.current > 6000) {
         geocodeT.current = now;
         const idx = Math.min(Math.floor(simDistR.current / routeDist * route.length), route.length-1);
-        const name = await geocode(route[idx].lat, route[idx].lon);
+        const pos = route[idx];
+        const name = await geocode(pos.lat, pos.lon);
         if (name) setCurrentLoc(name);
+        const surroundings = await getSurroundings(pos.lat, pos.lon);
+        surroundingsR.current = surroundings;
+      }
+      const storyInterval = Math.max(300, 800 / Math.max(1, simSpeed * 3.6 / 50));
+      if (!speakingR.current && !generatingR.current && simDistR.current > 50 &&
+          simDistR.current - lastStoryDistR.current > storyInterval) {
+        lastStoryDistR.current = simDistR.current;
+        triggerNextStory();
       }
       if (simDistR.current >= routeDist && !arrivedR.current) {
         arrivedR.current = true;
@@ -762,6 +799,8 @@ export default function App() {
         if (now - lastGeocode < 15000) return;
         lastGeocode = now;
         const name = await geocode(pos.coords.latitude, pos.coords.longitude);
+        const surr = await getSurroundings(pos.coords.latitude, pos.coords.longitude);
+        surroundingsR.current = surr;
         if (name) {
           setCurrentLoc(name);
           if (firstPosition) {
