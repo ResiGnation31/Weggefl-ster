@@ -1036,8 +1036,30 @@ export default function App() {
         )}
 
         {/* Voice */}
-        <div style={{ marginBottom:16, padding:"4px 0", textAlign:"left" }}>
-          <span style={{ fontSize:14, color:T.textMuted, fontWeight:400 }}>Helmut Stieglbauer</span>
+        <div style={{ marginBottom:16, position:"relative" }}>
+          <button onClick={() => setVoiceDropOpen(o => !o)} style={{ display:"flex", alignItems:"center", gap:8, background:"none", border:"none", cursor:"pointer", padding:0 }}>
+            <span style={{ fontSize:14, color:T.text, fontWeight:400 }}>
+              {voiceEngine === "elevenlabs" ? "Helmut Stieglbauer" : voiceEngine === "edge" ? "Online-Stimme" : "Browser-Stimme"}
+            </span>
+            <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke={T.textMuted} strokeWidth="1.8" strokeLinecap="round">
+              <path d="M2 4l4 4 4-4"/>
+            </svg>
+          </button>
+          {voiceDropOpen && (
+            <div style={{ position:"absolute", top:32, left:0, zIndex:200, background: isDark ? "rgba(30,26,22,0.97)" : "rgba(250,247,242,0.97)", backdropFilter:"blur(24px)", borderRadius:14, padding:"8px", boxShadow:"0 8px 32px rgba(0,0,0,0.18)", minWidth:240 }}>
+              {[
+                { key:"elevenlabs", label:"Helmut Stieglbauer", sub:"ElevenLabs — beste Qualität" },
+                { key:"edge",       label:"Online-Stimme",      sub:"Kostenlos — gute Qualität" },
+                { key:"browser",    label:"Browser-Stimme",     sub:"Lokal — einfache Qualität" },
+              ].map(({ key, label, sub }) => (
+                <button key={key} onClick={() => { setVoiceEngine(key); setVoiceDropOpen(false); }}
+                  style={{ display:"flex", flexDirection:"column", width:"100%", padding:"10px 12px", borderRadius:10, border:"none", cursor:"pointer", background: voiceEngine===key ? T.accentDim : "transparent", marginBottom:2, textAlign:"left" }}>
+                  <span style={{ fontSize:13, color: voiceEngine===key ? T.accent : T.text, fontWeight: voiceEngine===key ? 600 : 400 }}>{label}</span>
+                  <span style={{ fontSize:11, color:T.textMuted, marginTop:2 }}>{sub}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* CTA */}
