@@ -738,13 +738,13 @@ export default function App() {
                     )}
                   </div>
                   <button onClick={() => { if (gpsEndPlace) { setGpsSubMode("guided"); startGPS("guided", gpsEndPlace); } }}
-                    style={{ width:"100%", padding:13, background:gpsEndPlace?T.btnPrimary:T.accentDim, border:"none", borderRadius:12, color:gpsEndPlace?T.btnText:T.textMuted, fontFamily:"Georgia,serif", fontSize:".95rem", fontWeight:700, cursor:gpsEndPlace?"pointer":"default", transition:"all 0.2s" }}>
+                    style={{ width:"100%", padding:13, background:gpsEndPlace?T.btnPrimary:T.accentDim, border:"none", borderRadius:12, color:gpsEndPlace?T.btnText:T.textMuted, fontSize:15, fontWeight:500, cursor:gpsEndPlace?"pointer":"default", transition:"all 0.2s" }}>
                     {gpsEndPlace ? "Mit Ziel fahren" : "Ziel eingeben"}
                   </button>
                 </div>
                 <div style={{ fontSize:".72rem", color:T.textMuted, textAlign:"center" }}>— oder —</div>
                 <button onClick={() => { setGpsSubMode("free"); startGPS("free", null); }}
-                  style={{ width:"100%", padding:15, background:"transparent", border:"1px solid " + T.border, borderRadius:14, color:T.text, fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:600, cursor:"pointer", transition:"all 0.2s" }}>
+                  style={{ width:"100%", padding:15, background:"transparent", border:"1px solid " + T.border, borderRadius:14, color:T.text, fontSize:16, fontWeight:600, cursor:"pointer", transition:"all 0.2s" }}>
                   Frei erkunden
                 </button>
               </div>
