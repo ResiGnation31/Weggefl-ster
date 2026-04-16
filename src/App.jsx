@@ -307,8 +307,8 @@ const CATEGORIES = ["Geschichte", "Natur", "Persönlichkeiten", "Mythen", "Kulin
 
 export default function App() {
   const prefersDark = !(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
-  const [isDark, setIsDark] = useState(prefersDark);
-  const [activeColor, setActiveColor] = useState("gold");
+  const [isDark, setIsDark] = useState(() => { const s = localStorage.getItem("wg_dark"); return s !== null ? s === "true" : prefersDark; });
+  const [activeColor, setActiveColor] = useState(() => localStorage.getItem("wg_color") || "gold");
   const [colorOpen, setColorOpen] = useState(false);
 
   const colorMap = {
@@ -870,7 +870,7 @@ export default function App() {
                     {key:"orange", dot:"#E06820", label:"Orange"},
                     {key:"blue",   dot:"#2858C0", label:"Blau"},
                   ].map(({key, dot, label}) => (
-                    <button key={key} onClick={() => { setActiveColor(key); setColorOpen(false); }} style={{ display:"flex", alignItems:"center", gap:10, width:"100%", padding:"7px 8px", borderRadius:10, border:"none", cursor:"pointer", background: activeColor===key ? dot+"22" : "transparent", marginBottom:2 }}>
+                    <button key={key} onClick={() => { setActiveColor(key); setColorOpen(false); localStorage.setItem("wg_color", key); }} style={{ display:"flex", alignItems:"center", gap:10, width:"100%", padding:"7px 8px", borderRadius:10, border:"none", cursor:"pointer", background: activeColor===key ? dot+"22" : "transparent", marginBottom:2 }}>
                       <span style={{ width:18, height:18, borderRadius:"50%", background:dot, display:"inline-block", flexShrink:0, boxShadow: activeColor===key ? "0 0 0 2px " + (isDark?"#2A2420":"#fff") + ",0 0 0 3.5px " + dot : "none" }}/>
                       <span style={{ fontSize:13, color: activeColor===key ? (isDark?"#F0EAE0":"#2C2014") : "#9A8060", fontWeight: activeColor===key ? 600 : 400 }}>{label}</span>
                       {activeColor===key && (
@@ -883,7 +883,7 @@ export default function App() {
                 </div>
               )}
             </div>
-          <button onClick={() => setIsDark(d => !d)}
+          <button onClick={() => { setIsDark(d => { localStorage.setItem("wg_dark", !d); return !d; }); }}
             style={{ width:36, height:36, borderRadius:"50%", border:"none", background: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.5)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(8px)" }}>
             {isDark ? (
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
