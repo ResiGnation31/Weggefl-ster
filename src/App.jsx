@@ -594,8 +594,8 @@ export default function App() {
         : "Dies ist Story " + (count+1) + ". Beginne mit einem kurzen Uebergang wie 'Und waehrend du weiterfaehrst...', 'Apropos...', oder aehnlichem.";
       const surr = surroundingsR.current ? "\nUmgebung sichtbar: " + surroundingsR.current : "";
       prompt = memCtx +
-        "Du bist ein faszinierender Reisebegleiter. Der Fahrer faehrt gerade mit " + kmh + " km/h.\n" +
-        "Aktueller Standort: " + locationName + surr + "\n" +
+        "Du bist ein faszinierender Reisebegleiter. Der Fahrer faehrt mit " + kmh + " km/h.\n" +
+        "Ort (wird gleich passiert): " + locationName + surr + "\n" +
         "Thema: " + cat + "\n" +
         "Laenge: ca. " + words + " Woerter\n\n" +
         transition + "\n\n" +
@@ -647,7 +647,9 @@ export default function App() {
     preloadingR.current = true;
     const wps = routeR.current;
     if (!wps.length) { preloadingR.current = false; return; }
-    const lookahead = Math.min(simDistR.current + 200, routeDistR.current - 50);
+    const speedKmhNow = speedR.current;
+    const lookAheadMeters = Math.max(300, speedKmhNow * 8); // 8 Sekunden voraus
+    const lookahead = Math.min(simDistR.current + lookAheadMeters, routeDistR.current - 50);
     const idx = Math.min(Math.floor(lookahead / routeDistR.current * wps.length), wps.length-1);
     const pos = wps[idx];
     try {
@@ -670,8 +672,8 @@ export default function App() {
           : "Dies ist Story " + (count+1) + ". Beginne mit einem kurzen Uebergang wie 'Und waehrend du weiterfaehrst...', 'Apropos...'.";
         const surroundsText = surr ? "\nUmgebung: " + surr : "";
         const prompt = memCtx +
-          "Du bist ein faszinierender Reisebegleiter. Faehrt mit " + kmh + " km/h.\n" +
-          "Standort: " + name + surroundsText + "\n" +
+          "Du bist ein faszinierender Reisebegleiter. Der Fahrer faehrt mit " + kmh + " km/h und wird GLEICH an folgendem Ort vorbeifahren.\n" +
+          "Kommender Ort: " + name + surroundsText + "\n" +
           "Thema: " + cat + "\n" +
           "Laenge: ca. " + words + " Woerter\n\n" +
           transition + "\n\n" +
@@ -713,7 +715,10 @@ export default function App() {
     }
     const wps = routeR.current;
     if (!wps.length) return;
-    const idx = Math.min(Math.floor(simDistR.current / routeDistR.current * wps.length), wps.length-1);
+    const speedNow = speedR.current;
+    const lookAhead = Math.max(300, speedNow * 8);
+    const futureDist = Math.min(simDistR.current + lookAhead, routeDistR.current - 50);
+    const idx = Math.min(Math.floor(futureDist / routeDistR.current * wps.length), wps.length-1);
     const pos = wps[idx];
     const name = await geocode(pos.lat, pos.lon);
     if (name) generateStory(name, false, null);
