@@ -407,6 +407,7 @@ export default function App() {
   const surroundingsR  = useRef("");
   const nextStoryR     = useRef(null);
   const preloadingR    = useRef(false);
+  const manualStopR    = useRef(false);
 
   useEffect(() => { categoryR.current = category; }, [category]);
   useEffect(() => { speedR.current = speedKmh; }, [speedKmh]);
@@ -476,11 +477,13 @@ export default function App() {
   }
 
   function stopAudio() {
+    manualStopR.current = true;
     window.speechSynthesis?.cancel();
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     clearInterval(progRef.current);
     setSpeaking(false);
     speakingR.current = false;
+    setTimeout(() => { manualStopR.current = false; }, 1500);
   }
 
   function onStoryEnd() {
@@ -489,12 +492,11 @@ export default function App() {
     clearInterval(progRef.current);
     setSpProgress(100);
     setTimeout(() => {
-      if (!speakingR.current && !generatingR.current && simDistR.current > 0 && simDistR.current < routeDistR.current && !arrivedR.current) {
+      if (!manualStopR.current && !speakingR.current && !generatingR.current && simDistR.current > 0 && simDistR.current < routeDistR.current && !arrivedR.current) {
         triggerNextStory();
       }
     }, 500);
-    // Pre-load nächste Story sofort
-    if (simDistR.current > 0 && simDistR.current < routeDistR.current) {
+    if (!manualStopR.current && simDistR.current > 0 && simDistR.current < routeDistR.current) {
       setTimeout(() => preloadNextStory(), 1000);
     }
   }
