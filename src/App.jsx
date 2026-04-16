@@ -621,7 +621,7 @@ export default function App() {
       const data = await res.json();
       if (res.ok && data.text) {
         const cleanText = data.text.replace(/^#+\s+.+\n?/gm, "").replace(/\*\*/g, "").replace(/\*/g, "").trim();
-        setStoryText(cleanText);
+        setStoryText(data.text);
         setStoryAudio(data.audio || null);
         setStoryLoading(false);
         if (!isIntro) {
@@ -1277,30 +1277,6 @@ export default function App() {
             )}
           </div>
         )}
-        {/* CTA */}
-        {gpsMode === "sim" && (
-          <div style={{ display:"flex", gap:9, marginBottom:16 }}>
-            {!simRunning && !arrived ? (
-              <button onClick={startSim} disabled={!startPlace||!endPlace||routeLoading}
-              style={{ flex:1, padding:16, background:T.btnPrimary, border:"none", borderRadius:14, color:T.btnText, fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:700, cursor:"pointer", boxShadow:`0 4px 20px ${T.accentGlow}`, transition:"all 0.2s" }}>
-                {routeLoading ? "Berechne Route..." : !startPlace||!endPlace ? "Start & Ziel eingeben" : "🚗 Fahrt starten"}
-              </button>
-            ) : (
-              <>
-                <button onClick={() => setSimRunning(r => !r)}
-                  style={{ flex:1, padding:14, background:simRunning?T.accentDim:T.btnPrimary, border:`1px solid ${simRunning?T.accentBorder:"transparent"}`, borderRadius:13, color:simRunning?T.accent:T.btnText, fontFamily:"sans-serif", fontSize:".9rem", fontWeight:600, cursor:"pointer" }}>
-                  {simRunning ? "⏸ Pause" : "▶ Weiter"}
-                </button>
-                <button onClick={startSim}
-                  style={{ padding:"14px 18px", background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:13, color:T.textMuted, fontFamily:"sans-serif", fontSize:".9rem", cursor:"pointer" }}>
-                  ↺ Neu
-                </button>
-              </>
-            )}
-          </div>
-        )}
-
-
         {/* Story panel */}
         {(storyTitle || storyLoading) && (
           <div style={{ background:T.storyBg, border:`1px solid ${T.storyBorder}`, borderRadius:18, overflow:"hidden", marginBottom:14, animation:"slideIn .35s ease", boxShadow:isDark?"none":"0 2px 16px rgba(0,0,0,0.06)" }}>
