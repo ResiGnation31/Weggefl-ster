@@ -160,7 +160,7 @@ function BikeBackground({ progress }) {
       {Array.from({length:11}).map((_,i)=>(
         <rect key={i} x={i*38-4} y="466" width="24" height="5" rx="2" fill="#C9A84C" opacity="0.25"/>
       ))}
-      <g className="bike1">
+      <g className="bike1" style={{transform:"translate(0px, 460px)"}}>
         <circle cx="0" cy="0" r="22" fill="none" stroke="#3A2508" strokeWidth="3.5" opacity="0.6"/>
         <circle cx="68" cy="0" r="22" fill="none" stroke="#3A2508" strokeWidth="3.5" opacity="0.6"/>
         <line x1="0" y1="0" x2="26" y2="-26" stroke="#C9841C" strokeWidth="4" strokeLinecap="round" opacity="0.7"/>
@@ -171,7 +171,7 @@ function BikeBackground({ progress }) {
         <circle cx="20" cy="-68" r="10" fill="#EDE6D6" opacity="0.6"/>
         <line x1="20" y1="-58" x2="48" y2="-72" stroke="#C9A84C" strokeWidth="6" strokeLinecap="round" opacity="0.55"/>
       </g>
-      <g className="bike2">
+      <g className="bike2" style={{transform:"translate(0px, 470px)"}}>
         <circle cx="0" cy="0" r="18" fill="none" stroke="#3A2508" strokeWidth="3" opacity="0.4"/>
         <circle cx="54" cy="0" r="18" fill="none" stroke="#3A2508" strokeWidth="3" opacity="0.4"/>
         <line x1="0" y1="0" x2="20" y2="-20" stroke="#A07828" strokeWidth="3.5" strokeLinecap="round" opacity="0.5"/>
