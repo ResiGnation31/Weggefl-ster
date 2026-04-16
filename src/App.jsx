@@ -1037,6 +1037,7 @@ export default function App() {
 
         {/* Voice */}
         <div style={{ marginBottom:16, position:"relative" }}>
+          <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase" }}>Stimme</p>
           <button onClick={() => setVoiceDropOpen(o => !o)} style={{ display:"flex", alignItems:"center", gap:8, background:"none", border:"none", cursor:"pointer", padding:0 }}>
             <span style={{ fontSize:14, color:T.text, fontWeight:400 }}>
               {voiceEngine === "elevenlabs" ? "Helmut Stieglbauer" : voiceEngine === "edge" ? "Online-Stimme" : "Browser-Stimme"}
