@@ -130,54 +130,134 @@ function BikeBackground({ progress }) {
   return (
     <svg viewBox="0 0 400 700" style={{
       position:"fixed",inset:0,width:"100%",height:"100%",
-      opacity:0.28*progress,transition:"opacity 0.8s ease",pointerEvents:"none",zIndex:0,
+      opacity:0.35*progress,transition:"opacity 0.8s ease",pointerEvents:"none",zIndex:0,
     }}>
       <defs><style>{`
-        @keyframes bikeRide { 0%{transform:translateX(-200px)} 100%{transform:translateX(500px)} }
-        @keyframes wheelSpin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
-        @keyframes cloudDrift { 0%{transform:translateX(0)} 100%{transform:translateX(-420px)} }
-        @keyframes cloudDrift2 { 0%{transform:translateX(420px)} 100%{transform:translateX(0)} }
-        @keyframes legPedal { 0%,100%{transform:rotate(-28deg)} 50%{transform:rotate(28deg)} }
-        .bike1 { animation:bikeRide 28s linear infinite }
-        .bike2 { animation:bikeRide 34s linear infinite 14s }
-        .cld1 { animation:cloudDrift 18s linear infinite }
-        .cld2 { animation:cloudDrift2 18s linear infinite }
+        @keyframes bkRide1 { 0%{transform:translate(-150px,530px)} 100%{transform:translate(520px,530px)} }
+        @keyframes bkRide2 { 0%{transform:translate(-150px,545px)} 100%{transform:translate(520px,545px)} }
+        @keyframes bird1   { 0%{transform:translate(-80px,160px)}  100%{transform:translate(480px,140px)} }
+        @keyframes bird2   { 0%{transform:translate(-80px,240px)}  100%{transform:translate(480px,260px)} }
+        @keyframes cld1    { 0%{transform:translateX(0)}   100%{transform:translateX(-420px)} }
+        @keyframes cld2    { 0%{transform:translateX(420px)} 100%{transform:translateX(0)} }
+        @keyframes legP    { 0%,100%{transform:rotate(-30deg)} 50%{transform:rotate(30deg)} }
+        .bk1 { animation:bkRide1 22s linear infinite }
+        .bk2 { animation:bkRide2 28s linear infinite 11s }
+        .bd1 { animation:bird1 14s ease-in-out infinite 1s }
+        .bd2 { animation:bird2 14s ease-in-out infinite 1s }
+        .cl1 { animation:cld1 20s linear infinite }
+        .cl2 { animation:cld2 20s linear infinite }
       `}</style></defs>
-      <rect x="0" y="0" width="400" height="370" fill="#87CEEB" opacity="0.15"/>
-      {["cld1","cld2"].map((cls,si)=>(
+
+      {/* Sky */}
+      <rect x="0" y="0" width="400" height="420" fill="#87CEEB" opacity="0.22"/>
+
+      {/* Clouds */}
+      {["cl1","cl2"].map((cls,si)=>(
         <g key={si} className={cls}>
-          {[[30,120],[130,90],[250,110],[340,80],[480,100]].map(([x,y],i)=>(
+          {[[30,100],[140,80],[260,95],[370,75],[490,90],[560,110]].map(([x,y],i)=>(
             <g key={i}>
-              <ellipse cx={x} cy={y} rx="32" ry="15" fill="#fff" opacity="0.3"/>
-              <ellipse cx={x+20} cy={y-8} rx="20" ry="13" fill="#fff" opacity="0.25"/>
+              <ellipse cx={x} cy={y} rx="36" ry="16" fill="#fff" opacity="0.45"/>
+              <ellipse cx={x+22} cy={y-9} rx="22" ry="14" fill="#fff" opacity="0.38"/>
+              <ellipse cx={x-16} cy={y-5} rx="18" ry="12" fill="#fff" opacity="0.35"/>
             </g>
           ))}
         </g>
       ))}
-      <rect x="0" y="378" width="400" height="42" fill="#5A9E2F" opacity="0.3"/>
-      <rect x="0" y="440" width="400" height="60" fill="#7A6030" opacity="0.18"/>
-      <line x1="0" y1="440" x2="400" y2="440" stroke="#C9A84C" strokeWidth="2" opacity="0.2"/>
-      {Array.from({length:11}).map((_,i)=>(
-        <rect key={i} x={i*38-4} y="466" width="24" height="5" rx="2" fill="#C9A84C" opacity="0.25"/>
+
+      {/* Ocean */}
+      <rect x="0" y="360" width="400" height="70" fill="#4A90D9" opacity="0.3"/>
+      <line x1="0" y1="360" x2="400" y2="360" stroke="#6AAFEE" strokeWidth="2" opacity="0.4"/>
+      {[0,1,2].map(i=>(
+        <line key={i} x1="0" y1={375+i*12} x2="400" y2={375+i*12} stroke="#fff" strokeWidth="1" opacity="0.1"/>
       ))}
-      <g className="bike1" style={{transform:"translate(0px, 460px)"}}>
-        <circle cx="0" cy="0" r="22" fill="none" stroke="#3A2508" strokeWidth="3.5" opacity="0.6"/>
-        <circle cx="68" cy="0" r="22" fill="none" stroke="#3A2508" strokeWidth="3.5" opacity="0.6"/>
-        <line x1="0" y1="0" x2="26" y2="-26" stroke="#C9841C" strokeWidth="4" strokeLinecap="round" opacity="0.7"/>
-        <line x1="26" y1="-26" x2="20" y2="-52" stroke="#C9841C" strokeWidth="4" strokeLinecap="round" opacity="0.7"/>
-        <line x1="20" y1="-52" x2="52" y2="-46" stroke="#C9841C" strokeWidth="4" strokeLinecap="round" opacity="0.7"/>
-        <line x1="20" y1="-52" x2="68" y2="-26" stroke="#C9841C" strokeWidth="4" strokeLinecap="round" opacity="0.7"/>
-        <line x1="52" y1="-46" x2="68" y2="0" stroke="#C9841C" strokeWidth="3.5" strokeLinecap="round" opacity="0.7"/>
-        <circle cx="20" cy="-68" r="10" fill="#EDE6D6" opacity="0.6"/>
-        <line x1="20" y1="-58" x2="48" y2="-72" stroke="#C9A84C" strokeWidth="6" strokeLinecap="round" opacity="0.55"/>
+
+      {/* Grass */}
+      <rect x="0" y="420" width="400" height="55" fill="#5A9E2F" opacity="0.45"/>
+      <line x1="0" y1="420" x2="400" y2="420" stroke="#4A8E1F" strokeWidth="1.5" opacity="0.4"/>
+      {Array.from({length:50}).map((_,i)=>(
+        <g key={i}>
+          <rect x={i*9} y="418" width="2.5" height="6" fill="#4A8E1F" opacity="0.5"/>
+          <rect x={i*9+4} y="416" width="2.5" height="8" fill="#5AAE2F" opacity="0.5"/>
+        </g>
+      ))}
+
+      {/* Road */}
+      <rect x="0" y="475" width="400" height="65" fill="#8B7355" opacity="0.22"/>
+      <line x1="0" y1="475" x2="400" y2="475" stroke="#C9A84C" strokeWidth="2" opacity="0.25"/>
+      {Array.from({length:12}).map((_,i)=>(
+        <rect key={i} x={i*36-4} y="504" width="22" height="5" rx="2" fill="#C9A84C" opacity="0.3"/>
+      ))}
+      <rect x="0" y="540" width="400" height="160" fill="#5A9E2F" opacity="0.2"/>
+
+      {/* Bird 1 (red) */}
+      <g className="bd1">
+        <ellipse cx="0" cy="0" rx="38" ry="14" fill="#C03020" opacity="0.7"/>
+        <ellipse cx="12" cy="3" rx="18" ry="9" fill="#F5F0E8" opacity="0.75"/>
+        <ellipse cx="40" cy="-4" rx="13" ry="11" fill="#C03020" opacity="0.75"/>
+        <circle cx="47" cy="-7" r="4" fill="#fff" opacity="0.9"/>
+        <path d="M -4 -6 L -36 -32 L 4 -9 Z" fill="#C03020" opacity="0.65"/>
+        <path d="M -4 7 L -38 32 L 4 9 Z" fill="#A02010" opacity="0.55"/>
       </g>
-      <g className="bike2" style={{transform:"translate(0px, 470px)"}}>
-        <circle cx="0" cy="0" r="18" fill="none" stroke="#3A2508" strokeWidth="3" opacity="0.4"/>
-        <circle cx="54" cy="0" r="18" fill="none" stroke="#3A2508" strokeWidth="3" opacity="0.4"/>
-        <line x1="0" y1="0" x2="20" y2="-20" stroke="#A07828" strokeWidth="3.5" strokeLinecap="round" opacity="0.5"/>
-        <line x1="20" y1="-20" x2="15" y2="-40" stroke="#A07828" strokeWidth="3.5" strokeLinecap="round" opacity="0.5"/>
-        <line x1="15" y1="-40" x2="40" y2="-35" stroke="#A07828" strokeWidth="3.5" strokeLinecap="round" opacity="0.5"/>
-        <line x1="15" y1="-40" x2="54" y2="-20" stroke="#A07828" strokeWidth="3.5" strokeLinecap="round" opacity="0.5"/>
+
+      {/* Bird 2 (blue) */}
+      <g className="bd2">
+        <ellipse cx="0" cy="0" rx="42" ry="16" fill="#2858C0" opacity="0.7"/>
+        <ellipse cx="14" cy="4" rx="22" ry="10" fill="#F5F0E8" opacity="0.75"/>
+        <ellipse cx="46" cy="-6" rx="15" ry="12" fill="#2858C0" opacity="0.75"/>
+        <circle cx="55" cy="-9" r="4.5" fill="#fff" opacity="0.9"/>
+        <path d="M -5 -7 L -44 -40 L 5 -11 Z" fill="#2858C0" opacity="0.65"/>
+        <path d="M -5 9 L -46 40 L 5 11 Z" fill="#1A3E90" opacity="0.55"/>
+      </g>
+
+      {/* Bike 1 */}
+      <g className="bk1">
+        <circle cx="0" cy="0" r="20" fill="none" stroke="#3A2508" strokeWidth="3" opacity="0.65"/>
+        <circle cx="62" cy="0" r="20" fill="none" stroke="#3A2508" strokeWidth="3" opacity="0.65"/>
+        {[0,45,90,135].map((a,i)=>{const r=a*Math.PI/180;return(
+          <line key={i} x1={-15*Math.cos(r)} y1={-15*Math.sin(r)} x2={15*Math.cos(r)} y2={15*Math.sin(r)} stroke="#8B6914" strokeWidth="1.8" opacity="0.55"/>
+        );})}
+        {[0,45,90,135].map((a,i)=>{const r=a*Math.PI/180;return(
+          <line key={i} x1={62-15*Math.cos(r)} y1={-15*Math.sin(r)} x2={62+15*Math.cos(r)} y2={15*Math.sin(r)} stroke="#8B6914" strokeWidth="1.8" opacity="0.55"/>
+        );})}
+        <line x1="0" y1="0" x2="24" y2="-24" stroke="#C9841C" strokeWidth="3.5" strokeLinecap="round" opacity="0.75"/>
+        <line x1="24" y1="-24" x2="18" y2="-48" stroke="#C9841C" strokeWidth="3.5" strokeLinecap="round" opacity="0.75"/>
+        <line x1="18" y1="-48" x2="48" y2="-42" stroke="#C9841C" strokeWidth="3.5" strokeLinecap="round" opacity="0.72"/>
+        <line x1="18" y1="-48" x2="62" y2="-24" stroke="#C9841C" strokeWidth="3.5" strokeLinecap="round" opacity="0.72"/>
+        <line x1="48" y1="-42" x2="62" y2="0" stroke="#C9841C" strokeWidth="3" strokeLinecap="round" opacity="0.72"/>
+        <line x1="18" y1="-48" x2="0" y2="0" stroke="#C9841C" strokeWidth="2.5" strokeLinecap="round" opacity="0.65"/>
+        <line x1="48" y1="-42" x2="50" y2="-57" stroke="#8B6914" strokeWidth="3" strokeLinecap="round" opacity="0.75"/>
+        <line x1="43" y1="-58" x2="58" y2="-54" stroke="#8B6914" strokeWidth="3.5" strokeLinecap="round" opacity="0.75"/>
+        <line x1="18" y1="-48" x2="16" y2="-63" stroke="#8B6914" strokeWidth="3" strokeLinecap="round" opacity="0.72"/>
+        <line x1="8" y1="-63" x2="26" y2="-63" stroke="#8B6914" strokeWidth="4" strokeLinecap="round" opacity="0.78"/>
+        <line x1="16" y1="-63" x2="44" y2="-74" stroke="#C9A84C" strokeWidth="6" strokeLinecap="round" opacity="0.65"/>
+        <circle cx="46" cy="-84" r="11" fill="#EDE6D6" opacity="0.72"/>
+        <path d="M 35 -85 Q 46 -97 57 -85" fill="#C9841C" opacity="0.82"/>
+        <rect x="35" y="-86" width="22" height="5" rx="2" fill="#C9841C" opacity="0.82"/>
+        <line x1="44" y1="-74" x2="56" y2="-59" stroke="#EDE6D6" strokeWidth="4.5" strokeLinecap="round" opacity="0.6"/>
+        <line x1="24" y1="-24" x2="14" y2="-5" stroke="#8B6914" strokeWidth="4.5" strokeLinecap="round" opacity="0.65"
+          style={{transformOrigin:"24px -24px", animation:"legP 0.6s ease-in-out infinite"}}/>
+        <line x1="24" y1="-24" x2="34" y2="-4" stroke="#6B5B45" strokeWidth="4.5" strokeLinecap="round" opacity="0.55"
+          style={{transformOrigin:"24px -24px", animation:"legP 0.6s ease-in-out infinite 0.3s"}}/>
+      </g>
+
+      {/* Bike 2 smaller */}
+      <g className="bk2">
+        <circle cx="0" cy="0" r="16" fill="none" stroke="#3A2508" strokeWidth="2.5" opacity="0.5"/>
+        <circle cx="50" cy="0" r="16" fill="none" stroke="#3A2508" strokeWidth="2.5" opacity="0.5"/>
+        <line x1="0" y1="0" x2="18" y2="-18" stroke="#A07828" strokeWidth="3" strokeLinecap="round" opacity="0.55"/>
+        <line x1="18" y1="-18" x2="14" y2="-36" stroke="#A07828" strokeWidth="3" strokeLinecap="round" opacity="0.55"/>
+        <line x1="14" y1="-36" x2="38" y2="-32" stroke="#A07828" strokeWidth="3" strokeLinecap="round" opacity="0.52"/>
+        <line x1="14" y1="-36" x2="50" y2="-18" stroke="#A07828" strokeWidth="3" strokeLinecap="round" opacity="0.52"/>
+        <line x1="14" y1="-36" x2="0" y2="0" stroke="#A07828" strokeWidth="2" strokeLinecap="round" opacity="0.45"/>
+        <line x1="14" y1="-36" x2="12" y2="-50" stroke="#8B6914" strokeWidth="2.5" strokeLinecap="round" opacity="0.6"/>
+        <line x1="5" y1="-50" x2="20" y2="-50" stroke="#8B6914" strokeWidth="3.5" strokeLinecap="round" opacity="0.65"/>
+        <line x1="12" y1="-50" x2="34" y2="-58" stroke="#C9A84C" strokeWidth="5" strokeLinecap="round" opacity="0.55"/>
+        <circle cx="36" cy="-67" r="9" fill="#EDE6D6" opacity="0.6"/>
+        <path d="M 27 -68 Q 36 -78 45 -68" fill="#8B6914" opacity="0.7"/>
+        <line x1="18" y1="-18" x2="10" y2="-3" stroke="#8B6914" strokeWidth="3.5" strokeLinecap="round" opacity="0.5"
+          style={{transformOrigin:"18px -18px", animation:"legP 0.6s ease-in-out infinite 0.15s"}}/>
+        <line x1="18" y1="-18" x2="26" y2="-2" stroke="#6B5B45" strokeWidth="3.5" strokeLinecap="round" opacity="0.45"
+          style={{transformOrigin:"18px -18px", animation:"legP 0.6s ease-in-out infinite 0.45s"}}/>
       </g>
     </svg>
   );
