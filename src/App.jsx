@@ -30,6 +30,199 @@ function getWordCount(kmh, transport) {
   return 120;
 }
 
+
+/* ─── AUTO BACKGROUND ─────────────────────────────────────────── */
+function AutoBackground({ progress }) {
+  return (
+    <svg viewBox="0 0 400 700" style={{
+      position:"fixed",inset:0,width:"100%",height:"100%",
+      opacity:0.24*progress,transition:"opacity 0.8s ease",pointerEvents:"none",zIndex:0,
+    }}>
+      <defs><style>{`
+        @keyframes roadScroll { 0%{transform:translateY(0)} 100%{transform:translateY(80px)} }
+        @keyframes carFloat { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-8px) rotate(1deg)} }
+        .road-anim { animation:roadScroll 14s linear infinite }
+        .car-float { animation:carFloat 8s ease-in-out infinite }
+      `}</style></defs>
+      <g className="road-anim">
+        <path d="M 160 750 C 160 650,80 580,100 480 C 120 380,280 340,260 240 C 240 140,140 100,160 0"
+          fill="none" stroke="#8B6914" strokeWidth="60" strokeLinecap="round" opacity="0.12"/>
+        {[680,580,480,380,280,180,80].map((y,i)=>(
+          <ellipse key={i} cx={155-i*5} cy={y} rx="4" ry="14" fill="#C9A84C" opacity="0.06"/>
+        ))}
+        {[[60,500],[40,380],[70,260],[80,160],[290,520],[310,400],[280,300],[300,180]].map(([x,y],i)=>(
+          <g key={i}>
+            <circle cx={x} cy={y-20} r="18" fill="#6B7C3A" opacity="0.24"/>
+            <rect x={x-3} y={y} width="6" height="20" fill="#8B6914" opacity="0.24"/>
+          </g>
+        ))}
+      </g>
+      <g className="car-float" style={{transformOrigin:"200px 320px"}}>
+        <rect x="130" y="310" width="140" height="50" rx="8" fill="#C9A84C" opacity="0.18"/>
+        <rect x="150" y="290" width="100" height="30" rx="6" fill="#C9A84C" opacity="0.24"/>
+        <circle cx="160" cy="362" r="14" fill="#8B6914" opacity="0.18"/>
+        <circle cx="240" cy="362" r="14" fill="#8B6914" opacity="0.18"/>
+      </g>
+    </svg>
+  );
+}
+
+/* ─── BUS BACKGROUND ───────────────────────────────────────────── */
+function BusBackground({ progress }) {
+  const bset = [
+    [0,240,55,180],[58,210,45,210],[106,250,38,170],
+    [147,220,60,200],[210,235,40,185],[253,200,50,220],
+    [306,245,45,175],[354,215,46,205],
+  ];
+  return (
+    <svg viewBox="0 0 400 700" style={{
+      position:"fixed",inset:0,width:"100%",height:"100%",
+      opacity:0.24*progress,transition:"opacity 0.8s ease",pointerEvents:"none",zIndex:0,
+    }}>
+      <defs><style>{`
+        @keyframes busDrive { 0%{transform:translateX(440px)} 100%{transform:translateX(-360px)} }
+        @keyframes bldgMove { 0%{transform:translateX(0)} 100%{transform:translateX(-400px)} }
+        @keyframes bldgMove2 { 0%{transform:translateX(400px)} 100%{transform:translateX(0)} }
+        .bus1 { animation:busDrive 32s linear infinite }
+        .bus2 { animation:busDrive 40s linear infinite 16s }
+        .bldg1 { animation:bldgMove 40s linear infinite }
+        .bldg2 { animation:bldgMove2 40s linear infinite }
+      `}</style></defs>
+      {["bldg1","bldg2"].map((cls,si)=>(
+        <g key={si} className={cls}>
+          {bset.map(([x,y,w,h],i)=>(
+            <g key={i}>
+              <rect x={x} y={y} width={w} height={h} fill="#8B6914" opacity="0.12"/>
+              {Array.from({length:Math.floor(h/30)}).map((_,wr)=>
+                Array.from({length:Math.floor(w/16)}).map((_,wc)=>(
+                  <rect key={wr+"-"+wc} x={x+5+wc*16} y={y+8+wr*30} width="8" height="14" rx="1" fill="#C9A84C" opacity="0.08"/>
+                ))
+              )}
+            </g>
+          ))}
+        </g>
+      ))}
+      <rect x="0" y="415" width="400" height="170" fill="#8B6914" opacity="0.05"/>
+      <line x1="0" y1="415" x2="400" y2="415" stroke="#C9A84C" strokeWidth="3" opacity="0.11"/>
+      <g className="bus1">
+        <rect x="0" y="428" width="230" height="118" rx="11" fill="#C9A84C" opacity="0.42"/>
+        <rect x="4" y="418" width="222" height="18" rx="5" fill="#C9A84C" opacity="0.11"/>
+        {[14,52,90,132,168].map((x,i)=>(
+          <rect key={i} x={x} y="434" width="30" height="36" rx="4" fill="#EDE6D6" opacity="0.32"/>
+        ))}
+        <circle cx="48" cy="548" r="22" fill="#3A2508" opacity="0.18"/>
+        <circle cx="178" cy="548" r="22" fill="#3A2508" opacity="0.18"/>
+      </g>
+      <g className="bus2">
+        <rect x="0" y="442" width="160" height="82" rx="8" fill="#C9A84C" opacity="0.22"/>
+        {[12,42,72,108].map((x,i)=>(
+          <rect key={i} x={x} y="447" width="22" height="26" rx="3" fill="#EDE6D6" opacity="0.16"/>
+        ))}
+        <circle cx="32" cy="526" r="15" fill="#3A2508" opacity="0.18"/>
+        <circle cx="126" cy="526" r="15" fill="#3A2508" opacity="0.18"/>
+      </g>
+    </svg>
+  );
+}
+
+/* ─── FAHRRAD BACKGROUND ───────────────────────────────────────── */
+function BikeBackground({ progress }) {
+  return (
+    <svg viewBox="0 0 400 700" style={{
+      position:"fixed",inset:0,width:"100%",height:"100%",
+      opacity:0.28*progress,transition:"opacity 0.8s ease",pointerEvents:"none",zIndex:0,
+    }}>
+      <defs><style>{`
+        @keyframes bikeRide { 0%{transform:translateX(-200px)} 100%{transform:translateX(500px)} }
+        @keyframes wheelSpin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+        @keyframes cloudDrift { 0%{transform:translateX(0)} 100%{transform:translateX(-420px)} }
+        @keyframes cloudDrift2 { 0%{transform:translateX(420px)} 100%{transform:translateX(0)} }
+        @keyframes legPedal { 0%,100%{transform:rotate(-28deg)} 50%{transform:rotate(28deg)} }
+        .bike1 { animation:bikeRide 28s linear infinite }
+        .bike2 { animation:bikeRide 34s linear infinite 14s }
+        .cld1 { animation:cloudDrift 18s linear infinite }
+        .cld2 { animation:cloudDrift2 18s linear infinite }
+      `}</style></defs>
+      <rect x="0" y="0" width="400" height="370" fill="#87CEEB" opacity="0.15"/>
+      {["cld1","cld2"].map((cls,si)=>(
+        <g key={si} className={cls}>
+          {[[30,120],[130,90],[250,110],[340,80],[480,100]].map(([x,y],i)=>(
+            <g key={i}>
+              <ellipse cx={x} cy={y} rx="32" ry="15" fill="#fff" opacity="0.3"/>
+              <ellipse cx={x+20} cy={y-8} rx="20" ry="13" fill="#fff" opacity="0.25"/>
+            </g>
+          ))}
+        </g>
+      ))}
+      <rect x="0" y="378" width="400" height="42" fill="#5A9E2F" opacity="0.3"/>
+      <rect x="0" y="440" width="400" height="60" fill="#7A6030" opacity="0.18"/>
+      <line x1="0" y1="440" x2="400" y2="440" stroke="#C9A84C" strokeWidth="2" opacity="0.2"/>
+      {Array.from({length:11}).map((_,i)=>(
+        <rect key={i} x={i*38-4} y="466" width="24" height="5" rx="2" fill="#C9A84C" opacity="0.25"/>
+      ))}
+      <g className="bike1">
+        <circle cx="0" cy="0" r="22" fill="none" stroke="#3A2508" strokeWidth="3.5" opacity="0.6"/>
+        <circle cx="68" cy="0" r="22" fill="none" stroke="#3A2508" strokeWidth="3.5" opacity="0.6"/>
+        <line x1="0" y1="0" x2="26" y2="-26" stroke="#C9841C" strokeWidth="4" strokeLinecap="round" opacity="0.7"/>
+        <line x1="26" y1="-26" x2="20" y2="-52" stroke="#C9841C" strokeWidth="4" strokeLinecap="round" opacity="0.7"/>
+        <line x1="20" y1="-52" x2="52" y2="-46" stroke="#C9841C" strokeWidth="4" strokeLinecap="round" opacity="0.7"/>
+        <line x1="20" y1="-52" x2="68" y2="-26" stroke="#C9841C" strokeWidth="4" strokeLinecap="round" opacity="0.7"/>
+        <line x1="52" y1="-46" x2="68" y2="0" stroke="#C9841C" strokeWidth="3.5" strokeLinecap="round" opacity="0.7"/>
+        <circle cx="20" cy="-68" r="10" fill="#EDE6D6" opacity="0.6"/>
+        <line x1="20" y1="-58" x2="48" y2="-72" stroke="#C9A84C" strokeWidth="6" strokeLinecap="round" opacity="0.55"/>
+      </g>
+      <g className="bike2">
+        <circle cx="0" cy="0" r="18" fill="none" stroke="#3A2508" strokeWidth="3" opacity="0.4"/>
+        <circle cx="54" cy="0" r="18" fill="none" stroke="#3A2508" strokeWidth="3" opacity="0.4"/>
+        <line x1="0" y1="0" x2="20" y2="-20" stroke="#A07828" strokeWidth="3.5" strokeLinecap="round" opacity="0.5"/>
+        <line x1="20" y1="-20" x2="15" y2="-40" stroke="#A07828" strokeWidth="3.5" strokeLinecap="round" opacity="0.5"/>
+        <line x1="15" y1="-40" x2="40" y2="-35" stroke="#A07828" strokeWidth="3.5" strokeLinecap="round" opacity="0.5"/>
+        <line x1="15" y1="-40" x2="54" y2="-20" stroke="#A07828" strokeWidth="3.5" strokeLinecap="round" opacity="0.5"/>
+      </g>
+    </svg>
+  );
+}
+
+/* ─── ZU FUSS BACKGROUND ───────────────────────────────────────── */
+function WalkBackground({ progress }) {
+  const steps = [];
+  for (let i = 0; i < 16; i++) {
+    const y = 650 - i * 38;
+    const L = i % 2 === 0;
+    steps.push([L ? 148 : 172, y, L ? -12 : 12]);
+  }
+  return (
+    <svg viewBox="0 0 400 700" style={{
+      position:"fixed",inset:0,width:"100%",height:"100%",
+      opacity:0.32*progress,transition:"opacity 0.8s ease",pointerEvents:"none",zIndex:0,
+    }}>
+      <defs><style>{`
+        @keyframes inkStep { 0%{opacity:0;transform:scale(0.2)} 8%{opacity:0.75;transform:scale(1.05)} 15%{opacity:0.65;transform:scale(1)} 80%{opacity:0.65} 100%{opacity:0.08} }
+      `}</style></defs>
+      <rect x="128" y="0" width="144" height="700" fill="#C9A84C" opacity="0.03" rx="6"/>
+      {steps.map(([x,y,rot],i)=>(
+        <g key={i} style={{
+          transformOrigin:x+"px "+y+"px",
+          animation:"inkStep 20s ease-in-out infinite",
+          animationDelay:(i*1.25)+"s",
+        }}>
+          <ellipse cx={x} cy={y} rx="6" ry="10" fill="#8B6914"
+            transform={"rotate("+rot+","+x+","+y+")"} opacity="1"/>
+          {[-3.5,-1,1.5,4].map((tx,ti)=>(
+            <ellipse key={ti} cx={x+tx} cy={y+(rot<0?-12:12)} rx="2" ry="1.6" fill="#8B6914" opacity="0.8"/>
+          ))}
+        </g>
+      ))}
+      {[[38,290],[355,270],[25,155],[372,148],[90,420],[310,400]].map(([x,y],i)=>(
+        <g key={i} opacity={0.18+(i%3)*0.04}>
+          <ellipse cx={x} cy={y-26} rx="24" ry="30" fill="#6B7C3A"/>
+          <rect x={x-4} y={y+2} width="8" height="22" fill="#8B6914"/>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 const CATEGORIES = ["Geschichte", "Natur", "Persönlichkeiten", "Mythen", "Kulinarik", "Architektur"];
 
 export default function App() {
@@ -83,6 +276,17 @@ export default function App() {
   const [transport, setTransport]     = useState("car");
   const [bgProgress, setBgProgress]   = useState({ car:1, bus:0, bike:0, walk:0 });
   const prevTransport = useRef("car");
+
+  const handleTransport = (id) => {
+    if (id === transport) return;
+    setBgProgress(prev => ({ ...prev, [prevTransport.current]:0 }));
+    setTimeout(() => {
+      setBgProgress(prev => ({ ...prev, [id]:1 }));
+      setTransport(id);
+      transportR.current = id;
+      prevTransport.current = id;
+    }, 80);
+  };
 
   useEffect(() => {
     if (gpsMode === "real" && !currentLoc) {
@@ -514,7 +718,11 @@ export default function App() {
     gpsBg:"rgba(255,255,255,0.75)",
   };
   return (
-    <div style={{ minHeight:"100vh", background:T.bg, fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif", color:T.text, overflowX:"hidden", transition:"background 0.3s, color 0.3s" }}>
+    <div style={{ minHeight:"100vh", position:"relative", background:T.bg, fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif", color:T.text, overflowX:"hidden", transition:"background 0.3s, color 0.3s" }}>
+      <AutoBackground progress={bgProgress.car}/>
+      <BusBackground progress={bgProgress.bus}/>
+      <BikeBackground progress={bgProgress.bike}/>
+      <WalkBackground progress={bgProgress.walk}/>
       <style>{`
         @keyframes pulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
         @keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -898,7 +1106,7 @@ export default function App() {
             { id:"bike", label:"Fahrrad", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:24,height:24}}><circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M6 15l4-8h4l2 4-4 4-2-4"/><path d="M14 7h2"/></svg> },
             { id:"walk", label:"Zu Fuß", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:24,height:24}}><circle cx="12" cy="4" r="1.5"/><path d="M10 8l-2 5h4l2 5M8 13l-2 6M16 13l1 6"/></svg> },
           ].map(({ id, label, svg }) => (
-            <button key={id} onClick={() => { setTransport(id); transportR.current = id; }}
+            <button key={id} onClick={() => handleTransport(id)}
               style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"transparent", border:"none", cursor:"pointer", padding:"4px 0" }}>
               <div style={{ width:44, height:44, borderRadius:12,
                 background: transport===id ? T.accentDim : "transparent",
