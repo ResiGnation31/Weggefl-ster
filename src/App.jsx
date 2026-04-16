@@ -516,17 +516,18 @@ export default function App() {
         ::-webkit-scrollbar-thumb{background:${T.accentDim};border-radius:2px}
       `}</style>
 
-      <div style={{ maxWidth:480, margin:"0 auto", padding:"0 16px 64px" }}>
+      <div style={{ maxWidth:480, margin:"0 auto", padding:"0 16px 100px" }}>
 
         {/* Header */}
-        <div style={{ padding:"44px 0 8px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-          <div>
-            <h1 style={{ margin:0, lineHeight:1, letterSpacing:"-1px" }}>
-              <span style={{ fontSize:"2rem", fontWeight:700, color:T.text, fontFamily:"Georgia,serif" }}>Weg</span><span style={{ fontSize:"2rem", fontWeight:300, fontStyle:"italic", color:T.accent, fontFamily:"Georgia,serif" }}>geflüster</span>
+        <div style={{ padding:"44px 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+          <div style={{ flex:1 }}/>
+          <div style={{ textAlign:"center" }}>
+            <h1 style={{ margin:0, lineHeight:1 }}>
+              <span style={{ fontSize:"1.9rem", fontWeight:700, color:T.text }}>Weg</span><em style={{ fontSize:"1.9rem", fontWeight:400, color:T.accent }}>geflüster</em>
             </h1>
-            <p style={{ margin:"6px 0 0", fontSize:12, color:T.textMuted, letterSpacing:"0.2px" }}>Dein Reisebegleiter</p>
+            <p style={{ margin:"4px 0 0", fontSize:11, color:T.textMuted, letterSpacing:"1px" }}>Dein Reisebegleiter</p>
           </div>
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:4 }}>
+          <div style={{ flex:1, display:"flex", justifyContent:"flex-end", gap:8 }}>
           <button onClick={() => setIsDark(d => !d)}
             style={{ width:36, height:36, borderRadius:"50%", border:"none", background: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.5)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(8px)" }}>
             {isDark ? (
@@ -549,13 +550,15 @@ export default function App() {
         </div>
 
         {/* Mode toggle */}
-        <div style={{ display:"flex", gap:4, marginBottom:14, background:T.segBg, borderRadius:12, padding:3 }}>
+        <div style={{ display:"flex", justifyContent:"center", marginBottom:14 }}>
+        <div style={{ display:"inline-flex", background:T.segBg, borderRadius:12, padding:3, gap:2 }}>
           {["sim","real"].map(m => (
             <button key={m} onClick={() => { setGpsMode(m); if(m==="sim") stopGPS(); }}
               style={{ flex:1, padding:"9px", borderRadius:9, border:"none", background:gpsMode===m?T.bgCard:"transparent", color:gpsMode===m?T.text:T.textMuted, fontFamily:"sans-serif", fontSize:".82rem", fontWeight:gpsMode===m?600:400, cursor:"pointer", transition:"all 0.2s", boxShadow:gpsMode===m?"0 1px 4px rgba(0,0,0,0.08)":"none" }}>
               {m==="sim" ? "Simulation" : "GPS"}
             </button>
           ))}
+        </div>
         </div>
 
         {gpsError && <div style={{ marginBottom:10, padding:"10px 14px", background:T.errorBg, border:`1px solid ${T.errorBorder}`, borderRadius:10, fontSize:".78rem", color:T.errorText }}>⚠️ {gpsError}</div>}
@@ -618,12 +621,19 @@ export default function App() {
           {routeError && <div style={{ fontSize:".75rem", color:T.errorText, marginTop:10 }}>⚠️ {routeError}</div>}
         </div>}
 
-        <div style={{ background:T.bgCard, border:"1px solid " + T.border, borderRadius:14, padding:"12px 14px", marginBottom:14 }}>
-          <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".08em", marginBottom:8 }}>Thema</div>
-          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+        <div style={{ padding:"0 0 4px", marginBottom:14 }}>
+          <p style={{ margin:"0 0 10px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase" }}>Thema</p>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+            <button onClick={() => {}}
+              style={{ padding:"7px 14px", borderRadius:100, fontSize:13, cursor:"pointer", border:"none", background:T.accent, color:"#fff", fontWeight:600, display:"flex", alignItems:"center", gap:5 }}>
+              <svg viewBox="0 0 12 12" width="11" height="11" fill="none">
+                <path d="M6 1l1.3 2.6L10 4.1l-2 1.9.5 2.7L6 7.4 3.5 8.7l.5-2.7-2-1.9 2.7-.5z" fill="#fff" opacity="0.9"/>
+              </svg>
+              Lieblingsthemen
+            </button>
             {CATEGORIES.map(c => (
               <button key={c} onClick={() => setCategory(c)}
-                style={{ padding:"6px 13px", borderRadius:20, border:"1px solid " + (category===c?T.accent:T.border), background:category===c?T.accentDim:"transparent", color:category===c?T.accent:T.textMuted, fontFamily:"sans-serif", fontSize:".75rem", fontWeight:category===c?600:400, cursor:"pointer", transition:"all 0.15s" }}>
+                style={{ padding:"7px 14px", borderRadius:100, fontSize:13, cursor:"pointer", border:"none", background: category===c ? T.accentDim : (isDark?"rgba(255,255,255,0.07)":"rgba(255,255,255,0.55)"), color: category===c ? T.accent : T.textMuted, fontWeight: category===c ? 600 : 400, backdropFilter:"blur(4px)", transition:"all 0.2s" }}>
                 {c}
               </button>
             ))}
