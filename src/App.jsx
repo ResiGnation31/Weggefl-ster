@@ -519,17 +519,16 @@ export default function App() {
       <div style={{ maxWidth:480, margin:"0 auto", padding:"0 16px 64px" }}>
 
         {/* Header */}
-        <div style={{ textAlign:"center", padding:"28px 0 16px", position:"relative" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", marginBottom:4 }}>
-            <span style={{ fontSize:"1.8rem", fontWeight:700, letterSpacing:"-.02em", color:T.text, fontFamily:"Georgia,serif" }}>
-              Weg<em style={{ color:T.accent, fontStyle:"italic" }}>geflüster</em>
-            </span>
+        <div style={{ padding:"44px 0 8px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+          <div>
+            <h1 style={{ margin:0, lineHeight:1, letterSpacing:"-1px" }}>
+              <span style={{ fontSize:"2rem", fontWeight:700, color:T.text, fontFamily:"Georgia,serif" }}>Weg</span><span style={{ fontSize:"2rem", fontWeight:300, fontStyle:"italic", color:T.accent, fontFamily:"Georgia,serif" }}>geflüster</span>
+            </h1>
+            <p style={{ margin:"6px 0 0", fontSize:12, color:T.textMuted, letterSpacing:"0.2px" }}>Dein Reisebegleiter</p>
           </div>
-          <div style={{ fontSize:".72rem", color:T.textMuted, letterSpacing:".06em" }}>
-            Dein Reisebegleiter
-          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:4 }}>
           <button onClick={() => setIsDark(d => !d)}
-            style={{ position:"absolute", right:0, top:28, width:36, height:36, borderRadius:"50%", border:`1px solid ${T.toggleBorder}`, background:T.toggleBg, cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", transition:"background 0.2s" }}>
+            style={{ width:36, height:36, borderRadius:"50%", border:"none", background: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.5)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(8px)" }}>
             {isDark ? (
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
                 <circle cx="12" cy="12" r="4.2" fill="#E09020"/>
@@ -545,7 +544,8 @@ export default function App() {
                 <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill="#C9B870"/>
               </svg>
             )}
-          </button>
+            </button>
+          </div>
         </div>
 
         {/* Mode toggle */}
