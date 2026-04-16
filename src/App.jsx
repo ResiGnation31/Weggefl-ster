@@ -393,6 +393,7 @@ export default function App() {
   const arrivedR    = useRef(false);
   const progRef     = useRef(null);
   const gpsRef      = useRef(null);
+  const voiceEngineR = useRef("elevenlabs");
   const transportR  = useRef("car");
   const audioRef    = useRef(null);
   const memoryR     = useRef([]);
@@ -404,6 +405,7 @@ export default function App() {
   useEffect(() => { categoryR.current = category; }, [category]);
   useEffect(() => { speedR.current = speedKmh; }, [speedKmh]);
   useEffect(() => { transportR.current = transport; }, [transport]);
+  useEffect(() => { voiceEngineR.current = voiceEngine; }, [voiceEngine]);
   useEffect(() => { routeR.current = route; }, [route]);
   useEffect(() => { routeDistR.current = routeDist; }, [routeDist]);
   useEffect(() => { voicesR.current = voices; }, [voices]);
@@ -472,8 +474,8 @@ export default function App() {
     progRef.current = setInterval(() => {
       setSpProgress(Math.min((Date.now()-t0)/1000/estDur*100, 100));
     }, 300);
-    if (voiceEngine === "browser") { fallbackTTS(text); return; }
-    if (voiceEngine === "edge") { edgeTTS(text); return; }
+    if (voiceEngineR.current === "browser") { fallbackTTS(text); return; }
+    if (voiceEngineR.current === "edge") { edgeTTS(text); return; }
     if (audioBase64) {
       try {
         const binary = atob(audioBase64);
@@ -577,7 +579,7 @@ export default function App() {
       const res = await fetch("/api/story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: voiceEngine, customPrompt: prompt }),
+        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: voiceEngineR.current, customPrompt: prompt }),
       });
       const data = await res.json();
       if (res.ok && data.text) {
