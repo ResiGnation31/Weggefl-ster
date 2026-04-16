@@ -1211,7 +1211,7 @@ export default function App() {
           <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase", textAlign:"left" }}>Geschwindigkeit</p>
           <div style={{ display:"flex", gap:6 }}>
             {[1, 1.25, 1.5, 1.75, 2].map(r => (
-              <button key={r} onClick={() => { setPlaybackRate(r); localStorage.setItem("wg_rate", r); }}
+              <button key={r} onClick={() => { setPlaybackRate(r); localStorage.setItem("wg_rate", r); if (audioRef.current) audioRef.current.playbackRate = r; }}
                 style={{ flex:1, padding:"6px 0", borderRadius:10, border:"none", cursor:"pointer", fontSize:12, fontWeight: playbackRate===r ? 700 : 400, background: playbackRate===r ? T.accentDim : T.bgCard, color: playbackRate===r ? T.accent : T.textMuted, transition:"all 0.2s" }}>
                 {r}x
               </button>
