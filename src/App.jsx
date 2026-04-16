@@ -35,6 +35,18 @@ const CATEGORIES = ["Geschichte", "Natur", "Persönlichkeiten", "Mythen", "Kulin
 export default function App() {
   const prefersDark = !(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
   const [isDark, setIsDark] = useState(prefersDark);
+  const [activeColor, setActiveColor] = useState("gold");
+  const [colorOpen, setColorOpen] = useState(false);
+
+  const colorMap = {
+    gold:   "#C9841C",
+    silver: "#888880",
+    green:  "#3A8C4A",
+    red:    "#C03030",
+    orange: "#E06820",
+    blue:   "#2858C0",
+  };
+  const clr = colorMap[activeColor];
 
   const [startInput, setStartInput] = useState("");
   const [endInput, setEndInput]     = useState("");
@@ -485,8 +497,8 @@ export default function App() {
   const T = isDark ? {
     bg:"#1A1714", bgCard:"rgba(40,36,30,0.9)", bgInput:"rgba(255,255,255,0.06)", bgSugg:"rgba(30,26,22,0.97)",
     text:"#F0EAE0", textMuted:"#8A8070", textFaint:"#5A5448", inputColor:"#F0EAE0",
-    accent:"#C9A84C", accentDim:"rgba(201,168,76,0.14)", accentBorder:"rgba(201,168,76,0.28)", accentGlow:"rgba(201,168,76,0.22)",
-    btnPrimary:"#C9841C", btnText:"#ffffff",
+    accent:clr, accentDim:clr+"26", accentBorder:clr+"44", accentGlow:clr+"36",
+    btnPrimary:clr, btnText:"#ffffff",
     border:"rgba(255,255,255,0.07)", borderFaint:"rgba(255,255,255,0.04)",
     segBg:"rgba(255,255,255,0.07)", storyBg:"rgba(40,36,30,0.9)", storyBorder:"rgba(201,168,76,0.2)",
     errorBg:"rgba(180,40,40,0.15)", errorBorder:"rgba(180,40,40,0.3)", errorText:"#ff8080",
@@ -494,8 +506,8 @@ export default function App() {
   } : {
     bg:"#F5F0E8", bgCard:"rgba(255,255,255,0.75)", bgInput:"rgba(255,255,255,0.75)", bgSugg:"rgba(250,247,242,0.97)",
     text:"#2C2014", textMuted:"#9A8060", textFaint:"#B0A080", inputColor:"#2C2014",
-    accent:"#C9841C", accentDim:"rgba(201,132,28,0.12)", accentBorder:"rgba(201,132,28,0.28)", accentGlow:"rgba(201,132,28,0.2)",
-    btnPrimary:"#C9841C", btnText:"#ffffff",
+    accent:clr, accentDim:clr+"20", accentBorder:clr+"44", accentGlow:clr+"33",
+    btnPrimary:clr, btnText:"#ffffff",
     border:"rgba(0,0,0,0.08)", borderFaint:"rgba(0,0,0,0.04)",
     segBg:"rgba(0,0,0,0.06)", storyBg:"rgba(255,255,255,0.75)", storyBorder:"rgba(201,132,28,0.2)",
     errorBg:"rgba(255,59,48,0.08)", errorBorder:"rgba(255,59,48,0.2)", errorText:"#C0392B",
@@ -526,7 +538,42 @@ export default function App() {
             </h1>
             <p style={{ margin:"4px 0 0", fontSize:11, color:T.textMuted, letterSpacing:"1px" }}>Dein Reisebegleiter</p>
           </div>
-          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, position:"relative" }}>
+            <div style={{ position:"relative" }}>
+              <button onClick={() => setColorOpen(o => !o)} style={{ width:36, height:36, borderRadius:"50%", border: colorOpen ? "2px solid " + clr : "none", background: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.5)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(8px)" }}>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                  <circle cx="12" cy="12" r="9.5" stroke={clr} strokeWidth="1.5" opacity="0.6"/>
+                  <circle cx="8"  cy="10" r="2" fill="#C03030" opacity="0.85"/>
+                  <circle cx="12" cy="7.5" r="2" fill="#E06820" opacity="0.85"/>
+                  <circle cx="16" cy="10" r="2" fill="#3A8C4A" opacity="0.85"/>
+                  <circle cx="15.2" cy="14.5" r="2" fill="#2858C0" opacity="0.85"/>
+                  <circle cx="8.8" cy="14.5" r="2" fill="#C9841C" opacity="0.85"/>
+                </svg>
+              </button>
+              {colorOpen && (
+                <div style={{ position:"absolute", top:44, right:0, zIndex:200, background: isDark ? "rgba(30,26,22,0.97)" : "rgba(250,247,242,0.97)", backdropFilter:"blur(24px)", borderRadius:18, padding:"14px", boxShadow:"0 12px 40px rgba(0,0,0,0.22)", minWidth:176 }}>
+                  <p style={{ margin:"0 0 10px", fontSize:10, fontWeight:600, color:"#9A8060", letterSpacing:"1px", textTransform:"uppercase" }}>Akzentfarbe</p>
+                  {[
+                    {key:"gold",   dot:"#C9841C", label:"Gold"},
+                    {key:"silver", dot:"#888880", label:"Silber"},
+                    {key:"green",  dot:"#3A8C4A", label:"Grün"},
+                    {key:"red",    dot:"#C03030", label:"Rot"},
+                    {key:"orange", dot:"#E06820", label:"Orange"},
+                    {key:"blue",   dot:"#2858C0", label:"Blau"},
+                  ].map(({key, dot, label}) => (
+                    <button key={key} onClick={() => { setActiveColor(key); setColorOpen(false); }} style={{ display:"flex", alignItems:"center", gap:10, width:"100%", padding:"7px 8px", borderRadius:10, border:"none", cursor:"pointer", background: activeColor===key ? dot+"22" : "transparent", marginBottom:2 }}>
+                      <span style={{ width:18, height:18, borderRadius:"50%", background:dot, display:"inline-block", flexShrink:0, boxShadow: activeColor===key ? "0 0 0 2px " + (isDark?"#2A2420":"#fff") + ",0 0 0 3.5px " + dot : "none" }}/>
+                      <span style={{ fontSize:13, color: activeColor===key ? (isDark?"#F0EAE0":"#2C2014") : "#9A8060", fontWeight: activeColor===key ? 600 : 400 }}>{label}</span>
+                      {activeColor===key && (
+                        <svg style={{ marginLeft:"auto" }} viewBox="0 0 16 16" width="14" height="14" fill="none">
+                          <path d="M3 8l3.5 3.5L13 4.5" stroke={dot} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           <button onClick={() => setIsDark(d => !d)}
             style={{ width:36, height:36, borderRadius:"50%", border:"none", background: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.5)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(8px)" }}>
             {isDark ? (
