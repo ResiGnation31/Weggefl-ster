@@ -356,6 +356,7 @@ export default function App() {
   const [log, setLog]               = useState([]);
   const [gpsSubMode, setGpsSubMode]   = useState(null);
   const [voiceEngine, setVoiceEngine]   = useState("elevenlabs");
+  const [playbackRate, setPlaybackRate] = useState(() => parseFloat(localStorage.getItem("wg_rate") || "1"));
   const [voiceDropOpen, setVoiceDropOpen] = useState(false);
   const [transport, setTransport]     = useState("car");
   const [bgProgress, setBgProgress]   = useState({ car:1, bus:0, bike:0, walk:0 });
