@@ -519,7 +519,7 @@ export default function App() {
       <div style={{ maxWidth:480, margin:"0 auto", padding:"0 16px 100px" }}>
 
         {/* Header */}
-        <div style={{ padding:"44px 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+        <div style={{ padding:"44px 0 8px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
           <div>
             <h1 style={{ margin:0, lineHeight:1 }}>
               <span style={{ fontSize:"1.9rem", fontWeight:700, color:T.text }}>Weg</span><em style={{ fontSize:"1.9rem", fontWeight:400, color:T.accent }}>geflüster</em>
