@@ -303,7 +303,7 @@ function WalkBackground({ progress }) {
   );
 }
 
-const CATEGORIES = ["Geschichte", "Natur", "Persönlichkeiten", "Mythen", "Kulinarik", "Architektur"];
+const CATEGORIES = ["Reiseführer", "Geschichte", "Natur", "Persönlichkeiten", "Mythen", "Kulinarik", "Architektur"];
 
 export default function App() {
   const prefersDark = !(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
