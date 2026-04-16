@@ -19,7 +19,8 @@ export default async function handler(req) {
   }
 
   try {
-    const { placeName, category, speedKmh, transport, customPrompt } = await req.json();
+    const { placeName, category, speedKmh, transport, voiceEngine, customPrompt } = await req.json();
+    const useElevenLabs = !voiceEngine || voiceEngine === "elevenlabs";
 
     const anthropicKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
     const elevenKey = process.env.ELEVENLABS_API_KEY;
