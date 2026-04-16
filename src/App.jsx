@@ -405,6 +405,8 @@ export default function App() {
   const geocodeT    = useRef(0);
   const lastStoryDistR = useRef(0);
   const surroundingsR  = useRef("");
+  const nextStoryR     = useRef(null);
+  const preloadingR    = useRef(false);
 
   useEffect(() => { categoryR.current = category; }, [category]);
   useEffect(() => { speedR.current = speedKmh; }, [speedKmh]);
@@ -490,7 +492,11 @@ export default function App() {
       if (!speakingR.current && !generatingR.current && simDistR.current > 0 && simDistR.current < routeDistR.current && !arrivedR.current) {
         triggerNextStory();
       }
-    }, 2000);
+    }, 500);
+    // Pre-load nächste Story sofort
+    if (simDistR.current > 0 && simDistR.current < routeDistR.current) {
+      setTimeout(() => preloadNextStory(), 1000);
+    }
   }
 
   async function speakText(text, audioBase64) {
@@ -588,18 +594,19 @@ export default function App() {
         : "Dies ist Story " + (count+1) + ". Beginne mit einem kurzen Uebergang wie 'Und waehrend du weiterfaehrst...', 'Apropos...', oder aehnlichem.";
       const surr = surroundingsR.current ? "\nUmgebung sichtbar: " + surroundingsR.current : "";
       prompt = memCtx +
-        "Du bist ein faszinierender Reisebegleiter. Der Fahrer faehrt mit " + kmh + " km/h.\n" +
-        "Aktueller Ort: " + locationName + surr + "\n" +
+        "Du bist ein faszinierender Reisebegleiter. Der Fahrer faehrt gerade mit " + kmh + " km/h.\n" +
+        "Aktueller Standort: " + locationName + surr + "\n" +
         "Thema: " + cat + "\n" +
         "Laenge: ca. " + words + " Woerter\n\n" +
         transition + "\n\n" +
         "Regeln:\n" +
-        "- NIEMALS mit 'Du faehrst durch [Ort], eine/eines der...' beginnen\n" +
-        "- Starte mit einer konkreten Szene, Person oder Jahreszahl\n" +
-        "- Sprich den Hoerer direkt an: 'Schau mal...', 'Stell dir vor...'\n" +
+        "- Baue den Ortsnamen oder die Strasse SUBTIL und natuerlich in die Geschichte ein - nicht als Einstieg\n" +
+        "- Starte SOFORT mit einer konkreten Szene, Person, Jahreszahl oder sinnlichen Beschreibung\n" +
+        "- Sprich den Hoerer direkt an: 'Schau mal...', 'Stell dir vor...', 'Weisst du...'\n" +
+        "- Nutze die Umgebung (Felder, Gebaeude, Natur) um die Geschichte lebendig zu machen\n" +
         "- Echte, spezifische Details: Namen, Jahreszahlen, unbekannte Fakten\n" +
-        "- Ende mit einer Wendung oder einem Gedanken\n" +
-        "- Nur fliesender Text auf Deutsch";
+        "- Ende mit einem natuerlichen Uebergang oder einer offenen Frage\n" +
+        "- Nur fliesender Text auf Deutsch, keine Aufzaehlungen, keine Ueberschriften";
     }
     setStoryLoading(true);
     setStoryTitle(isIntro ? (introData.start + " -> " + introData.end) : locationName);
@@ -635,8 +642,75 @@ export default function App() {
     await speakText(fallback, null);
   }
 
+  async function preloadNextStory() {
+    if (preloadingR.current || nextStoryR.current) return;
+    preloadingR.current = true;
+    const wps = routeR.current;
+    if (!wps.length) { preloadingR.current = false; return; }
+    const lookahead = Math.min(simDistR.current + 200, routeDistR.current - 50);
+    const idx = Math.min(Math.floor(lookahead / routeDistR.current * wps.length), wps.length-1);
+    const pos = wps[idx];
+    try {
+      const name = await geocode(pos.lat, pos.lon);
+      const surr = await getSurroundings(pos.lat, pos.lon);
+      surroundingsR.current = surr;
+      if (name) {
+        const kmh = speedR.current;
+        const cat = categoryR.current;
+        const words = getWordCount(kmh, transportR.current);
+        const memory = memoryR.current;
+        const count = memoryR.current.length;
+        let memCtx = "";
+        if (memory.length > 0) {
+          const memLines = memory.map(function(m, i) { return (i+1) + ". " + m.place + ": " + m.summary; }).join("\n");
+          memCtx = "Bereits erzaehlt:\n" + memLines + "\n\nWICHTIG: Wiederhole KEINE dieser Fakten.\n\n";
+        }
+        const transition = count === 0
+          ? "Beginne sofort mit der Geschichte."
+          : "Dies ist Story " + (count+1) + ". Beginne mit einem kurzen Uebergang wie 'Und waehrend du weiterfaehrst...', 'Apropos...'.";
+        const surroundsText = surr ? "\nUmgebung: " + surr : "";
+        const prompt = memCtx +
+          "Du bist ein faszinierender Reisebegleiter. Faehrt mit " + kmh + " km/h.\n" +
+          "Standort: " + name + surroundsText + "\n" +
+          "Thema: " + cat + "\n" +
+          "Laenge: ca. " + words + " Woerter\n\n" +
+          transition + "\n\n" +
+          "Regeln:\n" +
+          "- Baue Ortsnamen SUBTIL ein\n" +
+          "- Starte SOFORT mit konkreter Szene oder Jahreszahl\n" +
+          "- Nutze die Umgebung lebendig\n" +
+          "- Ende mit natuerlichem Uebergang\n" +
+          "- Nur fliesender Text auf Deutsch";
+        const res = await fetch("/api/story", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ placeName: name, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: "none", customPrompt: prompt }),
+        });
+        const data = await res.json();
+        if (data.text) {
+          nextStoryR.current = { text: data.text, place: name };
+        }
+      }
+    } catch(e) { console.error("Preload error:", e); }
+    preloadingR.current = false;
+  }
+
   async function triggerNextStory() {
     if (speakingR.current || generatingR.current) return;
+    if (nextStoryR.current) {
+      const { text, place } = nextStoryR.current;
+      nextStoryR.current = null;
+      generatingR.current = true;
+      const summary = text.slice(0, 120) + "...";
+      memoryR.current = [...memoryR.current.slice(-4), { place, summary }];
+      setStoryCount(c => c + 1);
+      setStoryTitle(place);
+      setStoryText(text);
+      setStoryLoading(false);
+      generatingR.current = false;
+      await speakText(text, null);
+      return;
+    }
     const wps = routeR.current;
     if (!wps.length) return;
     const idx = Math.min(Math.floor(simDistR.current / routeDistR.current * wps.length), wps.length-1);
@@ -771,6 +845,10 @@ export default function App() {
           simDistR.current - lastStoryDistR.current > storyInterval) {
         lastStoryDistR.current = simDistR.current;
         triggerNextStory();
+      }
+      // Pre-load wenn sprechend und noch keine nächste Story
+      if (speakingR.current && !nextStoryR.current && !preloadingR.current) {
+        preloadNextStory();
       }
       if (simDistR.current >= routeDist && !arrivedR.current) {
         arrivedR.current = true;
