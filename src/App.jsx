@@ -353,6 +353,8 @@ export default function App() {
   const [voiceIdx, setVoiceIdx]     = useState(0);
   const [log, setLog]               = useState([]);
   const [gpsSubMode, setGpsSubMode]   = useState(null);
+  const [voiceEngine, setVoiceEngine]   = useState("elevenlabs");
+  const [voiceDropOpen, setVoiceDropOpen] = useState(false);
   const [transport, setTransport]     = useState("car");
   const [bgProgress, setBgProgress]   = useState({ car:1, bus:0, bike:0, walk:0 });
   const prevTransport = useRef("car");
@@ -470,6 +472,8 @@ export default function App() {
     progRef.current = setInterval(() => {
       setSpProgress(Math.min((Date.now()-t0)/1000/estDur*100, 100));
     }, 300);
+    if (voiceEngine === "browser") { fallbackTTS(text); return; }
+    if (voiceEngine === "edge") { edgeTTS(text); return; }
     if (audioBase64) {
       try {
         const binary = atob(audioBase64);
@@ -500,6 +504,23 @@ export default function App() {
     utter.onend = onStoryEnd;
     utter.onerror = onStoryEnd;
     window.speechSynthesis?.speak(utter);
+  }
+
+  async function edgeTTS(text) {
+    try {
+      const r = await fetch("https://api.voicerss.org/?key=free&hl=de-de&src=" + encodeURIComponent(text) + "&f=44khz_16bit_stereo&c=mp3&ssml=0");
+      if (r.ok) {
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audioRef.current = audio;
+        audio.onended = () => { URL.revokeObjectURL(url); onStoryEnd(); };
+        audio.onerror = () => { URL.revokeObjectURL(url); fallbackTTS(text); };
+        audio.play().catch(() => fallbackTTS(text));
+        return;
+      }
+    } catch(e) { console.error("Edge TTS error:", e); }
+    fallbackTTS(text);
   }
 
   async function generateStory(locationName, isIntro, introData) {
@@ -556,7 +577,7 @@ export default function App() {
       const res = await fetch("/api/story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, transport: transportR.current, customPrompt: prompt }),
+        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: voiceEngine, customPrompt: prompt }),
       });
       const data = await res.json();
       if (res.ok && data.text) {
