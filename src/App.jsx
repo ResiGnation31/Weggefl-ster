@@ -310,6 +310,8 @@ export default function App() {
   const [isDark, setIsDark] = useState(() => { const s = localStorage.getItem("wg_dark"); return s !== null ? s === "true" : prefersDark; });
   const [activeColor, setActiveColor] = useState(() => localStorage.getItem("wg_color") || "gold");
   const [colorOpen, setColorOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState(() => localStorage.getItem("wg_photo") || null);
 
   const colorMap = {
     gold:   "#C9841C",
@@ -903,6 +905,16 @@ export default function App() {
               </svg>
             )}
             </button>
+            <button onClick={() => setProfileOpen(true)} style={{ width:36, height:36, borderRadius:"50%", border:"none", background: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.5)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(8px)", overflow:"hidden" }}>
+              {profilePhoto ? (
+                <img src={profilePhoto} style={{ width:36, height:36, objectFit:"cover" }}/>
+              ) : (
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={T.textMuted} strokeWidth="1.8" strokeLinecap="round">
+                  <circle cx="12" cy="8" r="4"/>
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+              )}
+            </button>
           </div>
         </div>
 
@@ -1221,6 +1233,98 @@ export default function App() {
           </div>
         )}
 
+      </div>
+
+      {/* Profile Sheet Overlay */}
+      {profileOpen && (
+        <div onClick={() => setProfileOpen(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", zIndex:300, backdropFilter:"blur(4px)" }}/>
+      )}
+
+      {/* Profile Bottom Sheet */}
+      <div style={{
+        position:"fixed", bottom:0, left:"50%", transform: profileOpen ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(100%)",
+        width:"100%", maxWidth:480, zIndex:301,
+        background: isDark ? "#1C1917" : "#F5F0E8",
+        borderRadius:"24px 24px 0 0",
+        padding:"0 0 40px",
+        transition:"transform 0.4s cubic-bezier(0.32,0.72,0,1)",
+        boxShadow:"0 -8px 40px rgba(0,0,0,0.2)",
+      }}>
+        {/* Handle */}
+        <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 8px" }}>
+          <div style={{ width:36, height:4, borderRadius:2, background: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)" }}/>
+        </div>
+
+        {/* Profil Header */}
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 24px 24px" }}>
+          <label style={{ cursor:"pointer", position:"relative" }}>
+            <div style={{ width:80, height:80, borderRadius:"50%", background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", border:"3px solid " + clr }}>
+              {profilePhoto ? (
+                <img src={profilePhoto} style={{ width:80, height:80, objectFit:"cover" }}/>
+              ) : (
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke={T.textMuted} strokeWidth="1.5" strokeLinecap="round">
+                  <circle cx="12" cy="8" r="4"/>
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+              )}
+            </div>
+            <div style={{ position:"absolute", bottom:0, right:0, width:24, height:24, borderRadius:"50%", background:clr, display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+            </div>
+            <input type="file" accept="image/*" style={{ display:"none" }} onChange={e => {
+              const f = e.target.files[0];
+              if (!f) return;
+              const reader = new FileReader();
+              reader.onload = ev => { setProfilePhoto(ev.target.result); localStorage.setItem("wg_photo", ev.target.result); };
+              reader.readAsDataURL(f);
+            }}/>
+          </label>
+          <p style={{ margin:"12px 0 2px", fontSize:16, fontWeight:600, color:T.text }}>Mein Profil</p>
+          <p style={{ margin:0, fontSize:12, color:T.textMuted }}>Weggeflüster</p>
+        </div>
+
+        {/* Menu Items */}
+        <div style={{ padding:"0 16px" }}>
+          {[
+            { icon:<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>, label:"Abo verwalten", sub:"Free Plan" },
+            { icon:<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>, label:"App-Einstellungen", sub:"Design, Sprache" },
+            { icon:<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>, label:"Konto", sub:"Profil bearbeiten" },
+            { icon:<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>, label:"Hilfe & Support", sub:"FAQ, Kontakt" },
+          ].map(({ icon, label, sub }, i) => (
+            <button key={i} style={{ display:"flex", alignItems:"center", gap:14, width:"100%", padding:"14px 16px", borderRadius:14, border:"none", cursor:"pointer", background:"transparent", marginBottom:4, textAlign:"left" }}
+              onMouseEnter={e => e.currentTarget.style.background = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+              <div style={{ width:40, height:40, borderRadius:12, background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", display:"flex", alignItems:"center", justifyContent:"center", color:clr, flexShrink:0 }}>
+                {icon}
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:15, fontWeight:500, color:T.text }}>{label}</div>
+                <div style={{ fontSize:12, color:T.textMuted, marginTop:1 }}>{sub}</div>
+              </div>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke={T.textMuted} strokeWidth="2" strokeLinecap="round">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </button>
+          ))}
+
+          {/* Ausloggen */}
+          <button style={{ display:"flex", alignItems:"center", gap:14, width:"100%", padding:"14px 16px", borderRadius:14, border:"none", cursor:"pointer", background:"transparent", marginTop:8, textAlign:"left" }}
+            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,59,48,0.08)"}
+            onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+            <div style={{ width:40, height:40, borderRadius:12, background:"rgba(255,59,48,0.1)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#FF3B30" strokeWidth="1.8" strokeLinecap="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+            </div>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:15, fontWeight:500, color:"#FF3B30" }}>Ausloggen</div>
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* Transport Bar */}
