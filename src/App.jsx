@@ -521,6 +521,7 @@ export default function App() {
         const blob = new Blob([bytes], { type: "audio/mpeg" });
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
+        audio.playbackRate = playbackRate;
         audioRef.current = audio;
         audio.onended = () => { URL.revokeObjectURL(url); onStoryEnd(); };
         audio.onerror = (e) => { console.error("Audio error:", e); URL.revokeObjectURL(url); fallbackTTS(text); };
@@ -539,7 +540,7 @@ export default function App() {
     const v = voicesR.current[voiceIdxR.current];
     if (v) utter.voice = v;
     utter.lang = "de-DE";
-    utter.rate = 0.88;
+    utter.rate = 0.88 * playbackRate;
     utter.onend = onStoryEnd;
     utter.onerror = onStoryEnd;
     window.speechSynthesis?.speak(utter);
@@ -552,6 +553,7 @@ export default function App() {
         const blob = await r.blob();
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
+        audio.playbackRate = playbackRate;
         audioRef.current = audio;
         audio.onended = () => { URL.revokeObjectURL(url); onStoryEnd(); };
         audio.onerror = () => { URL.revokeObjectURL(url); fallbackTTS(text); };
@@ -1201,6 +1203,19 @@ export default function App() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Playback Speed */}
+        <div style={{ marginBottom:16 }}>
+          <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase", textAlign:"left" }}>Geschwindigkeit</p>
+          <div style={{ display:"flex", gap:6 }}>
+            {[1, 1.25, 1.5, 1.75, 2].map(r => (
+              <button key={r} onClick={() => { setPlaybackRate(r); localStorage.setItem("wg_rate", r); }}
+                style={{ flex:1, padding:"6px 0", borderRadius:10, border:"none", cursor:"pointer", fontSize:12, fontWeight: playbackRate===r ? 700 : 400, background: playbackRate===r ? T.accentDim : T.bgCard, color: playbackRate===r ? T.accent : T.textMuted, transition:"all 0.2s" }}>
+                {r}x
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* CTA */}
