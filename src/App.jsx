@@ -680,7 +680,7 @@ export default function App() {
         )}
 
         {/* Voice */}
-        <div style={{ marginBottom:16, padding:"4px 0" }}>
+        <div style={{ marginBottom:16, padding:"4px 0", textAlign:"left" }}>
           <span style={{ fontSize:14, color:T.textMuted, fontWeight:400 }}>Helmut Stieglbauer</span>
         </div>
 
@@ -712,7 +712,7 @@ export default function App() {
             {!gpsSubMode ? (
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 <div style={{ padding:"0" }}>
-                  <div style={{ fontSize:11, fontWeight:600, color:T.textMuted, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.8px" }}>Mit Ziel fahren</div>
+                  <div style={{ fontSize:11, fontWeight:600, color:T.textMuted, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.8px", textAlign:"left" }}>Mit Ziel fahren</div>
                   <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, padding:"10px 14px", background:T.bgInput, borderRadius:"12px 12px 4px 4px" }}>
                     <div style={{ width:8, height:8, borderRadius:"50%", background:"#34C759", flexShrink:0 }}/>
                     <span style={{ fontSize:13, color:T.text }}>{currentLoc || "Warte auf GPS..."}</span>
@@ -829,7 +829,7 @@ export default function App() {
 
         {/* Empty state */}
         {!storyTitle && !storyLoading && route.length === 0 && (
-          <div style={{ textAlign:"center", padding:"32px 20px", color:T.textMuted, fontSize:".87rem", lineHeight:1.7 }}>
+          <div style={{ textAlign:"left", padding:"32px 0", color:T.textMuted, fontSize:".87rem", lineHeight:1.7 }}>
             <div style={{ display:"flex", justifyContent:"center", gap:24, marginBottom:20 }}>
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ opacity:.6 }}>
                 <circle cx="12" cy="12" r="10"/>
