@@ -621,7 +621,7 @@ export default function App() {
         </div>}
 
         <div style={{ padding:"0 0 4px", marginBottom:14 }}>
-          <p style={{ margin:"0 0 10px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase" }}>Thema</p>
+          <p style={{ margin:"0 0 10px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase", textAlign:"left" }}>Thema</p>
           <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
             <button onClick={() => {}}
               style={{ padding:"7px 14px", borderRadius:100, fontSize:13, cursor:"pointer", border:"none", background:T.accent, color:"#fff", fontWeight:600, display:"flex", alignItems:"center", gap:5 }}>
@@ -717,11 +717,11 @@ export default function App() {
           <div style={{ marginBottom:16 }}>
             {!gpsSubMode ? (
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                <div style={{ background:T.bgCard, border:"1px solid " + T.border, borderRadius:14, padding:14 }}>
-                  <div style={{ fontSize:".72rem", color:T.textMuted, marginBottom:8, textTransform:"uppercase", letterSpacing:".1em" }}>Mit Ziel fahren</div>
-                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12, padding:"8px 12px", background:T.bgInput, borderRadius:10 }}>
+                <div style={{ padding:"0" }}>
+                  <div style={{ fontSize:11, fontWeight:600, color:T.textMuted, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.8px" }}>Mit Ziel fahren</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, padding:"10px 14px", background:T.bgInput, borderRadius:"12px 12px 4px 4px" }}>
                     <div style={{ width:8, height:8, borderRadius:"50%", background:"#34C759", flexShrink:0 }}/>
-                    <span style={{ fontSize:".83rem", color:T.textMuted }}>{currentLoc || "Warte auf GPS..."}</span>
+                    <span style={{ fontSize:13, color:T.text }}>{currentLoc || "Warte auf GPS..."}</span>
                   </div>
                   <div style={{ position:"relative", marginBottom:10 }}>
                     <input value={gpsEndInput} onChange={e => onGpsEndInput(e.target.value)} placeholder="z.B. München Hauptbahnhof"
