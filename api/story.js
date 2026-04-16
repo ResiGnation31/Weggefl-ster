@@ -31,10 +31,16 @@ export default async function handler(req) {
       });
     }
 
-    const isWalking = speedKmh < 10;
-    const isCycling = speedKmh >= 10 && speedKmh < 25;
-    const length = isWalking ? '300 Wörter' : isCycling ? '220 Wörter' : '180 Wörter';
-    const mode = isWalking ? 'zu Fuß gehst' : isCycling ? 'Fahrrad fährst' : 'Auto fährst';
+    const modeMap = {
+      car:  { label: 'Auto fährst',         length: '150 Wörter', style: 'kurz und prägnant' },
+      bus:  { label: 'Bus oder Bahn fährst', length: '200 Wörter', style: 'entspannt und informativ' },
+      bike: { label: 'Fahrrad fährst',       length: '250 Wörter', style: 'lebendig und detailliert' },
+      walk: { label: 'zu Fuß gehst',         length: '350 Wörter', style: 'tief und atmosphärisch' },
+    };
+    const m = modeMap[transport] || modeMap.car;
+    const length = m.length;
+    const mode = m.label;
+    const storyStyle = m.style;
 
     const prompt = customPrompt || `Du bist ein faszinierender Reisebegleiter. Der Nutzer ${mode} gerade durch "${placeName}".
 
