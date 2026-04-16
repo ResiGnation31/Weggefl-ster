@@ -74,8 +74,8 @@ Regeln:
 
     const text = claudeData.content[0].text;
 
-    // If ElevenLabs key available, generate audio
-    if (elevenKey) {
+    // If ElevenLabs key available and selected, generate audio
+    if (elevenKey && useElevenLabs) {
       try {
         const elevenRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${GERMAN_VOICE_ID}`, {
           method: 'POST',
