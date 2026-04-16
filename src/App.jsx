@@ -620,7 +620,8 @@ export default function App() {
       });
       const data = await res.json();
       if (res.ok && data.text) {
-        setStoryText(data.text);
+        const cleanText = data.text.replace(/^#+\s+.+\n?/gm, "").replace(/\*\*/g, "").replace(/\*/g, "").trim();
+        setStoryText(cleanText);
         setStoryAudio(data.audio || null);
         setStoryLoading(false);
         if (!isIntro) {
@@ -629,7 +630,7 @@ export default function App() {
           setStoryCount(c => c + 1);
         }
         generatingR.current = false;
-        await speakText(data.text, data.audio || null);
+        await speakText(cleanText, data.audio || null);
         return;
       }
     } catch(e) { console.error(e); }

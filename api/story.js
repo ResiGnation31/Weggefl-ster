@@ -53,7 +53,8 @@ Regeln:
 - Erzähle auf Deutsch, lebendige Erzählstimme
 - Konkrete Details: Namen, Jahreszahlen, echte Fakten
 - Ende mit einer überraschenden Wendung
-- Nur fließender Text, keine Aufzählungen`;
+- Nur fließender Text, keine Aufzählungen
+- KEINE Markdown-Formatierung, KEINE Überschriften mit #, KEINE **Fettschrift**`;
 
     // Generate text with Claude
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
