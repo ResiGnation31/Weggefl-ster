@@ -520,14 +520,13 @@ export default function App() {
 
         {/* Header */}
         <div style={{ padding:"44px 24px 8px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-          <div style={{ flex:1 }}/>
-          <div style={{ textAlign:"center" }}>
+          <div>
             <h1 style={{ margin:0, lineHeight:1 }}>
               <span style={{ fontSize:"1.9rem", fontWeight:700, color:T.text }}>Weg</span><em style={{ fontSize:"1.9rem", fontWeight:400, color:T.accent }}>geflüster</em>
             </h1>
             <p style={{ margin:"4px 0 0", fontSize:11, color:T.textMuted, letterSpacing:"1px" }}>Dein Reisebegleiter</p>
           </div>
-          <div style={{ flex:1, display:"flex", justifyContent:"flex-end", gap:8 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <button onClick={() => setIsDark(d => !d)}
             style={{ width:36, height:36, borderRadius:"50%", border:"none", background: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.5)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(8px)" }}>
             {isDark ? (
@@ -550,7 +549,7 @@ export default function App() {
         </div>
 
         {/* Mode toggle */}
-        <div style={{ display:"flex", justifyContent:"center", marginBottom:14 }}>
+        <div style={{ display:"flex", justifyContent:"flex-start", marginBottom:14 }}>
         <div style={{ display:"inline-flex", background:T.segBg, borderRadius:12, padding:3, gap:2 }}>
           {["sim","real"].map(m => (
             <button key={m} onClick={() => { setGpsMode(m); if(m==="sim") stopGPS(); }}
