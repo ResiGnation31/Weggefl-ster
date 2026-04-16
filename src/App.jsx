@@ -406,6 +406,8 @@ export default function App() {
   const geocodeT    = useRef(0);
   const lastStoryDistR = useRef(0);
   const surroundingsR  = useRef("");
+  const routePOIsR     = useRef([]);
+  const usedPOIsR      = useRef([]);
   const nextStoryR     = useRef(null);
   const preloadingR    = useRef(false);
   const manualStopR    = useRef(false);
@@ -467,6 +469,41 @@ export default function App() {
       const unique = [...new Set(tags)].slice(0, 8);
       return unique.join(", ");
     } catch { return ""; }
+  }
+
+  async function getRoutePOIs(coords) {
+    const points = [];
+    const step = Math.floor(coords.length / 8);
+    for (let i = 0; i < coords.length; i += Math.max(1, step)) {
+      points.push(coords[i]);
+    }
+    const pois = [];
+    for (const pt of points) {
+      try {
+        const r = 500;
+        const q = `[out:json][timeout:5];(
+          node["name"]["historic"](around:${r},${pt.lat},${pt.lon});
+          node["name"]["tourism"](around:${r},${pt.lat},${pt.lon});
+          node["name"]["amenity"~"place_of_worship|museum|theatre"](around:${r},${pt.lat},${pt.lon});
+          node["name"]["natural"~"peak|water|wood"](around:${r},${pt.lat},${pt.lon});
+          way["name"]["landuse"~"farmland|forest|meadow"](around:${r},${pt.lat},${pt.lon});
+          node["place"~"village|town|hamlet"](around:${r},${pt.lat},${pt.lon});
+        );out body;`;
+        const res = await fetch("https://overpass-api.de/api/interpreter", {
+          method:"POST", body:"data=" + encodeURIComponent(q),
+          headers:{"Content-Type":"application/x-www-form-urlencoded"}
+        });
+        const data = await res.json();
+        data.elements.forEach(e => {
+          const name = e.tags?.name;
+          const type = e.tags?.historic || e.tags?.tourism || e.tags?.amenity || e.tags?.natural || e.tags?.place || e.tags?.landuse;
+          if (name && !pois.find(p => p.name === name)) {
+            pois.push({ name, type: type || "ort" });
+          }
+        });
+      } catch(e) {}
+    }
+    return pois;
   }
 
   async function geocode(lat, lon) {
@@ -597,20 +634,23 @@ export default function App() {
       const transition = count === 0
         ? "Beginne sofort mit der Geschichte."
         : "Dies ist Story " + (count+1) + ". Beginne mit einem kurzen Uebergang wie 'Und waehrend du weiterfaehrst...', 'Apropos...', oder aehnlichem.";
-      const surr = surroundingsR.current ? "\nUmgebung sichtbar: " + surroundingsR.current : "";
+      const surr = surroundingsR.current ? "\nUmgebung: " + surroundingsR.current : "";
+      const availPOIs = routePOIsR.current.filter(p => !usedPOIsR.current.includes(p.name));
+      const nextPOIs = availPOIs.slice(0, 5).map(p => p.name + " (" + p.type + ")").join(", ");
+      const poisText = nextPOIs ? "\nKommende Sehenswuerdigkeiten auf der Route: " + nextPOIs : "";
       prompt = memCtx +
         "Du bist ein faszinierender Reisebegleiter. Der Fahrer faehrt mit " + kmh + " km/h.\n" +
-        "Ort (wird gleich passiert): " + locationName + surr + "\n" +
+        "Aktueller Bereich: " + locationName + surr + poisText + "\n" +
         "Thema: " + cat + "\n" +
         "Laenge: ca. " + words + " Woerter\n\n" +
         transition + "\n\n" +
         "Regeln:\n" +
-        "- Baue den Ortsnamen oder die Strasse SUBTIL und natuerlich in die Geschichte ein - nicht als Einstieg\n" +
-        "- Starte SOFORT mit einer konkreten Szene, Person, Jahreszahl oder sinnlichen Beschreibung\n" +
-        "- Sprich den Hoerer direkt an: 'Schau mal...', 'Stell dir vor...', 'Weisst du...'\n" +
-        "- Nutze die Umgebung (Felder, Gebaeude, Natur) um die Geschichte lebendig zu machen\n" +
-        "- Echte, spezifische Details: Namen, Jahreszahlen, unbekannte Fakten\n" +
-        "- Ende mit einem natuerlichen Uebergang oder einer offenen Frage\n" +
+        "- Greife einen der kommenden Orte oder Sehenswuerdigkeiten auf - nicht den aktuellen Standort\n" +
+        "- Starte SOFORT mit einer konkreten Szene, Person oder Jahreszahl\n" +
+        "- Sprich den Hoerer direkt an: 'Gleich wirst du...', 'In wenigen Minuten...', 'Schau mal...'\n" +
+        "- Echte spezifische Details: Namen, Jahreszahlen, unbekannte Fakten\n" +
+        "- KEINE Erfindungen - nur was wirklich dort existiert\n" +
+        "- Ende mit natuerlichem Uebergang\n" +
         "- Nur fliesender Text auf Deutsch, keine Aufzaehlungen, keine Ueberschriften";
     }
     setStoryLoading(true);
@@ -794,6 +834,11 @@ export default function App() {
         }
       }
       addLog("Route: " + (dist/1000).toFixed(1) + " km", "start");
+      // POIs vorab laden
+      const pois = await getRoutePOIs(coords);
+      routePOIsR.current = pois;
+      usedPOIsR.current = [];
+      addLog("POIs gefunden: " + pois.length, "info");
       setRouteLoading(false);
       return places;
     } catch(e) {
@@ -819,6 +864,7 @@ export default function App() {
     arrivedR.current = false;
     setStoryCount(0);
     memoryR.current = [];
+    usedPOIsR.current = [];
     setLog([]);
     setStoryText("");
     generatingR.current = false;
@@ -1211,7 +1257,7 @@ export default function App() {
           <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase", textAlign:"left" }}>Geschwindigkeit</p>
           <div style={{ display:"flex", gap:6 }}>
             {[1, 1.25, 1.5, 1.75, 2].map(r => (
-              <button key={r} onClick={() => { setPlaybackRate(r); localStorage.setItem("wg_rate", r); if (audioRef.current) audioRef.current.playbackRate = r; }}
+              <button key={r} onClick={() => { setPlaybackRate(r); localStorage.setItem("wg_rate", r); if (audioRef.current) { audioRef.current.playbackRate = r; } }}
                 style={{ flex:1, padding:"6px 0", borderRadius:10, border:"none", cursor:"pointer", fontSize:12, fontWeight: playbackRate===r ? 700 : 400, background: playbackRate===r ? T.accentDim : T.bgCard, color: playbackRate===r ? T.accent : T.textMuted, transition:"all 0.2s" }}>
                 {r}x
               </button>
