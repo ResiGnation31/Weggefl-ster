@@ -69,8 +69,6 @@ export default function App() {
   const [log, setLog]               = useState([]);
   const [gpsSubMode, setGpsSubMode]   = useState(null);
   const [transport, setTransport]     = useState("car");
-  const [bgProgress, setBgProgress]   = useState({ car:1, bus:0, bike:0, walk:0 });
-  const prevTransport = useRef("car");
 
   useEffect(() => {
     if (gpsMode === "real" && !currentLoc) {
@@ -483,24 +481,29 @@ export default function App() {
   const pct = routeDist > 0 ? Math.min(currentDist/routeDist*100,100) : 0;
 
   const T = isDark ? {
-    bg:"#1A1714", bgCard:"rgba(40,36,30,0.9)", bgInput:"rgba(255,255,255,0.06)", bgSugg:"rgba(30,26,22,0.97)",
-    text:"#F0EAE0", textMuted:"#8A8070", textFaint:"#5A5448", inputColor:"#F0EAE0",
-    accent:"#C9A84C", accentDim:"rgba(201,168,76,0.14)", accentBorder:"rgba(201,168,76,0.28)", accentGlow:"rgba(201,168,76,0.22)",
-    btnPrimary:"#C9841C", btnText:"#ffffff",
-    border:"rgba(255,255,255,0.07)", borderFaint:"rgba(255,255,255,0.04)",
-    segBg:"rgba(255,255,255,0.07)", storyBg:"rgba(40,36,30,0.9)", storyBorder:"rgba(201,168,76,0.2)",
-    errorBg:"rgba(180,40,40,0.15)", errorBorder:"rgba(180,40,40,0.3)", errorText:"#ff8080",
-    gpsBg:"rgba(40,36,30,0.9)",
+    bg:"#0f0e0b", bgCard:"rgba(255,255,255,0.04)", bgInput:"rgba(255,255,255,0.06)", bgSugg:"#1a1208", bgMap:"rgba(0,0,0,0.45)",
+    text:"#f0ede5", textMuted:"#6a5830", textFaint:"#3a2e10",
+    accent:"#c8860a", accentDim:"rgba(200,134,10,0.12)", accentBorder:"rgba(200,134,10,0.25)", accentGlow:"rgba(200,134,10,0.2)",
+    border:"rgba(200,134,10,0.2)", borderFaint:"rgba(200,134,10,0.08)",
+    btnPrimary:"linear-gradient(135deg,#c8860a,#9a6408)", btnText:"#120e06",
+    segBg:"rgba(255,255,255,0.06)", storyBg:"rgba(200,134,10,0.07)", storyBorder:"rgba(200,134,10,0.28)", storyText:"#b0a890",
+    logBg:"rgba(0,0,0,0.35)", logBorder:"rgba(255,255,255,0.04)",
+    toggleBg:"rgba(255,255,255,0.08)", toggleBorder:"rgba(200,134,10,0.3)",
+    errorBg:"rgba(180,50,30,0.1)", errorBorder:"rgba(180,50,30,0.25)", errorText:"#c88070",
+    gpsBg:"rgba(200,134,10,0.06)", inputColor:"#f0ede5",
   } : {
-    bg:"#F5F0E8", bgCard:"rgba(255,255,255,0.75)", bgInput:"rgba(255,255,255,0.75)", bgSugg:"rgba(250,247,242,0.97)",
-    text:"#2C2014", textMuted:"#9A8060", textFaint:"#B0A080", inputColor:"#2C2014",
-    accent:"#C9841C", accentDim:"rgba(201,132,28,0.12)", accentBorder:"rgba(201,132,28,0.28)", accentGlow:"rgba(201,132,28,0.2)",
-    btnPrimary:"#C9841C", btnText:"#ffffff",
-    border:"rgba(0,0,0,0.08)", borderFaint:"rgba(0,0,0,0.04)",
-    segBg:"rgba(0,0,0,0.06)", storyBg:"rgba(255,255,255,0.75)", storyBorder:"rgba(201,132,28,0.2)",
-    errorBg:"rgba(255,59,48,0.08)", errorBorder:"rgba(255,59,48,0.2)", errorText:"#C0392B",
-    gpsBg:"rgba(255,255,255,0.75)",
+    bg:"#FAF7F2", bgCard:"#ffffff", bgInput:"#F2EFE8", bgSugg:"#ffffff", bgMap:"rgba(230,220,205,0.9)",
+    text:"#1C1C1E", textMuted:"#A89880", textFaint:"#C5B99A",
+    accent:"#B25E00", accentDim:"rgba(178,94,0,0.10)", accentBorder:"rgba(178,94,0,0.3)", accentGlow:"rgba(178,94,0,0.15)",
+    border:"rgba(178,94,0,0.2)", borderFaint:"rgba(178,94,0,0.1)",
+    btnPrimary:"linear-gradient(135deg,#B25E00,#8B4800)", btnText:"#ffffff",
+    segBg:"#EDE8E0", storyBg:"rgba(178,94,0,0.05)", storyBorder:"rgba(178,94,0,0.25)", storyText:"#5C4A30",
+    logBg:"rgba(0,0,0,0.04)", logBorder:"rgba(0,0,0,0.08)",
+    toggleBg:"#EDE8E0", toggleBorder:"rgba(178,94,0,0.3)",
+    errorBg:"rgba(180,50,30,0.08)", errorBorder:"rgba(180,50,30,0.2)", errorText:"#c84030",
+    gpsBg:"rgba(178,94,0,0.05)", inputColor:"#1C1C1E",
   };
+
   return (
     <div style={{ minHeight:"100vh", background:T.bg, fontFamily:"Georgia,serif", color:T.text, overflowX:"hidden", transition:"background 0.3s, color 0.3s" }}>
       <style>{`
@@ -530,21 +533,7 @@ export default function App() {
           </div>
           <button onClick={() => setIsDark(d => !d)}
             style={{ position:"absolute", right:0, top:28, width:36, height:36, borderRadius:"50%", border:`1px solid ${T.toggleBorder}`, background:T.toggleBg, cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", transition:"background 0.2s" }}>
-            {isDark ? (
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
-                <circle cx="12" cy="12" r="4.2" fill="#E09020"/>
-                {[0,45,90,135,180,225,270,315].map((a,i)=>{
-                  const rad=a*Math.PI/180;
-                  return <line key={i} x1={12+6.8*Math.cos(rad)} y1={12+6.8*Math.sin(rad)}
-                    x2={12+9.2*Math.cos(rad)} y2={12+9.2*Math.sin(rad)}
-                    stroke="#E09020" strokeWidth="1.8" strokeLinecap="round"/>;
-                })}
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill="#C9B870"/>
-              </svg>
-            )}
+            {isDark ? "☀️" : "🌙"}
           </button>
         </div>
 
@@ -672,12 +661,7 @@ export default function App() {
 
         {/* Voice */}
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:12, padding:"10px 14px" }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="1.8" strokeLinecap="round">
-            <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-            <line x1="12" y1="19" x2="12" y2="23"/>
-            <line x1="8" y1="23" x2="16" y2="23"/>
-          </svg>
+          <span style={{ fontSize:".75rem", color:T.textMuted }}>🎙</span>
           <span style={{ flex:1, color:T.text, fontFamily:"sans-serif", fontSize:".82rem" }}>🎭 Helmut Stieglbauer</span>
         </div>
 
@@ -861,25 +845,25 @@ export default function App() {
       </div>
 
       {/* Transport Bar */}
-      <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background: isDark ? "rgba(26,23,20,0.92)" : "rgba(245,240,232,0.88)", backdropFilter:"blur(20px)", borderTop:"0.5px solid " + T.border, padding:"10px 0 18px", zIndex:200, transition:"background 0.4s" }}>
-        <div style={{ display:"flex" }}>
+      <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background:T.bgCard, borderTop:"1px solid " + T.border, padding:"10px 16px 24px", zIndex:200, boxShadow:"0 -4px 24px rgba(0,0,0,0.08)" }}>
+        <div style={{ display:"flex", justifyContent:"space-around", alignItems:"center" }}>
           {[
-            { id:"car", label:"Auto", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:24,height:24}}><rect x="1" y="11" width="22" height="9" rx="2"/><path d="M5 11L7 6h10l2 5"/><circle cx="7.5" cy="20" r="1.5"/><circle cx="16.5" cy="20" r="1.5"/></svg> },
-            { id:"bus", label:"Bus", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:24,height:24}}><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 10h18M8 19v2M16 19v2"/><circle cx="7" cy="15" r="1"/><circle cx="17" cy="15" r="1"/></svg> },
-            { id:"bike", label:"Fahrrad", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:24,height:24}}><circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M6 15l4-8h4l2 4-4 4-2-4"/><path d="M14 7h2"/></svg> },
-            { id:"walk", label:"Zu Fuß", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:24,height:24}}><circle cx="12" cy="4" r="1.5"/><path d="M10 8l-2 5h4l2 5M8 13l-2 6M16 13l1 6"/></svg> },
+            { id:"car", label:"Auto", svg:<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3v-5l2-5h14l2 5v5h-2"/><rect x="1" y="17" width="4" height="3" rx="1"/><rect x="19" y="17" width="4" height="3" rx="1"/><path d="M5 17h14"/><circle cx="7.5" cy="17" r="1"/><circle cx="16.5" cy="17" r="1"/></svg> },
+            { id:"bus", label:"Bus", svg:<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="15" rx="2"/><path d="M3 9h18"/><path d="M3 14h18"/><circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/><path d="M7 3v6M17 3v6"/></svg> },
+            { id:"bike", label:"Fahrrad", svg:<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5L9 10l-3 2h4l3.5 5.5"/><path d="M15 6l1 4-4.5 1.5"/></svg> },
+            { id:"walk", label:"Zu Fuß", svg:<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="4" r="1.5"/><path d="M9 8l3 2 2-2"/><path d="M12 10v4l-2 4"/><path d="M12 14l2 4"/><path d="M9 12l-2 4"/><path d="M15 12l2 4"/></svg> },
           ].map(({ id, label, svg }) => (
-            <button key={id} onClick={() => { setTransport(id); transportR.current = id; }}
-              style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"transparent", border:"none", cursor:"pointer", padding:"4px 0" }}>
-              <div style={{ width:44, height:44, borderRadius:12,
-                background: transport===id ? T.accentDim : "transparent",
-                display:"flex", alignItems:"center", justifyContent:"center",
+            <button key={id} onClick={() => setTransport(id)}
+              style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4, background:"none", border:"none", cursor:"pointer",
                 color: transport===id ? T.accent : T.textMuted,
-                transition:"all 0.3s cubic-bezier(0.34,1.56,0.64,1)",
-                transform: transport===id ? "scale(1.08)" : "scale(1)" }}>
+                transform: transport===id ? "translateY(-4px)" : "none",
+                transition:"all 0.2s" }}>
+              <div style={{ padding:"8px 16px", borderRadius:16,
+                background: transport===id ? T.accentDim : "transparent",
+                transition:"all 0.2s" }}>
                 {svg}
               </div>
-              <span style={{ fontSize:10, letterSpacing:"0.1px", color: transport===id ? T.accent : T.textMuted, fontWeight: transport===id ? 600 : 400, transition:"color 0.2s" }}>{label}</span>
+              <span style={{ fontSize:".65rem", fontFamily:"sans-serif", fontWeight: transport===id ? 600 : 400 }}>{label}</span>
             </button>
           ))}
         </div>
