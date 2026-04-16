@@ -104,7 +104,10 @@ Regeln:
 
         if (elevenRes.ok) {
           const audioBuffer = await elevenRes.arrayBuffer();
-          const base64Audio = Buffer.from(audioBuffer).toString("base64");
+          const bytes = new Uint8Array(audioBuffer);
+          let binary = '';
+          for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+          const base64Audio = btoa(binary);
           return new Response(JSON.stringify({ text, audio: base64Audio, audioType: 'mp3' }), {
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
           });
