@@ -620,7 +620,7 @@ export default function App() {
       });
       const data = await res.json();
       if (res.ok && data.text) {
-        const cleanText = data.text.replace(/^#+\s+.+\n?/gm, "").replace(/\*\*/g, "").replace(/\*/g, "").trim();
+        const cleanText = data.text.replace(/^#+ /gm, "").replace(/\*\*/g, "").replace(/\*/g, "").trim();
         setStoryText(data.text);
         setStoryAudio(data.audio || null);
         setStoryLoading(false);
@@ -630,7 +630,8 @@ export default function App() {
           setStoryCount(c => c + 1);
         }
         generatingR.current = false;
-        await speakText(cleanText, data.audio || null);
+        const speakClean = data.text.replace(/^#+ [^\n]*\n?/gm, "").replace(/\*\*/g, "").replace(/\*/g, "").trim();
+        await speakText(speakClean, data.audio || null);
         return;
       }
     } catch(e) { console.error(e); }
