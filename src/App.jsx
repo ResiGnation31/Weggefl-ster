@@ -1339,7 +1339,7 @@ export default function App() {
 
           {/* Geschwindigkeit */}
           <div style={{ flex:1, position:"relative" }}>
-            <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase", textAlign:"left" }}>Tempo</p>
+            <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase", textAlign:"left" }}>Sprechtempo</p>
             <button onClick={() => setSpeedDropOpen(o => !o)} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", padding:0 }}>
               <span style={{ fontSize:13, color:T.text, fontWeight:400 }}>{playbackRate}x</span>
               <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke={T.textMuted} strokeWidth="1.8" strokeLinecap="round">
