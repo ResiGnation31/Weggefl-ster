@@ -111,24 +111,21 @@ export default async function handler(req) {
       }
     } catch(e) {}
 
-    const prompt = customPrompt || `Du bist ein faszinierender Reisebegleiter. Der Nutzer ${mode} gerade durch "${placeName}".
+    const prompt = customPrompt || `Du bist ein sachlicher, informativer Reiseführer-Sprecher. Der Nutzer ${mode} gerade durch "${placeName}".
 ${wikiContext}
+${surroundings ? "Umgebung: " + surroundings : ""}
 
-AKTUELLER KONTEXT: ${surroundings ? "Umgebung: " + surroundings : ""}
+AUFGABE: Gib dem Hörer nützliche, echte Informationen über diesen Ort. Thema: ${category}. Länge: ca. ${length}.
 
-AUFGABE: Basierend auf den Wikipedia-Informationen und dem aktuellen Kontext, erzähle was der Fahrer/Fußgänger gerade sieht und was historisch oder kulturell relevant ist.
-
-Thema: ${category}
-Länge: ca. ${length}, Stil: ${storyStyle}
-
-REGELN:
-- Verwende NUR Fakten aus den Wikipedia-Informationen oben
-- Beschreibe was man von der Straße/dem Weg aus SEHEN kann
-- Erwähne konkrete Sehenswürdigkeiten, Gebäude, Landschaften die wirklich dort sind
-- Wenn Wikipedia Sehenswürdigkeiten erwähnt, beschreibe diese lebendig
-- Sprich den Hörer direkt an: "Schau mal links...", "Siehst du...?", "Gleich wirst du..."
-- Beginne SOFORT mit einer konkreten Beobachtung oder Jahreszahl
-- Nur fließender Text auf Deutsch, KEINE Überschriften, KEIN #`;
+WICHTIG:
+- Nutze NUR die Wikipedia-Informationen oben
+- Wenn keine Info zur aktuellen Straße vorhanden: erzähle über den Ort/das Dorf/die Stadt
+- Nenne konkrete Fakten: Einwohnerzahl, Gründungsjahr, wichtige Gebäude, Vereine, Besonderheiten
+- Erwähne Sehenswürdigkeiten die wirklich dort existieren
+- KEIN ausschmückender Schreibstil - klar, direkt, informativ
+- Sprich den Hörer an: "Du befindest dich...", "Hier gibt es...", "Bekannt ist die Stadt für..."
+- Fließender Text auf Deutsch, KEINE Überschriften, KEIN #
+- Wenn Wikipedia nichts hergibt: sage ehrlich "Über diese Straße sind keine besonderen Infos bekannt" und erzähle stattdessen über die Region`;
 
     // Generate text with Claude
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
