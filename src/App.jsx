@@ -516,8 +516,8 @@ export default function App() {
     } catch { return ""; }
   }
 
-  function stopAudio() {
-    manualStopR.current = true;
+  function stopAudio(manual = false) {
+    if (manual) manualStopR.current = true;
     generatingR.current = false;
     nextStoryR.current = null;
     preloadingR.current = false;
@@ -545,6 +545,7 @@ export default function App() {
   }
 
   async function speakText(text, audioBase64) {
+    manualStopR.current = false;
     stopAudio();
     setSpeaking(true);
     speakingR.current = true;
@@ -1536,7 +1537,7 @@ export default function App() {
                       <path d="M11 17l-5-5 5-5"/><path d="M18 17l-5-5 5-5"/>
                     </svg>
                   </button>
-                  <button onClick={() => speaking ? stopAudio() : speakText(storyText, storyAudio || null)}
+                  <button onClick={() => speaking ? stopAudio(true) : speakText(storyText, storyAudio || null)}
                     style={{ width:44, height:44, borderRadius:"50%", background:T.accent, border:"none", cursor:"pointer", fontSize:16, flexShrink:0, color:T.btnText, display:"flex", alignItems:"center", justifyContent:"center" }}>
                     {speaking ? "⏸" : "▶"}
                   </button>
