@@ -595,9 +595,7 @@ export default function App() {
 
   async function edgeTTS(text) {
     try {
-      const chunks = text.match(/.{1,200}/g) || [text];
-      const urls = chunks.map(c => "https://translate.google.com/translate_tts?ie=UTF-8&q=" + encodeURIComponent(c) + "&tl=de&client=tw-ob");
-      const r = await fetch(urls[0]);
+      const r = await fetch("/api/tts", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ text: text.slice(0,500) }) });
       if (r.ok) {
         const blob = await r.blob();
         const url = URL.createObjectURL(blob);
