@@ -521,7 +521,7 @@ export default function App() {
     clearInterval(progRef.current);
     setSpeaking(false);
     speakingR.current = false;
-    setTimeout(() => { manualStopR.current = false; }, 1500);
+    setTimeout(() => { manualStopR.current = false; }, 3000);
   }
 
   function onStoryEnd() {
@@ -675,8 +675,8 @@ export default function App() {
           setStoryCount(c => c + 1);
         }
         generatingR.current = false;
-        const speakClean = data.text.replace(/^#+ [^\n]*\n?/gm, "").replace(/\*\*/g, "").replace(/\*/g, "").trim();
-        await speakText(speakClean, data.audio || null);
+        const speakClean = data.text.replace(/^#+\s*[^\n]*\n?/gm, "").replace(/\*\*/g, "").replace(/\*/g, "").replace(/^\s+/, "").trim();
+        await speakText(speakClean, null);
         return;
       }
     } catch(e) { console.error(e); }

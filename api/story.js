@@ -54,7 +54,10 @@ Regeln:
 - Konkrete Details: Namen, Jahreszahlen, echte Fakten
 - Ende mit einer überraschenden Wendung
 - Nur fließender Text, keine Aufzählungen
-- KEINE Markdown-Formatierung, KEINE Überschriften mit #, KEINE **Fettschrift**`;
+- KEINE Markdown-Formatierung
+- KEINE Überschriften oder Titel am Anfang
+- Beginne DIREKT mit dem ersten Satz der Geschichte
+- KEIN # Symbol, KEINE **Fettschrift**, KEINE Listen`;
 
     // Generate text with Claude
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
