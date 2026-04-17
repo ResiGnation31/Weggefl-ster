@@ -612,10 +612,12 @@ export default function App() {
       if (current.trim()) chunks.push(current.trim());
       let chunkIndex = 0;
       const playNext = async () => {
+        console.log("playNext called, chunk:", chunkIndex, "of", chunks.length);
         if (chunkIndex >= chunks.length) { onStoryEnd(); return; }
         if (manualStopR.current) return;
         const chunk = chunks[chunkIndex++];
         try {
+          console.log("fetching chunk:", chunk.slice(0,30));
           const r = await fetch("/api/tts", {
             method: "POST",
             headers: {"Content-Type":"application/json"},
@@ -630,7 +632,9 @@ export default function App() {
           audio.onended = () => { URL.revokeObjectURL(audioUrl); playNext(); };
           audio.onerror = (e) => { console.error("Audio error:", e); URL.revokeObjectURL(audioUrl); playNext(); };
           try {
+            console.log("playing audio...");
             await audio.play();
+            console.log("playing started!");
           } catch(playErr) {
             console.error("Play error:", playErr);
             URL.revokeObjectURL(audioUrl);
