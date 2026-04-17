@@ -349,6 +349,7 @@ export default function App() {
   const [storyLoading, setStoryLoading] = useState(false);
   const [speaking, setSpeaking]     = useState(false);
   const [spProgress, setSpProgress] = useState(0);
+  const [currentSentence, setCurrentSentence] = useState(0);
   const [storyCount, setStoryCount] = useState(0);
   const [arrived, setArrived]       = useState(false);
   const [voices, setVoices]         = useState([]);
@@ -550,8 +551,12 @@ export default function App() {
     setSpProgress(0);
     const estDur = text.length / 11.5;
     const t0 = Date.now();
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+    const sentDur = estDur / sentences.length;
     progRef.current = setInterval(() => {
-      setSpProgress(Math.min((Date.now()-t0)/1000/estDur*100, 100));
+      const elapsed = (Date.now()-t0)/1000;
+      setSpProgress(Math.min(elapsed/estDur*100, 100));
+      setCurrentSentence(Math.min(Math.floor(elapsed/sentDur), sentences.length-1));
     }, 300);
     if (voiceEngineR.current === "browser") { fallbackTTS(text); return; }
     if (voiceEngineR.current === "edge") { edgeTTS(text); return; }
@@ -1467,21 +1472,47 @@ export default function App() {
                   {[0,1,2].map(i => <div key={i} style={{ width:8, height:8, borderRadius:"50%", background:T.accent, animation:"dp 1.2s "+(i*.2)+"s infinite" }}/>)}
                 </div>
               ) : (
-                <div style={{ fontSize:".9rem", lineHeight:1.9, color:T.storyText, fontWeight:300 }}>
-                  {storyText.split("\n\n").map((p,i) => <p key={i} style={{ marginBottom:10 }}>{p}</p>)}
+                <div style={{ fontSize:".9rem", lineHeight:1.9, fontWeight:300 }}>
+                  {(() => {
+                    const sentences = storyText.match(/[^.!?]+[.!?]+/g) || [storyText];
+                    return sentences.map((s,i) => (
+                      <span key={i} style={{ color: speaking && i===currentSentence ? T.accent : T.storyText, fontWeight: speaking && i===currentSentence ? 500 : 300, transition:"color 0.3s" }}>{s} </span>
+                    ));
+                  })()}
                 </div>
               )}
             </div>
             {storyText && (
-              <div style={{ padding:"10px 18px 16px", borderTop:`1px solid ${T.borderFaint}`, display:"flex", alignItems:"center", gap:10 }}>
-                <button onClick={() => speaking ? stopAudio() : speakText(storyText, storyAudio || null)}
-                  style={{ width:40, height:40, borderRadius:"50%", background:T.accent, border:"none", cursor:"pointer", fontSize:16, flexShrink:0, color:T.btnText }}>
-                  {speaking ? "⏸" : "▶"}
-                </button>
-                <div style={{ flex:1, height:3, background:T.accentDim, borderRadius:2, overflow:"hidden" }}>
-                  <div style={{ height:"100%", width:spProgress+"%", background:T.accent, transition:"width .3s linear" }}/>
+              <div style={{ padding:"10px 18px 16px", borderTop:`1px solid ${T.borderFaint}` }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
+                  <button onClick={() => { if (audioRef.current) audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 15); }}
+                    style={{ width:34, height:34, borderRadius:"50%", background:T.accentDim, border:"none", cursor:"pointer", color:T.accent, fontSize:13, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M11 17l-5-5 5-5"/><path d="M18 17l-5-5 5-5"/>
+                    </svg>
+                  </button>
+                  <button onClick={() => speaking ? stopAudio() : speakText(storyText, storyAudio || null)}
+                    style={{ width:44, height:44, borderRadius:"50%", background:T.accent, border:"none", cursor:"pointer", fontSize:16, flexShrink:0, color:T.btnText, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    {speaking ? "⏸" : "▶"}
+                  </button>
+                  <button onClick={() => { if (audioRef.current) audioRef.current.currentTime = Math.min(audioRef.current.duration || 0, audioRef.current.currentTime + 15); }}
+                    style={{ width:34, height:34, borderRadius:"50%", background:T.accentDim, border:"none", cursor:"pointer", color:T.accent, fontSize:13, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M13 17l5-5-5-5"/><path d="M6 17l5-5-5-5"/>
+                    </svg>
+                  </button>
+                  <div style={{ flex:1, height:4, background:T.accentDim, borderRadius:2, cursor:"pointer", position:"relative" }}
+                    onClick={e => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const pct = (e.clientX - rect.left) / rect.width;
+                      if (audioRef.current && audioRef.current.duration) {
+                        audioRef.current.currentTime = pct * audioRef.current.duration;
+                      }
+                    }}>
+                    <div style={{ height:"100%", width:spProgress+"%", background:T.accent, borderRadius:2, transition:"width .3s linear" }}/>
+                  </div>
+                  {speaking && <span style={{ fontSize:".67rem", color:T.accent, flexShrink:0 }}>● LIVE</span>}
                 </div>
-                {speaking && <span style={{ fontSize:".67rem", color:T.accent }}>● LIVE</span>}
               </div>
             )}
           </div>
