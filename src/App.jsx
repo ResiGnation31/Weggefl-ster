@@ -517,6 +517,9 @@ export default function App() {
 
   function stopAudio() {
     manualStopR.current = true;
+    generatingR.current = false;
+    nextStoryR.current = null;
+    preloadingR.current = false;
     window.speechSynthesis?.cancel();
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     clearInterval(progRef.current);
@@ -676,7 +679,11 @@ export default function App() {
           setStoryCount(c => c + 1);
         }
         generatingR.current = false;
-        const speakClean = data.text.replace(/^#+\s*[^\n]*\n?/gm, "").replace(/\*\*/g, "").replace(/\*/g, "").replace(/^\s+/, "").trim();
+        const speakClean = data.text
+          .replace(/^#{1,6}\s*.+$/gm, "")
+          .replace(/\*{1,2}([^*]+)\*{1,2}/g, "$1")
+          .replace(/^\s*\n/gm, "")
+          .trim();
         await speakText(speakClean, null);
         return;
       }
@@ -1349,7 +1356,7 @@ export default function App() {
             {speedDropOpen && (
               <div style={{ position:"absolute", top:36, left:0, zIndex:200, background: isDark ? "rgba(30,26,22,0.97)" : "rgba(250,247,242,0.97)", backdropFilter:"blur(24px)", borderRadius:14, padding:"8px", boxShadow:"0 8px 32px rgba(0,0,0,0.18)", minWidth:140 }}>
                 {[1, 1.25, 1.5, 1.75, 2].map(r => (
-                  <button key={r} onClick={() => { setPlaybackRate(r); localStorage.setItem("wg_rate", r); if (audioRef.current) audioRef.current.playbackRate = r; setSpeedDropOpen(false); }}
+                  <button key={r} onClick={() => { setPlaybackRate(r); localStorage.setItem("wg_rate", r); if (audioRef.current) audioRef.current.playbackRate = r; setSpeedDropOpen(false); window.speechSynthesis?.cancel(); }}
                     style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", padding:"10px 12px", borderRadius:10, border:"none", cursor:"pointer", background: playbackRate===r ? T.accentDim : "transparent", marginBottom:2 }}>
                     <span style={{ fontSize:13, color: playbackRate===r ? T.accent : T.text, fontWeight: playbackRate===r ? 600 : 400 }}>{r}x</span>
                     {playbackRate===r && <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke={T.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
