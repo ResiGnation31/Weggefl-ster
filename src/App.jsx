@@ -603,14 +603,15 @@ export default function App() {
       const chunks = [];
       let current = "";
       for (const s of sentences) {
-        if ((current + s).length > 190) {
-          if (current) chunks.push(current.trim());
-          current = s;
+        if (current && (current + " " + s).length > 180) {
+          chunks.push(current.trim());
+          current = s.trim();
         } else {
-          current += " " + s;
+          current = current ? current + " " + s.trim() : s.trim();
         }
       }
       if (current.trim()) chunks.push(current.trim());
+      if (chunks.length === 0) chunks.push(text.trim());
       let chunkIndex = 0;
       const playNext = async () => {
         console.log("playNext called, chunk:", chunkIndex, "of", chunks.length, "chunks:", chunks.slice(0,2));
