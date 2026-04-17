@@ -1474,10 +1474,18 @@ export default function App() {
               ) : (
                 <div style={{ fontSize:".9rem", lineHeight:1.9, fontWeight:300 }}>
                   {(() => {
-                    const sentences = storyText.match(/[^.!?]+[.!?]+/g) || [storyText];
-                    return sentences.map((s,i) => (
-                      <span key={i} style={{ color: speaking && i===currentSentence ? T.accent : T.storyText, fontWeight: speaking && i===currentSentence ? 500 : 300, transition:"color 0.3s" }}>{s} </span>
-                    ));
+                    const cleanForDisplay = storyText.replace(/^#{1,6}\s*.+$/gm, "").trim();
+                    const sentences = cleanForDisplay.match(/[^.!?]+[.!?]+/g) || [cleanForDisplay];
+                    const headerMatch = storyText.match(/^#{1,6}\s*(.+)$/m);
+                    const header = headerMatch ? headerMatch[1] : null;
+                    return (
+                      <>
+                        {header && <p style={{ fontStyle:"italic", color:T.accent, marginBottom:8, fontWeight:500 }}>{header}</p>}
+                        {sentences.map((s,i) => (
+                          <span key={i} style={{ color: speaking && i===currentSentence ? T.accent : T.storyText, fontWeight: speaking && i===currentSentence ? 600 : 300, transition:"color 0.3s, font-weight 0.3s" }}>{s} </span>
+                        ))}
+                      </>
+                    );
                   })()}
                 </div>
               )}
