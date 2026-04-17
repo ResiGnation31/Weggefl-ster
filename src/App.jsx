@@ -1507,6 +1507,7 @@ export default function App() {
                       const pct = (e.clientX - rect.left) / rect.width;
                       if (audioRef.current && audioRef.current.duration) {
                         audioRef.current.currentTime = pct * audioRef.current.duration;
+                        setSpProgress(pct * 100);
                       }
                     }}>
                     <div style={{ height:"100%", width:spProgress+"%", background:T.accent, borderRadius:2, transition:"width .3s linear" }}/>
