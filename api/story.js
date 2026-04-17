@@ -45,19 +45,19 @@ export default async function handler(req) {
 
     const prompt = customPrompt || `Du bist ein faszinierender Reisebegleiter. Der Nutzer ${mode} gerade durch "${placeName}".
 
-Erzähle eine spannende, authentische Geschichte (ca. ${length}, ${storyStyle}) über diesen Ort zum Thema "${category}".
+Erzähle eine authentische Geschichte (ca. ${length}, ${storyStyle}) zum Thema "${category}".
 
-Regeln:
-- Beginne SOFORT mit der Geschichte — keine Begrüßung, kein "Gerne"
-- Sprich den Hörer direkt an
-- Erzähle auf Deutsch, lebendige Erzählstimme
-- Konkrete Details: Namen, Jahreszahlen, echte Fakten
-- Ende mit einer überraschenden Wendung
-- Nur fließender Text, keine Aufzählungen
-- KEINE Markdown-Formatierung
-- KEINE Überschriften oder Titel am Anfang
-- Beginne DIREKT mit dem ersten Satz der Geschichte
-- KEIN # Symbol, KEINE **Fettschrift**, KEINE Listen`;
+WICHTIG - Nur echte Fakten über diese Region:
+- Erzähle über die echte Geschichte, Natur oder Kultur dieser Gegend
+- Nutze den Ortsnamen als Kontext, aber erfinde KEINE spezifischen Gebäude oder Ereignisse die du nicht kennst
+- Wenn du nichts Spezifisches über den Ort weißt, erzähle über die Region (z.B. Niederrhein, NRW)
+- Beziehe dich auf echte historische Ereignisse, Landschaft, Traditionen der Region
+
+Format:
+- Beginne SOFORT mit einer konkreten Szene, Jahreszahl oder sinnlichen Beschreibung
+- Sprich den Hörer direkt an: "Schau mal...", "Wusstest du...", "Stell dir vor..."
+- Nur fließender Text auf Deutsch
+- KEINE Markdown, KEINE Überschriften, KEIN #, KEINE Listen`;
 
     // Generate text with Claude
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {

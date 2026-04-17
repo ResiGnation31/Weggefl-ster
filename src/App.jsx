@@ -510,8 +510,13 @@ export default function App() {
     try {
       const r = await fetch("/api/geocode?lat=" + lat + "&lon=" + lon);
       const d = await r.json();
-      return d.name || "";
-    } catch { return ""; }
+      return d;
+    } catch { return { name: "", street: "", place: "", region: "" }; }
+  }
+
+  async function geocodeName(lat, lon) {
+    const d = await geocode(lat, lon);
+    return d.name || "";
   }
 
   function stopAudio(manual = false) {
@@ -939,8 +944,8 @@ export default function App() {
         geocodeT.current = now;
         const idx = Math.min(Math.floor(simDistR.current / routeDist * route.length), route.length-1);
         const pos = route[idx];
-        const name = await geocode(pos.lat, pos.lon);
-        if (name) setCurrentLoc(name);
+        const geoData = await geocode(pos.lat, pos.lon);
+        if (geoData.name) setCurrentLoc(geoData.name);
         const surroundings = await getSurroundings(pos.lat, pos.lon);
         surroundingsR.current = surroundings;
       }
