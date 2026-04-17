@@ -1307,11 +1307,11 @@ export default function App() {
         )}
 
         {/* Voice + Speed nebeneinander */}
-        <div style={{ display:"flex", gap:16, marginBottom:16 }}>
+        <div style={{ display:"flex", gap:32, marginBottom:16, alignItems:"flex-start" }}>
 
           {/* Stimme */}
           <div style={{ flex:1, position:"relative" }}>
-            <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase" }}>Stimme</p>
+            <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase", textAlign:"left" }}>Stimme</p>
             <button onClick={() => setVoiceDropOpen(o => !o)} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", padding:0 }}>
               <span style={{ fontSize:13, color:T.text, fontWeight:400 }}>
                 {voiceEngine === "elevenlabs" ? "Helmut" : voiceEngine === "edge" ? "Online" : "Browser"}
@@ -1339,7 +1339,7 @@ export default function App() {
 
           {/* Geschwindigkeit */}
           <div style={{ flex:1, position:"relative" }}>
-            <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase" }}>Tempo</p>
+            <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase", textAlign:"left" }}>Tempo</p>
             <button onClick={() => setSpeedDropOpen(o => !o)} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", padding:0 }}>
               <span style={{ fontSize:13, color:T.text, fontWeight:400 }}>{playbackRate}x</span>
               <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke={T.textMuted} strokeWidth="1.8" strokeLinecap="round">
