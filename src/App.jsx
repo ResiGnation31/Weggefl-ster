@@ -595,8 +595,9 @@ export default function App() {
 
   async function edgeTTS(text) {
     try {
-      const voice = "de-DE-KatjaNeural";
-      const r = await fetch("https://tts.deno.dev/?text=" + encodeURIComponent(text) + "&voice=" + voice);
+      const chunks = text.match(/.{1,200}/g) || [text];
+      const urls = chunks.map(c => "https://translate.google.com/translate_tts?ie=UTF-8&q=" + encodeURIComponent(c) + "&tl=de&client=tw-ob");
+      const r = await fetch(urls[0]);
       if (r.ok) {
         const blob = await r.blob();
         const url = URL.createObjectURL(blob);
