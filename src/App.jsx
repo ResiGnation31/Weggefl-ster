@@ -1505,18 +1505,19 @@ export default function App() {
                     onClick={e => {
                       const rect = e.currentTarget.getBoundingClientRect();
                       const pct = (e.clientX - rect.left) / rect.width;
-                      setSpProgress(pct * 100);
                       if (audioRef.current) {
-                        const trySeek = () => {
-                          if (audioRef.current.duration && !isNaN(audioRef.current.duration)) {
-                            audioRef.current.currentTime = pct * audioRef.current.duration;
-                          } else {
-                            audioRef.current.addEventListener("loadedmetadata", () => {
-                              audioRef.current.currentTime = pct * audioRef.current.duration;
-                            }, { once: true });
+                        const audio = audioRef.current;
+                        const seek = () => {
+                          if (audio.duration && isFinite(audio.duration)) {
+                            audio.currentTime = pct * audio.duration;
+                            setSpProgress(pct * 100);
                           }
                         };
-                        trySeek();
+                        if (audio.readyState >= 1) {
+                          seek();
+                        } else {
+                          audio.addEventListener("loadedmetadata", seek, { once: true });
+                        }
                       }
                     }}>
                     <div style={{ height:"100%", width:spProgress+"%", background:T.accent, borderRadius:2, transition:"width .3s linear" }}/>
