@@ -595,7 +595,8 @@ export default function App() {
 
   async function edgeTTS(text) {
     try {
-      const r = await fetch("https://api.voicerss.org/?key=free&hl=de-de&src=" + encodeURIComponent(text) + "&f=44khz_16bit_stereo&c=mp3&ssml=0");
+      const voice = "de-DE-KatjaNeural";
+      const r = await fetch("https://tts.deno.dev/?text=" + encodeURIComponent(text) + "&voice=" + voice);
       if (r.ok) {
         const blob = await r.blob();
         const url = URL.createObjectURL(blob);
