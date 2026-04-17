@@ -46,38 +46,51 @@ export default async function handler(req) {
     // Wikipedia-Kontext holen - vollstaendig
     let wikiContext = "";
     try {
-      const searchTerm = placeName.split(",")[0].trim();
+      const parts = placeName.split(",").map(s => s.trim());
+      const searchTerm = parts[0];
+      const cityHint = parts[1] || "";
       
-      // Erst deutschen Artikel versuchen
-      let wikiText = "";
-      const deRes = await fetch(
-        `https://de.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(searchTerm)}&prop=extracts&exintro=false&explaintext=true&format=json&origin=*`,
-        { headers: { "User-Agent": "Weggefluesterer/1.0" } }
-      );
-      if (deRes.ok) {
-        const deData = await deRes.json();
-        const pages = deData.query?.pages;
-        const page = pages ? Object.values(pages)[0] : null;
-        if (page && page.extract && !page.missing) {
-          wikiText = page.extract;
-        }
-      }
-      
-      // Falls kein deutscher Artikel, englischen nehmen
-      if (!wikiText) {
-        const enRes = await fetch(
-          `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(searchTerm)}&prop=extracts&exintro=false&explaintext=true&format=json&origin=*`,
+      // Hilfsfunktion: Wikipedia-Artikel holen
+      const fetchWiki = async (lang, title) => {
+        const r = await fetch(
+          `https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=extracts&exintro=false&explaintext=true&format=json&origin=*`,
           { headers: { "User-Agent": "Weggefluesterer/1.0" } }
         );
-        if (enRes.ok) {
-          const enData = await enRes.json();
-          const pages = enData.query?.pages;
-          const page = pages ? Object.values(pages)[0] : null;
-          if (page && page.extract && !page.missing) {
-            wikiText = page.extract;
-          }
+        if (!r.ok) return "";
+        const d = await r.json();
+        const page = Object.values(d.query?.pages || {})[0];
+        if (!page || page.missing || !page.extract) return "";
+        // Begriffsklärung erkennen
+        if (page.extract.includes("steht für:") || page.extract.includes("ist der Name") || page.extract.includes("bezeichnet:")) return "";
+        return page.extract;
+      };
+      
+      let wikiText = "";
+      
+      // 1. Spezifischer Artikel mit Stadt: "Walbeck (Geldern)"
+      if (cityHint) {
+        wikiText = await fetchWiki("de", searchTerm + " (" + cityHint + ")");
+      }
+      
+      // 2. Nur Ortsname
+      if (!wikiText) wikiText = await fetchWiki("de", searchTerm);
+      
+      // 3. Suche verwenden wenn direkt nicht gefunden
+      if (!wikiText) {
+        const searchQ = cityHint ? searchTerm + " " + cityHint : searchTerm;
+        const sr = await fetch(
+          `https://de.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchQ)}&srlimit=1&format=json&origin=*`,
+          { headers: { "User-Agent": "Weggefluesterer/1.0" } }
+        );
+        if (sr.ok) {
+          const sd = await sr.json();
+          const firstResult = sd.query?.search?.[0]?.title;
+          if (firstResult) wikiText = await fetchWiki("de", firstResult);
         }
       }
+      
+      // 4. Englischer Fallback
+      if (!wikiText) wikiText = await fetchWiki("en", searchTerm);
       
       if (wikiText) {
         // Je nach Transportmittel mehr oder weniger Text
