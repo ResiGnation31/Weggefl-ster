@@ -611,6 +611,48 @@ export default function App() {
     fallbackTTS(text);
   }
 
+  async function edgeTTS(text) {
+    try {
+      const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+      const chunks = [];
+      let current = "";
+      for (const s of sentences) {
+        if ((current + s).length > 190) {
+          if (current) chunks.push(current.trim());
+          current = s;
+        } else {
+          current += " " + s;
+        }
+      }
+      if (current.trim()) chunks.push(current.trim());
+      let chunkIndex = 0;
+      const playNext = async () => {
+        if (chunkIndex >= chunks.length) { onStoryEnd(); return; }
+        if (manualStopR.current) return;
+        const chunk = chunks[chunkIndex++];
+        try {
+          const r = await fetch("/api/tts", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ text: chunk })
+          });
+          if (!r.ok) { playNext(); return; }
+          const blob = await r.blob();
+          const audioUrl = URL.createObjectURL(blob);
+          const audio = new Audio(audioUrl);
+          audio.playbackRate = playbackRate;
+          audioRef.current = audio;
+          audio.onended = () => { URL.revokeObjectURL(audioUrl); playNext(); };
+          audio.onerror = () => { URL.revokeObjectURL(audioUrl); playNext(); };
+          await audio.play();
+        } catch(e) { playNext(); }
+      };
+      await playNext();
+      return;
+    } catch(e) { console.error("edgeTTS error:", e); }
+    fallbackTTS(text);
+  }
+
   async function generateStory(locationName, isIntro, introData) {
     if (generatingR.current) return;
     generatingR.current = true;
