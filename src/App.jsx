@@ -451,13 +451,11 @@ export default function App() {
   async function getSurroundings(lat, lon) {
     try {
       const r = 300;
-      const q = `[out:json][timeout:5];(
+      const q = `[out:json][timeout:4];(
         way["landuse"](around:${r},${lat},${lon});
         way["natural"](around:${r},${lat},${lon});
-        node["amenity"](around:${r},${lat},${lon});
-        node["tourism"](around:${r},${lat},${lon});
         node["historic"](around:${r},${lat},${lon});
-        way["building"="church"](around:${r},${lat},${lon});
+        node["tourism"](around:${r},${lat},${lon});
       );out body;`;
       const res = await fetch("https://overpass-api.de/api/interpreter", {
         method:"POST", body:"data=" + encodeURIComponent(q),
@@ -483,7 +481,7 @@ export default function App() {
     for (const pt of points) {
       try {
         const r = 500;
-        const q = `[out:json][timeout:5];(
+        const q = `[out:json][timeout:4];(
           node["name"]["historic"](around:${r},${pt.lat},${pt.lon});
           node["name"]["tourism"](around:${r},${pt.lat},${pt.lon});
           node["name"]["amenity"~"place_of_worship|museum|theatre"](around:${r},${pt.lat},${pt.lon});
@@ -937,7 +935,7 @@ export default function App() {
       setSpeedKmh(Math.round(simSpeed * 3.6));
       speedR.current = Math.round(simSpeed * 3.6);
       const now = Date.now();
-      if (now - geocodeT.current > 6000) {
+      if (now - geocodeT.current > 30000) {
         geocodeT.current = now;
         const idx = Math.min(Math.floor(simDistR.current / routeDist * route.length), route.length-1);
         const pos = route[idx];
