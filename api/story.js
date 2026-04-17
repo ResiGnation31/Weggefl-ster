@@ -43,9 +43,25 @@ export default async function handler(req) {
     const mode = m.label;
     const storyStyle = m.style;
 
+    // Wikipedia-Kontext holen
+    let wikiContext = "";
+    try {
+      const searchTerm = placeName.split(",")[0].trim();
+      const wikiSearch = await fetch(
+        `https://de.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchTerm)}`,
+        { headers: { "User-Agent": "Weggefluesterer/1.0" } }
+      );
+      if (wikiSearch.ok) {
+        const wikiData = await wikiSearch.json();
+        if (wikiData.extract && wikiData.extract.length > 50) {
+          wikiContext = "\n\nWikipedia-Hintergrund: " + wikiData.extract.slice(0, 500);
+        }
+      }
+    } catch(e) {}
+
     const prompt = customPrompt || `Du bist ein faszinierender Reisebegleiter. Der Nutzer ${mode} gerade durch "${placeName}".
 
-Erzähle eine authentische Geschichte (ca. ${length}, ${storyStyle}) zum Thema "${category}".
+Erzähle eine authentische Geschichte (ca. ${length}, ${storyStyle}) zum Thema "${category}".${wikiContext}
 
 WICHTIG - Nur echte Fakten über diese Region:
 - Erzähle über die echte Geschichte, Natur oder Kultur dieser Gegend
