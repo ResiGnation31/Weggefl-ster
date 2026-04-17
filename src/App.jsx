@@ -593,23 +593,7 @@ export default function App() {
     window.speechSynthesis?.speak(utter);
   }
 
-  async function edgeTTS(text) {
-    try {
-      const r = await fetch("/api/tts", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ text: text.slice(0,500) }) });
-      if (r.ok) {
-        const blob = await r.blob();
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audio.playbackRate = playbackRate;
-        audioRef.current = audio;
-        audio.onended = () => { URL.revokeObjectURL(url); onStoryEnd(); };
-        audio.onerror = () => { URL.revokeObjectURL(url); fallbackTTS(text); };
-        audio.play().catch(() => fallbackTTS(text));
-        return;
-      }
-    } catch(e) { console.error("Edge TTS error:", e); }
-    fallbackTTS(text);
-  }
+
 
   async function edgeTTS(text) {
     try {
@@ -643,8 +627,14 @@ export default function App() {
           audio.playbackRate = playbackRate;
           audioRef.current = audio;
           audio.onended = () => { URL.revokeObjectURL(audioUrl); playNext(); };
-          audio.onerror = () => { URL.revokeObjectURL(audioUrl); playNext(); };
-          await audio.play();
+          audio.onerror = (e) => { console.error("Audio error:", e); URL.revokeObjectURL(audioUrl); playNext(); };
+          try {
+            await audio.play();
+          } catch(playErr) {
+            console.error("Play error:", playErr);
+            URL.revokeObjectURL(audioUrl);
+            playNext();
+          }
         } catch(e) { playNext(); }
       };
       await playNext();
