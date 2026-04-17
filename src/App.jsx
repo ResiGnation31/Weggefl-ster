@@ -558,8 +558,9 @@ export default function App() {
       setSpProgress(Math.min(elapsed/estDur*100, 100));
       setCurrentSentence(Math.max(0, Math.min(Math.floor(elapsed/sentDur), sentences.length-1)));
     }, 300);
+    console.log("speakText called, voiceEngine:", voiceEngineR.current, "audioBase64:", !!audioBase64);
     if (voiceEngineR.current === "browser") { fallbackTTS(text); return; }
-    if (voiceEngineR.current === "edge") { edgeTTS(text); return; }
+    if (voiceEngineR.current === "edge") { console.log("calling edgeTTS"); edgeTTS(text); return; }
     if (audioBase64) {
       try {
         const binary = atob(audioBase64);
