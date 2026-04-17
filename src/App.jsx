@@ -343,7 +343,7 @@ export default function App() {
   const [gpsError, setGpsError]     = useState("");
   const [currentLoc, setCurrentLoc] = useState("");
   const [storyAudio, setStoryAudio] = useState(null);
-  const [category, setCategory]     = useState("Geschichte");
+  const [category, setCategory]     = useState(() => localStorage.getItem("wg_category") || "Reiseführer");
   const [storyTitle, setStoryTitle] = useState("");
   const [storyText, setStoryText]   = useState("");
   const [storyLoading, setStoryLoading] = useState(false);
@@ -390,7 +390,7 @@ export default function App() {
   const routeR      = useRef([]);
   const routeDistR  = useRef(0);
   const speedR      = useRef(36);
-  const categoryR   = useRef("Geschichte");
+  const categoryR   = useRef(localStorage.getItem("wg_category") || "Reiseführer");
   const speakingR   = useRef(false);
   const generatingR = useRef(false);
   const arrivedR    = useRef(false);
@@ -926,29 +926,110 @@ export default function App() {
     if (!navigator.geolocation) { setGpsError("GPS nicht verfügbar"); return; }
     addLog("GPS aktiv", "start");
     let firstPosition = true;
-    let lastGeocode = 0;
+    let lastStoryTime = 0;
+    let lastGeocodeTime = 0;
+    let lastLat = null;
+    let lastLon = null;
+    let gpsPOIs = [];
+    let usedGpsPOIs = [];
+
+    // POIs in Fahrtrichtung vorab laden
+    async function loadGPSPOIs(lat, lon, heading) {
+      try {
+        // Schaue 1km voraus in Fahrtrichtung
+        const rad = (heading || 0) * Math.PI / 180;
+        const lookLat = lat + (0.009 * Math.cos(rad));
+        const lookLon = lon + (0.009 / Math.cos(lat * Math.PI / 180) * Math.sin(rad));
+        const r = 800;
+        const q = `[out:json][timeout:8];(
+          node["name"]["historic"](around:${r},${lookLat},${lookLon});
+          node["name"]["tourism"](around:${r},${lookLat},${lookLon});
+          node["name"]["amenity"~"place_of_worship|museum"](around:${r},${lookLat},${lookLon});
+          node["place"~"village|town|hamlet|suburb"](around:${r},${lookLat},${lookLon});
+          way["name"]["landuse"~"farmland|forest|vineyard|orchard"](around:${r},${lookLat},${lookLon});
+          node["name"]["natural"~"peak|water"](around:${r},${lookLat},${lookLon});
+        );out body;`;
+        const res = await fetch("https://overpass-api.de/api/interpreter", {
+          method:"POST", body:"data=" + encodeURIComponent(q),
+          headers:{"Content-Type":"application/x-www-form-urlencoded"}
+        });
+        const data = await res.json();
+        const newPOIs = [];
+        data.elements.forEach(e => {
+          const name = e.tags?.name;
+          const type = e.tags?.historic || e.tags?.tourism || e.tags?.amenity || e.tags?.place || e.tags?.landuse || e.tags?.natural;
+          if (name && !gpsPOIs.find(p => p.name === name)) {
+            newPOIs.push({ name, type: type || "ort" });
+          }
+        });
+        gpsPOIs = [...gpsPOIs, ...newPOIs].slice(-20);
+      } catch(e) {}
+    }
+
     gpsRef.current = navigator.geolocation.watchPosition(
       async (pos) => {
-        setGpsPos({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const heading = pos.coords.heading;
+        const speed = pos.coords.speed || 0;
+        setGpsPos({ lat, lon });
         setGpsError("");
         const now = Date.now();
-        if (now - lastGeocode < 15000) return;
-        lastGeocode = now;
-        const name = await geocode(pos.coords.latitude, pos.coords.longitude);
-        const surr = await getSurroundings(pos.coords.latitude, pos.coords.longitude);
-        surroundingsR.current = surr;
-        if (name) {
-          setCurrentLoc(name);
-          if (firstPosition) {
-            firstPosition = false;
-            generateStory(name, false, null);
-          } else if (!speakingR.current && !generatingR.current) {
-            generateStory(name, false, null);
+
+        // Geocode alle 10 Sekunden
+        if (now - lastGeocodeTime > 10000) {
+          lastGeocodeTime = now;
+          const name = await geocode(lat, lon);
+          const surr = await getSurroundings(lat, lon);
+          surroundingsR.current = surr;
+          if (name) setCurrentLoc(name);
+          // POIs voraus laden
+          await loadGPSPOIs(lat, lon, heading);
+        }
+
+        // Distanz seit letzter Position
+        let distMoved = 0;
+        if (lastLat !== null) {
+          distMoved = haversine(lastLat, lastLon, lat, lon);
+        }
+        lastLat = lat;
+        lastLon = lon;
+
+        // Story-Trigger basierend auf Distanz und Zeit
+        const speedKmh = speed * 3.6;
+        const minDist = speedKmh > 30 ? 400 : speedKmh > 10 ? 200 : 100;
+        const minTime = speedKmh > 30 ? 45000 : speedKmh > 10 ? 60000 : 90000;
+
+        if (firstPosition) {
+          firstPosition = false;
+          lastStoryTime = now;
+          // Intro mit verfügbaren POIs
+          const availPOIs = gpsPOIs.filter(p => !usedGpsPOIs.includes(p.name));
+          const poisText = availPOIs.slice(0, 5).map(p => p.name).join(", ");
+          surroundingsR.current = (surroundingsR.current || "") + (poisText ? " | Voraus: " + poisText : "");
+          if (subMode === "guided" && endDest) {
+            generateStory(endDest.name, true, { start: "deinem Standort", end: endDest.name, places: availPOIs.slice(0,3).map(p=>p.name).concat([endDest.name]) });
+          } else {
+            generateStory(await geocode(lat, lon) || "diesem Ort", false, null);
+          }
+        } else if (!speakingR.current && !generatingR.current && 
+                   (now - lastStoryTime > minTime)) {
+          lastStoryTime = now;
+          // Nächsten unbenutzten POI nehmen
+          const availPOIs = gpsPOIs.filter(p => !usedGpsPOIs.includes(p.name));
+          if (availPOIs.length > 0) {
+            const poi = availPOIs[0];
+            usedGpsPOIs.push(poi.name);
+            surroundingsR.current = poi.type + ": " + poi.name;
+            generateStory(poi.name, false, null);
+          } else {
+            const name = await geocode(lat, lon);
+            if (name) generateStory(name, false, null);
           }
         }
       },
       (err) => setGpsError("GPS Fehler: " + err.message),
-      { enableHighAccuracy: true, maximumAge: 15000 }
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
     );
   }
   async function onGpsEndInput(val) {
@@ -1176,7 +1257,7 @@ export default function App() {
               Lieblingsthemen
             </button>
             {CATEGORIES.map(c => (
-              <button key={c} onClick={() => setCategory(c)}
+              <button key={c} onClick={() => { setCategory(c); categoryR.current = c; localStorage.setItem("wg_category", c); }}
                 style={{ padding:"7px 14px", borderRadius:100, fontSize:13, cursor:"pointer", border:"none", background: category===c ? T.accentDim : (isDark?"rgba(255,255,255,0.07)":"rgba(255,255,255,0.55)"), color: category===c ? T.accent : T.textMuted, fontWeight: category===c ? 600 : 400, backdropFilter:"blur(4px)", transition:"all 0.2s" }}>
                 {c}
               </button>
