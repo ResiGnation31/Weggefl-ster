@@ -1336,7 +1336,7 @@ export default function App() {
               <div style={{ position:"absolute", top:36, left:0, zIndex:200, background: isDark ? "rgba(30,26,22,0.97)" : "rgba(250,247,242,0.97)", backdropFilter:"blur(24px)", borderRadius:14, padding:"8px", boxShadow:"0 8px 32px rgba(0,0,0,0.18)", minWidth:220 }}>
                 {[
                   { key:"elevenlabs", label:"Helmut Stieglbauer", sub:"ElevenLabs — beste Qualität" },
-                  { key:"edge",       label:"Katja Neural",        sub:"Microsoft — gute Qualität" },
+                  { key:"edge",       label:"Google Stimme",       sub:"Google TTS — gute Qualität" },
                   { key:"browser",    label:"Browser-Stimme",     sub:"Lokal — einfache Qualität" },
                 ].map(({ key, label, sub }) => (
                   <button key={key} onClick={() => { setVoiceEngine(key); voiceEngineR.current = key; localStorage.setItem("wg_voice", key); setVoiceDropOpen(false); }}
