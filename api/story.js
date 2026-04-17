@@ -43,19 +43,46 @@ export default async function handler(req) {
     const mode = m.label;
     const storyStyle = m.style;
 
-    // Wikipedia-Kontext holen
+    // Wikipedia-Kontext holen - vollstaendig
     let wikiContext = "";
     try {
       const searchTerm = placeName.split(",")[0].trim();
-      const wikiSearch = await fetch(
-        `https://de.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchTerm)}`,
+      
+      // Erst deutschen Artikel versuchen
+      let wikiText = "";
+      const deRes = await fetch(
+        `https://de.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(searchTerm)}&prop=extracts&exintro=false&explaintext=true&format=json&origin=*`,
         { headers: { "User-Agent": "Weggefluesterer/1.0" } }
       );
-      if (wikiSearch.ok) {
-        const wikiData = await wikiSearch.json();
-        if (wikiData.extract && wikiData.extract.length > 50) {
-          wikiContext = "\n\nWikipedia-Hintergrund: " + wikiData.extract.slice(0, 500);
+      if (deRes.ok) {
+        const deData = await deRes.json();
+        const pages = deData.query?.pages;
+        const page = pages ? Object.values(pages)[0] : null;
+        if (page && page.extract && !page.missing) {
+          wikiText = page.extract;
         }
+      }
+      
+      // Falls kein deutscher Artikel, englischen nehmen
+      if (!wikiText) {
+        const enRes = await fetch(
+          `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(searchTerm)}&prop=extracts&exintro=false&explaintext=true&format=json&origin=*`,
+          { headers: { "User-Agent": "Weggefluesterer/1.0" } }
+        );
+        if (enRes.ok) {
+          const enData = await enRes.json();
+          const pages = enData.query?.pages;
+          const page = pages ? Object.values(pages)[0] : null;
+          if (page && page.extract && !page.missing) {
+            wikiText = page.extract;
+          }
+        }
+      }
+      
+      if (wikiText) {
+        // Je nach Transportmittel mehr oder weniger Text
+        const maxLen = transport === "walk" ? 4000 : transport === "bike" ? 3000 : transport === "bus" ? 2000 : 1500;
+        wikiContext = "\n\nWikipedia-Informationen ueber " + searchTerm + ":\n" + wikiText.slice(0, maxLen);
       }
     } catch(e) {}
 
