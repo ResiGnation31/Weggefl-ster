@@ -612,7 +612,7 @@ export default function App() {
       if (current.trim()) chunks.push(current.trim());
       let chunkIndex = 0;
       const playNext = async () => {
-        console.log("playNext called, chunk:", chunkIndex, "of", chunks.length);
+        console.log("playNext called, chunk:", chunkIndex, "of", chunks.length, "chunks:", chunks.slice(0,2));
         if (chunkIndex >= chunks.length) { onStoryEnd(); return; }
         if (manualStopR.current) return;
         const chunk = chunks[chunkIndex++];
