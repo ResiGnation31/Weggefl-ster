@@ -559,9 +559,8 @@ export default function App() {
       setSpProgress(Math.min(elapsed/estDur*100, 100));
       setCurrentSentence(Math.max(0, Math.min(Math.floor(elapsed/sentDur), sentences.length-1)));
     }, 300);
-    console.log("speakText called, voiceEngine:", voiceEngineR.current, "audioBase64:", !!audioBase64);
     if (voiceEngineR.current === "browser") { fallbackTTS(text); return; }
-    if (voiceEngineR.current === "edge") { console.log("calling edgeTTS"); edgeTTS(text); return; }
+    if (voiceEngineR.current === "edge") { edgeTTS(text); return; }
     if (audioBase64) {
       try {
         const binary = atob(audioBase64);
@@ -619,7 +618,6 @@ export default function App() {
         if (manualStopR.current) return;
         const chunk = chunks[chunkIndex++];
         try {
-          console.log("fetching chunk:", chunk.slice(0,30));
           const r = await fetch("/api/tts", {
             method: "POST",
             headers: {"Content-Type":"application/json"},
@@ -634,9 +632,7 @@ export default function App() {
           audio.onended = () => { URL.revokeObjectURL(audioUrl); playNext(); };
           audio.onerror = (e) => { console.error("Audio error:", e); URL.revokeObjectURL(audioUrl); playNext(); };
           try {
-            console.log("playing audio...");
             await audio.play();
-            console.log("playing started!");
           } catch(playErr) {
             console.error("Play error:", playErr);
             URL.revokeObjectURL(audioUrl);
