@@ -19,7 +19,7 @@ export default async function handler(req) {
   }
 
   try {
-    const { placeName, category, speedKmh, transport, voiceEngine, customPrompt } = await req.json();
+    const { placeName, category, speedKmh, transport, voiceEngine, surroundings, customPrompt } = await req.json();
     const useElevenLabs = !voiceEngine || voiceEngine === "elevenlabs";
 
     const anthropicKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
@@ -81,26 +81,29 @@ export default async function handler(req) {
       
       if (wikiText) {
         // Je nach Transportmittel mehr oder weniger Text
-        const maxLen = transport === "walk" ? 4000 : transport === "bike" ? 3000 : transport === "bus" ? 2000 : 1500;
+        const maxLen = transport === "walk" ? 5000 : transport === "bike" ? 4000 : transport === "bus" ? 3000 : 2000;
         wikiContext = "\n\nWikipedia-Informationen ueber " + searchTerm + ":\n" + wikiText.slice(0, maxLen);
       }
     } catch(e) {}
 
     const prompt = customPrompt || `Du bist ein faszinierender Reisebegleiter. Der Nutzer ${mode} gerade durch "${placeName}".
+${wikiContext}
 
-Erzähle eine authentische Geschichte (ca. ${length}, ${storyStyle}) zum Thema "${category}".${wikiContext}
+AKTUELLER KONTEXT: ${surroundings ? "Umgebung: " + surroundings : ""}
 
-WICHTIG - Nur echte Fakten über diese Region:
-- Erzähle über die echte Geschichte, Natur oder Kultur dieser Gegend
-- Nutze den Ortsnamen als Kontext, aber erfinde KEINE spezifischen Gebäude oder Ereignisse die du nicht kennst
-- Wenn du nichts Spezifisches über den Ort weißt, erzähle über die Region (z.B. Niederrhein, NRW)
-- Beziehe dich auf echte historische Ereignisse, Landschaft, Traditionen der Region
+AUFGABE: Basierend auf den Wikipedia-Informationen und dem aktuellen Kontext, erzähle was der Fahrer/Fußgänger gerade sieht und was historisch oder kulturell relevant ist.
 
-Format:
-- Beginne SOFORT mit einer konkreten Szene, Jahreszahl oder sinnlichen Beschreibung
-- Sprich den Hörer direkt an: "Schau mal...", "Wusstest du...", "Stell dir vor..."
-- Nur fließender Text auf Deutsch
-- KEINE Markdown, KEINE Überschriften, KEIN #, KEINE Listen`;
+Thema: ${category}
+Länge: ca. ${length}, Stil: ${storyStyle}
+
+REGELN:
+- Verwende NUR Fakten aus den Wikipedia-Informationen oben
+- Beschreibe was man von der Straße/dem Weg aus SEHEN kann
+- Erwähne konkrete Sehenswürdigkeiten, Gebäude, Landschaften die wirklich dort sind
+- Wenn Wikipedia Sehenswürdigkeiten erwähnt, beschreibe diese lebendig
+- Sprich den Hörer direkt an: "Schau mal links...", "Siehst du...?", "Gleich wirst du..."
+- Beginne SOFORT mit einer konkreten Beobachtung oder Jahreszahl
+- Nur fließender Text auf Deutsch, KEINE Überschriften, KEIN #`;
 
     // Generate text with Claude
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
