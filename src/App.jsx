@@ -457,9 +457,9 @@ export default function App() {
         node["historic"](around:${r},${lat},${lon});
         node["tourism"](around:${r},${lat},${lon});
       );out body;`;
-      const res = await fetch("https://overpass-api.de/api/interpreter", {
-        method:"POST", body:"data=" + encodeURIComponent(q),
-        headers:{"Content-Type":"application/x-www-form-urlencoded"}
+      const res = await fetch("/api/overpass", {
+        method:"POST", body:JSON.stringify({query:q}),
+        headers:{"Content-Type":"application/json"}
       });
       const data = await res.json();
       const tags = data.elements.map(e => {
@@ -489,9 +489,9 @@ export default function App() {
           way["name"]["landuse"~"farmland|forest|meadow"](around:${r},${pt.lat},${pt.lon});
           node["place"~"village|town|hamlet"](around:${r},${pt.lat},${pt.lon});
         );out body;`;
-        const res = await fetch("https://overpass-api.de/api/interpreter", {
-          method:"POST", body:"data=" + encodeURIComponent(q),
-          headers:{"Content-Type":"application/x-www-form-urlencoded"}
+        const res = await fetch("/api/overpass", {
+          method:"POST", body:JSON.stringify({query:q}),
+          headers:{"Content-Type":"application/json"}
         });
         const data = await res.json();
         data.elements.forEach(e => {
@@ -995,9 +995,9 @@ export default function App() {
           way["name"]["landuse"~"farmland|forest|vineyard|orchard"](around:${r},${lookLat},${lookLon});
           node["name"]["natural"~"peak|water"](around:${r},${lookLat},${lookLon});
         );out body;`;
-        const res = await fetch("https://overpass-api.de/api/interpreter", {
-          method:"POST", body:"data=" + encodeURIComponent(q),
-          headers:{"Content-Type":"application/x-www-form-urlencoded"}
+        const res = await fetch("/api/overpass", {
+          method:"POST", body:JSON.stringify({query:q}),
+          headers:{"Content-Type":"application/json"}
         });
         const data = await res.json();
         const newPOIs = [];
