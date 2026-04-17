@@ -19,7 +19,7 @@ export default async function handler(req) {
   }
 
   try {
-    const { placeName, category, speedKmh, transport, voiceEngine, surroundings, customPrompt } = await req.json();
+    const { placeName, category, speedKmh, transport, voiceEngine, surroundings, lat, lon, customPrompt } = await req.json();
     const useElevenLabs = !voiceEngine || voiceEngine === "elevenlabs";
 
     const anthropicKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
@@ -43,7 +43,7 @@ export default async function handler(req) {
     const mode = m.label;
     const storyStyle = m.style;
 
-    // Wikipedia-Kontext holen - vollstaendig
+    // Wikipedia-Kontext holen - koordinatenbasiert
     let wikiContext = "";
     try {
       const parts = placeName.split(",").map(s => s.trim());
@@ -60,37 +60,49 @@ export default async function handler(req) {
         const d = await r.json();
         const page = Object.values(d.query?.pages || {})[0];
         if (!page || page.missing || !page.extract) return "";
-        // Begriffsklärung erkennen
-        if (page.extract.includes("steht für:") || page.extract.includes("ist der Name") || page.extract.includes("bezeichnet:")) return "";
+        if (page.extract.includes("steht fuer:") || page.extract.includes("ist der Name") || page.extract.includes("bezeichnet:")) return "";
         return page.extract;
       };
       
       let wikiText = "";
+      const maxLen = transport === "walk" ? 5000 : transport === "bike" ? 4000 : transport === "bus" ? 3000 : 2000;
       
-      // 1. Spezifischer Artikel mit Stadt: "Walbeck (Geldern)"
-      if (cityHint) {
-        wikiText = await fetchWiki("de", searchTerm + " (" + cityHint + ")");
-      }
-      
-      // 2. Nur Ortsname
-      if (!wikiText) wikiText = await fetchWiki("de", searchTerm);
-      
-      // 3. Suche verwenden wenn direkt nicht gefunden
-      if (!wikiText) {
-        const searchQ = cityHint ? searchTerm + " " + cityHint : searchTerm;
-        const sr = await fetch(
-          `https://de.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchQ)}&srlimit=1&format=json&origin=*`,
+      // 1. Koordinaten-basierte Suche (genaueste Methode)
+      if (lat && lon) {
+        const geoRes = await fetch(
+          `https://de.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}|${lon}&gsradius=3000&gslimit=5&format=json&origin=*`,
           { headers: { "User-Agent": "Weggefluesterer/1.0" } }
         );
-        if (sr.ok) {
-          const sd = await sr.json();
-          const firstResult = sd.query?.search?.[0]?.title;
-          if (firstResult) wikiText = await fetchWiki("de", firstResult);
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          const results = geoData.query?.geosearch || [];
+          const texts = [];
+          for (const result of results.slice(0, 3)) {
+            const t = await fetchWiki("de", result.title);
+            if (t) texts.push("=== " + result.title + " ===\n" + t.slice(0, Math.floor(maxLen/3)));
+          }
+          if (texts.length > 0) wikiText = texts.join("\n\n");
         }
       }
       
-      // 4. Englischer Fallback
-      if (!wikiText) wikiText = await fetchWiki("en", searchTerm);
+      // 2. Fallback: Name-basierte Suche
+      if (!wikiText) {
+        if (cityHint) wikiText = await fetchWiki("de", searchTerm + " (" + cityHint + ")");
+        if (!wikiText) wikiText = await fetchWiki("de", searchTerm);
+        if (!wikiText) {
+          const searchQ = cityHint ? searchTerm + " " + cityHint : searchTerm;
+          const sr = await fetch(
+            `https://de.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchQ)}&srlimit=1&format=json&origin=*`,
+            { headers: { "User-Agent": "Weggefluesterer/1.0" } }
+          );
+          if (sr.ok) {
+            const sd = await sr.json();
+            const firstResult = sd.query?.search?.[0]?.title;
+            if (firstResult) wikiText = await fetchWiki("de", firstResult);
+          }
+        }
+        if (!wikiText) wikiText = await fetchWiki("en", searchTerm);
+      }
       
       if (wikiText) {
         // Je nach Transportmittel mehr oder weniger Text
