@@ -551,12 +551,12 @@ export default function App() {
     setSpProgress(0);
     const estDur = text.length / 11.5;
     const t0 = Date.now();
-    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+    const sentences = text.replace(/^#{1,6}\s*.+$/gm, "").trim().match(/[^.!?]+[.!?]+/g) || [text];
     const sentDur = estDur / sentences.length;
     progRef.current = setInterval(() => {
       const elapsed = (Date.now()-t0)/1000;
       setSpProgress(Math.min(elapsed/estDur*100, 100));
-      setCurrentSentence(Math.min(Math.floor(elapsed/sentDur), sentences.length-1));
+      setCurrentSentence(Math.max(0, Math.min(Math.floor(elapsed/sentDur), sentences.length-1)));
     }, 300);
     if (voiceEngineR.current === "browser") { fallbackTTS(text); return; }
     if (voiceEngineR.current === "edge") { edgeTTS(text); return; }
@@ -1505,9 +1505,18 @@ export default function App() {
                     onClick={e => {
                       const rect = e.currentTarget.getBoundingClientRect();
                       const pct = (e.clientX - rect.left) / rect.width;
-                      if (audioRef.current && audioRef.current.duration) {
-                        audioRef.current.currentTime = pct * audioRef.current.duration;
-                        setSpProgress(pct * 100);
+                      setSpProgress(pct * 100);
+                      if (audioRef.current) {
+                        const trySeek = () => {
+                          if (audioRef.current.duration && !isNaN(audioRef.current.duration)) {
+                            audioRef.current.currentTime = pct * audioRef.current.duration;
+                          } else {
+                            audioRef.current.addEventListener("loadedmetadata", () => {
+                              audioRef.current.currentTime = pct * audioRef.current.duration;
+                            }, { once: true });
+                          }
+                        };
+                        trySeek();
                       }
                     }}>
                     <div style={{ height:"100%", width:spProgress+"%", background:T.accent, borderRadius:2, transition:"width .3s linear" }}/>
