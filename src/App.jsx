@@ -818,7 +818,8 @@ export default function App() {
     const futureDist = Math.min(simDistR.current + lookAhead, routeDistR.current - 50);
     const idx = Math.min(Math.floor(futureDist / routeDistR.current * wps.length), wps.length-1);
     const pos = wps[idx];
-    const name = await geocode(pos.lat, pos.lon);
+    const geoData = await geocode(pos.lat, pos.lon);
+    const name = typeof geoData === "string" ? geoData : geoData.name;
     if (name) generateStory(name, false, null);
   }
 
@@ -877,7 +878,8 @@ export default function App() {
         for (let j = 0; j < coords.length-1; j++) {
           const seg = haversine(coords[j].lat, coords[j].lon, coords[j+1].lat, coords[j+1].lon);
           if (acc + seg >= step * i) {
-            const name = await geocode(coords[j].lat, coords[j].lon);
+            const gd = await geocode(coords[j].lat, coords[j].lon);
+            const name = typeof gd === "string" ? gd : gd.name;
             if (name && !places.includes(name)) places.push(name);
             break;
           }
