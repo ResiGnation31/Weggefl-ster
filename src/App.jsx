@@ -398,7 +398,7 @@ export default function App() {
   const arrivedR    = useRef(false);
   const progRef     = useRef(null);
   const gpsRef      = useRef(null);
-  const voiceEngineR = useRef("elevenlabs");
+  const voiceEngineR = useRef(localStorage.getItem("wg_voice") || "elevenlabs");
   const transportR  = useRef("car");
   const audioRef    = useRef(null);
   const memoryR     = useRef([]);
