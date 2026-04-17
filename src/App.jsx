@@ -378,7 +378,8 @@ export default function App() {
   useEffect(() => {
     if (gpsMode === "real" && !currentLoc) {
       navigator.geolocation && navigator.geolocation.getCurrentPosition(async pos => {
-        const name = await geocode(pos.coords.latitude, pos.coords.longitude);
+        const _geo1 = await geocode(pos.coords.latitude, pos.coords.longitude);
+        const name = typeof _geo1 === "string" ? _geo1 : _geo1.name;
         if (name) setCurrentLoc(name);
       });
     }
@@ -751,7 +752,8 @@ export default function App() {
     const idx = Math.min(Math.floor(lookahead / routeDistR.current * wps.length), wps.length-1);
     const pos = wps[idx];
     try {
-      const name = await geocode(pos.lat, pos.lon);
+      const _geo2 = await geocode(pos.lat, pos.lon);
+      const name = typeof _geo2 === "string" ? _geo2 : _geo2.name;
       const surr = await getSurroundings(pos.lat, pos.lon);
       surroundingsR.current = surr;
       if (name) {
@@ -1032,7 +1034,8 @@ export default function App() {
         // Geocode alle 10 Sekunden
         if (now - lastGeocodeTime > 10000) {
           lastGeocodeTime = now;
-          const name = await geocode(lat, lon);
+          const _geo3 = await geocode(lat, lon);
+          const name = typeof _geo3 === "string" ? _geo3 : _geo3.name;
           const surr = await getSurroundings(lat, lon);
           surroundingsR.current = surr;
           if (name) setCurrentLoc(name);
@@ -1063,7 +1066,7 @@ export default function App() {
           if (subMode === "guided" && endDest) {
             generateStory(endDest.name, true, { start: "deinem Standort", end: endDest.name, places: availPOIs.slice(0,3).map(p=>p.name).concat([endDest.name]) });
           } else {
-            generateStory(await geocode(lat, lon) || "diesem Ort", false, null);
+            _geocode_tmp = await geocode(lat, lon); generateStory((typeof _geocode_tmp === "string" ? _geocode_tmp : _geocode_tmp.name) || "diesem Ort", false, null);
           }
         } else if (!speakingR.current && !generatingR.current && 
                    (now - lastStoryTime > minTime)) {
@@ -1076,7 +1079,8 @@ export default function App() {
             surroundingsR.current = poi.type + ": " + poi.name;
             generateStory(poi.name, false, null);
           } else {
-            const name = await geocode(lat, lon);
+            const _geo4 = await geocode(lat, lon);
+            const name = typeof _geo4 === "string" ? _geo4 : _geo4.name;
             if (name) generateStory(name, false, null);
           }
         }
