@@ -999,7 +999,7 @@ export default function App() {
         // Story-Trigger basierend auf Distanz und Zeit
         const speedKmh = speed * 3.6;
         const minDist = speedKmh > 30 ? 400 : speedKmh > 10 ? 200 : 100;
-        const minTime = speedKmh > 30 ? 45000 : speedKmh > 10 ? 60000 : 90000;
+        const minTime = speedKmh > 50 ? 30000 : speedKmh > 30 ? 40000 : speedKmh > 10 ? 55000 : 80000;
 
         if (firstPosition) {
           firstPosition = false;
