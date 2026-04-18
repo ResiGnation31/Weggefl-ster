@@ -775,22 +775,10 @@ export default function App() {
           ? "Beginne sofort mit der Geschichte."
           : "Dies ist Story " + (count+1) + ". Beginne mit einem kurzen Uebergang wie 'Und waehrend du weiterfaehrst...', 'Apropos...'.";
         const surroundsText = surr ? "\nUmgebung: " + surr : "";
-        const prompt = memCtx +
-          "Du bist ein faszinierender Reisebegleiter. Der Fahrer faehrt mit " + kmh + " km/h und wird GLEICH an folgendem Ort vorbeifahren.\n" +
-          "Kommender Ort: " + name + surroundsText + "\n" +
-          "Thema: " + cat + "\n" +
-          "Laenge: ca. " + words + " Woerter\n\n" +
-          transition + "\n\n" +
-          "Regeln:\n" +
-          "- Baue Ortsnamen SUBTIL ein\n" +
-          "- Starte SOFORT mit konkreter Szene oder Jahreszahl\n" +
-          "- Nutze die Umgebung lebendig\n" +
-          "- Ende mit natuerlichem Uebergang\n" +
-          "- Nur fliesender Text auf Deutsch";
         const res = await fetch("/api/story", {
           method:"POST",
           headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({ placeName: name, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: "none", customPrompt: prompt }),
+          body: JSON.stringify({ placeName: name, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: "none", lat: pos.lat, lon: pos.lon, previousStories: memoryR.current.map(m => m.place + ": " + m.summary).join("\n") }),
         });
         const data = await res.json();
         if (data.text) {
