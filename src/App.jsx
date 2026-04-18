@@ -335,7 +335,7 @@ export default function App() {
   const [routeError, setRouteError] = useState("");
   const [gpsMode, setGpsMode]       = useState("sim");
   const [simDist, setSimDist]       = useState(0);
-  const [simSpeed, setSimSpeed]     = useState(10);
+  const [simSpeed, setSimSpeed]     = useState(1);
   const [simRunning, setSimRunning] = useState(false);
   const [currentDist, setCurrentDist] = useState(0);
   const [speedKmh, setSpeedKmh]     = useState(36);
@@ -972,22 +972,23 @@ export default function App() {
     if (!simRunning || !route.length) return;
     simRef.current = setInterval(async () => {
       // Dynamische Geschwindigkeit aus SpeedMap
-      let dynamicSpeed = simSpeed;
+      let baseSpeed = 50 / 3.6; // Standard 50 km/h
       if (routeSpeedMapR.current.length > 0) {
         let acc = 0;
         for (const seg of routeSpeedMapR.current) {
           acc += seg.dist;
           if (acc >= simDistR.current) {
-            dynamicSpeed = seg.speed / 3.6; // km/h zu m/s
+            baseSpeed = seg.speed / 3.6;
             break;
           }
         }
       }
+      const dynamicSpeed = baseSpeed * simSpeed;
       simDistR.current = Math.min(simDistR.current + dynamicSpeed * 0.4, routeDist);
       setSimDist(simDistR.current);
       setCurrentDist(simDistR.current);
-      setSpeedKmh(Math.round(dynamicSpeed * 3.6));
-      speedR.current = Math.round(dynamicSpeed * 3.6);
+      setSpeedKmh(Math.round(baseSpeed * 3.6));
+      speedR.current = Math.round(baseSpeed * 3.6);
       const now = Date.now();
       if (now - geocodeT.current > 30000) {
         geocodeT.current = now;
@@ -1405,12 +1406,16 @@ export default function App() {
           </div>
         )}
 
-        {/* Speed */}
+        {/* Speed Multiplikator */}
         {route.length > 0 && gpsMode === "sim" && (
-          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10, background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:12, padding:"10px 14px" }}>
-            <span style={{ fontSize:".75rem", color:T.textMuted }}>🚗</span>
-            <input type="range" min={3} max={30} value={simSpeed} onChange={e=>setSimSpeed(+e.target.value)} style={{ flex:1, accentColor:T.accent }}/>
-            <span style={{ fontSize:".75rem", color:T.accent, width:52, textAlign:"right", fontWeight:600 }}>{Math.round(simSpeed*3.6)} km/h</span>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:12, padding:"10px 14px" }}>
+            <span style={{ fontSize:".75rem", color:T.textMuted, marginRight:4 }}>Tempo</span>
+            {[1, 2, 5, 10].map(m => (
+              <button key={m} onClick={() => setSimSpeed(m)}
+                style={{ flex:1, padding:"5px 0", borderRadius:8, border:"none", cursor:"pointer", fontSize:12, fontWeight: simSpeed===m ? 700 : 400, background: simSpeed===m ? T.accentDim : "transparent", color: simSpeed===m ? T.accent : T.textMuted }}>
+                {m}x
+              </button>
+            ))}
           </div>
         )}
 
