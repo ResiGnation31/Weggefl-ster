@@ -414,6 +414,7 @@ export default function App() {
   const nextStoryR     = useRef(null);
   const preloadingR    = useRef(false);
   const manualStopR    = useRef(false);
+  const simPosR        = useRef({ lat: null, lon: null });
 
   useEffect(() => { categoryR.current = category; }, [category]);
   useEffect(() => { speedR.current = speedKmh; }, [speedKmh]);
@@ -709,7 +710,7 @@ export default function App() {
       const res = await fetch("/api/story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: voiceEngineR.current, surroundings: surroundingsR.current, lat: gpsPos?.lat || null, lon: gpsPos?.lon || null, previousStories: memoryR.current.map(m => m.place + ": " + m.summary).join("\n"), customPrompt: prompt }),
+        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: voiceEngineR.current, surroundings: surroundingsR.current, lat: gpsPos?.lat || simPosR.current.lat || null, lon: gpsPos?.lon || simPosR.current.lon || null, previousStories: memoryR.current.map(m => m.place + ": " + m.summary).join("\n"), customPrompt: prompt }),
       });
       const data = await res.json();
       if (res.ok && data.text) {
@@ -948,6 +949,7 @@ export default function App() {
         geocodeT.current = now;
         const idx = Math.min(Math.floor(simDistR.current / routeDist * route.length), route.length-1);
         const pos = route[idx];
+        simPosR.current = { lat: pos.lat, lon: pos.lon };
         const geoData = await geocode(pos.lat, pos.lon);
         if (geoData.name) setCurrentLoc(geoData.name);
         const surroundings = await getSurroundings(pos.lat, pos.lon);
