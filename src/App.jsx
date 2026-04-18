@@ -665,17 +665,14 @@ export default function App() {
     if (isIntro && introData) {
       const tod = getTimeOfDay();
       const placeList = introData.places.join(", ");
-      prompt = tod + "! Kuendige diese Fahrt an:\n" +
-        "Start: " + introData.start + "\n" +
-        "Ziel: " + introData.end + "\n" +
-        "Thema: " + cat + "\n" +
-        "Orte unterwegs: " + placeList + "\n\n" +
-        "Schreibe eine persoenliche Einleitung (ca. 80 Woerter):\n" +
-        "- Beginne mit '" + tod + "! Du startest jetzt...'\n" +
-        "- Erwaehne Start und Ziel\n" +
-        "- Mache 2-3 Orte neugierig ohne zu verraten was kommt\n" +
-        "- Ende mit 'Lehn dich zurueck - es geht los.'\n" +
-        "- Auf Deutsch, warm und einladend";
+      const intros = [
+        "Hallo! Deine Reise geht von " + introData.start + " nach " + introData.end + ".",
+        "Los geht es von " + introData.start + " nach " + introData.end + "!",
+        "Willkommen! Heute fahren wir von " + introData.start + " nach " + introData.end + ".",
+        "Schoen, dass du dabei bist! Von " + introData.start + " nach " + introData.end + ".",
+      ];
+      const introGreeting = intros[Math.floor(Math.random() * intros.length)];
+      prompt = introGreeting + " Erzaehle jetzt direkt und sachlich was es ueber " + introData.start + " zu wissen gibt. Nutze echte Fakten: Geschichte, Einwohnerzahl, Sehenswuerdigkeiten. Ca. 80 Woerter, fliessendes Deutsch, kein #.";
     } else {
       const count = storyCount;
       let memCtx = "";
