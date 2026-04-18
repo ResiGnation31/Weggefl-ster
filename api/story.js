@@ -46,9 +46,13 @@ export default async function handler(req) {
     // Wikipedia-Kontext holen - koordinatenbasiert
     let wikiContext = "";
     try {
+      // Straßennamen herausfiltern - nur Ort für Wikipedia
       const parts = placeName.split(",").map(s => s.trim());
-      const searchTerm = parts[0];
-      const cityHint = parts[1] || "";
+      // Wenn erstes Element eine Straße ist (enthält "weg", "str", "gasse", "platz", "allee" etc.)
+      const streetWords = ["weg", "straße", "str.", "gasse", "platz", "allee", "ring", "pfad", "damm", "chaussee", "ufer"];
+      const isStreet = streetWords.some(w => parts[0].toLowerCase().includes(w));
+      const searchTerm = isStreet && parts[1] ? parts[1] : parts[0];
+      const cityHint = isStreet && parts[2] ? parts[2] : (isStreet ? "" : parts[1] || "");
       
       // Hilfsfunktion: Wikipedia-Artikel holen
       const fetchWiki = async (lang, title) => {
