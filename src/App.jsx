@@ -1112,7 +1112,9 @@ export default function App() {
           const poisText = availPOIs.slice(0, 5).map(p => p.name).join(", ");
           surroundingsR.current = (surroundingsR.current || "") + (poisText ? " | Voraus: " + poisText : "");
           if (subMode === "guided" && endDest) {
-            generateStory(endDest.name, true, { start: "deinem Standort", end: endDest.name, places: availPOIs.slice(0,3).map(p=>p.name).concat([endDest.name]) }, lat, lon);
+            const startGeoData = await geocode(lat, lon);
+          const startGeoName = typeof startGeoData === "object" ? (startGeoData.district || startGeoData.city || startGeoData.place || startGeoData.name) : startGeoData;
+          generateStory(endDest.name, true, { start: startGeoName || "deinem Standort", end: endDest.name, places: availPOIs.slice(0,3).map(p=>p.name).concat([endDest.name]) }, lat, lon);
           } else {
             _geocode_tmp = await geocode(lat, lon); generateStory((typeof _geocode_tmp === "string" ? _geocode_tmp : _geocode_tmp.name) || "diesem Ort", false, null, lat, lon);
           }
