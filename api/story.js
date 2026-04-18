@@ -53,7 +53,7 @@ export default async function handler(req) {
       // Hilfsfunktion: Wikipedia-Artikel holen
       const fetchWiki = async (lang, title) => {
         const r = await fetch(
-          `https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=extracts&exintro=false&explaintext=true&format=json&origin=*`,
+          `https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=extracts&explaintext=true&format=json&origin=*`,
           { headers: { "User-Agent": "Weggefluesterer/1.0" } }
         );
         if (!r.ok) return "";
