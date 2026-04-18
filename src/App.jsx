@@ -415,6 +415,8 @@ export default function App() {
   const preloadingR    = useRef(false);
   const manualStopR    = useRef(false);
   const simPosR        = useRef({ lat: null, lon: null });
+  const routeSpeedMapR = useRef([]);
+  const simStepDistR   = useRef(0);
 
   useEffect(() => { categoryR.current = category; }, [category]);
   useEffect(() => { speedR.current = speedKmh; }, [speedKmh]);
@@ -864,10 +866,28 @@ export default function App() {
     setStoryTitle("");
     generatingR.current = false;
     try {
-      const url = "https://router.project-osrm.org/route/v1/driving/" + start.lon + "," + start.lat + ";" + end.lon + "," + end.lat + "?overview=full&geometries=geojson";
+      const url = "https://router.project-osrm.org/route/v1/driving/" + start.lon + "," + start.lat + ";" + end.lon + "," + end.lat + "?overview=full&geometries=geojson&steps=true&annotations=true";
       const r = await fetch(url);
       const data = await r.json();
       if (!data.routes?.length) throw new Error("Keine Route gefunden");
+      // Straßentypen aus Steps extrahieren
+      const speedMap = [];
+      const steps = data.routes[0].legs?.[0]?.steps || [];
+      for (const step of steps) {
+        const roadClass = step.name || "";
+        const ref = step.ref || "";
+        let spd = 50; // Standard innerorts
+        if (ref.startsWith("A") || ref.startsWith("BAB")) spd = 120;
+        else if (ref.startsWith("B")) spd = 80;
+        else if (step.distance > 500 && !step.name?.includes("straße") && !step.name?.includes("weg") && !step.name?.includes("gasse")) spd = 80;
+        else if (step.intersections?.some(i => i.classes?.includes("motorway"))) spd = 120;
+        else if (step.intersections?.some(i => i.classes?.includes("trunk"))) spd = 100;
+        else if (step.intersections?.some(i => i.classes?.includes("primary"))) spd = 80;
+        else if (step.intersections?.some(i => i.classes?.includes("secondary"))) spd = 70;
+        else if (step.intersections?.some(i => i.classes?.includes("residential"))) spd = 30;
+        speedMap.push({ dist: step.distance, speed: spd });
+      }
+      routeSpeedMapR.current = speedMap;
       const coords = data.routes[0].geometry.coordinates.map(function(c) { return { lat: c[1], lon: c[0] }; });
       setRoute(coords);
       routeR.current = coords;
@@ -939,11 +959,23 @@ export default function App() {
   useEffect(() => {
     if (!simRunning || !route.length) return;
     simRef.current = setInterval(async () => {
-      simDistR.current = Math.min(simDistR.current + simSpeed * 0.4, routeDist);
+      // Dynamische Geschwindigkeit aus SpeedMap
+      let dynamicSpeed = simSpeed;
+      if (routeSpeedMapR.current.length > 0) {
+        let acc = 0;
+        for (const seg of routeSpeedMapR.current) {
+          acc += seg.dist;
+          if (acc >= simDistR.current) {
+            dynamicSpeed = seg.speed / 3.6; // km/h zu m/s
+            break;
+          }
+        }
+      }
+      simDistR.current = Math.min(simDistR.current + dynamicSpeed * 0.4, routeDist);
       setSimDist(simDistR.current);
       setCurrentDist(simDistR.current);
-      setSpeedKmh(Math.round(simSpeed * 3.6));
-      speedR.current = Math.round(simSpeed * 3.6);
+      setSpeedKmh(Math.round(dynamicSpeed * 3.6));
+      speedR.current = Math.round(dynamicSpeed * 3.6);
       const now = Date.now();
       if (now - geocodeT.current > 30000) {
         geocodeT.current = now;
