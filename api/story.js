@@ -197,28 +197,34 @@ export default async function handler(req) {
 
     const prevContext = previousStories ? "BEREITS ERZÄHLT (nicht wiederholen, aber natürlich anknüpfen):\n" + previousStories + "\n\n" : "";
 
-    const prompt = customPrompt || `Du bist ein kluger, sachlicher Reisebegleiter für die gesamte Fahrt. Der Nutzer ${mode} gerade durch "${placeName}".
+    const raumAnweisung = {
+      autobahn: "SITUATION AUTOBAHN: Erzähle über die REGION in großen Zusammenhängen — Wirtschaft, Landschaft, Geschichte der Gegend. NICHT über einzelne Straßen. Beginne mit: 'Sie bewegen sich durch...' oder 'Die Region hier...'",
+      landstrasse: "SITUATION LANDSTRASSE: Beschreibe Landschaft und regionale Identität — Landwirtschaft, Dörfer, Natur, typische Strukturen. Beginne mit: 'Typisch für diese Gegend...' oder 'Die Landschaft hier...'",
+      ortseinfahrt: "SITUATION ORTSEINFAHRT: Kurzes Ortsprofil in dieser Reihenfolge: 1. Willkommen + Ortsname, 2. Größe und Typ, 3. Wofür bekannt, 4. kurzer Ausblick. Beginne mit: 'Willkommen in...' oder 'Sie erreichen jetzt...'",
+      ortsdurchfahrt: "SITUATION ORTSDURCHFAHRT: Was ist JETZT sichtbar und relevant? Ortskern, Sehenswürdigkeiten, Geschichte, Alltagskultur. Vom Allgemeinen zum Detail. Beginne mit: 'Sie fahren jetzt durch...' oder 'Der Bereich hier...'",
+      spaziergang: "SITUATION SPAZIERGANG: Detaillierte Beobachtungen — Gebäude, Plätze, kleine Geschichten, Alltagsgeschichte. Persönlich und dialogisch. Beginne mit: 'Achten Sie auf...' oder 'Wenn Sie schauen...'",
+      joggen: "SITUATION JOGGEN: NUR 1-2 kurze Sätze! Leicht verständlich, kein langer Vortrag. Beginne mit: 'Kurzer Fakt:'",
+      ort: "SITUATION ORT: Informativ über Ort und Besonderheiten — Geschichte, Sehenswürdigkeiten, Einwohnerzahl, Wirtschaft. Beginne mit: 'Der Ort ist bekannt für...' oder 'Hier in...'"
+    }[raumtyp] || "";
 
-${prevContext}WIKIPEDIA-INFORMATIONEN ZUM AKTUELLEN BEREICH:
-${wikiContext || "Keine Wikipedia-Daten — erzähle über die Region allgemein."}
+    const prompt = customPrompt || `Du bist ein Reisebegleiter. Der Nutzer ${mode} gerade durch "${placeName}".
 
-AKTUELLE UMGEBUNG: ${surroundings || "nicht bekannt"}
+${prevContext}VERFÜGBARE INFORMATIONEN (NUR DIESE VERWENDEN, NIEMALS ERFINDEN):
+${wikiContext || "Keine spezifischen Daten verfügbar — beschreibe die Landschaft oder Region allgemein."}
 
-RAUMTYP: ${raumtyp.toUpperCase()}
-THEMA: ${category} — Fokus: ${themaFokus[category] || "allgemeine Informationen"}
+UMGEBUNG: ${surroundings || "nicht bekannt"}
+THEMA: ${category} — ${themaFokus[category] || "allgemeine Informationen"}
+
+${raumAnweisung}
+
 LÄNGE: ${t.laenge}
 STIL: ${t.stil}
-INHALT: ${t.fokus}
-EINSTIEG: ${t.einstieg}
 
-REGELN:
-- Nur Fakten aus Wikipedia oben verwenden
-- Wenn keine Straßeninfos: über Ort oder Region erzählen
-- Wenn gar nichts: Raum beschreiben was Bebauung/Landschaft zeigt
-- NIEMALS erfinden
-- Natürlicher Übergang zur vorherigen Story wenn möglich
-- Fließender Text auf Deutsch, KEINE Überschriften, KEIN #, KEINE Markdown
-- Beginne DIREKT mit dem ersten Satz — kein Titel, keine Einleitung, kein Label`;
+PFLICHTREGELN:
+- Nur Fakten aus den Informationen oben verwenden
+- Niemals Gebäude, Ereignisse oder Details erfinden
+- Fließender Text auf Deutsch, KEIN #, KEINE Listen, KEINE Überschriften
+- Beginne DIREKT mit dem ersten Satz`;
 
     // Generate text with Claude
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
