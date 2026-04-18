@@ -959,12 +959,13 @@ export default function App() {
     const places = await fetchRoute(startPlace, endPlace);
     setSimRunning(true);
     addLog("Fahrt gestartet", "start");
+    if (routeR.current.length > 0) { simPosR.current = { lat: routeR.current[0].lat, lon: routeR.current[0].lon }; }
     setTimeout(() => {
       generateStory(startPlace.name, true, {
         start: startPlace.name,
         end: endPlace.name,
         places: places.length > 0 ? places : [startPlace.name, endPlace.name],
-      });
+      }, routeR.current[0]?.lat, routeR.current[0]?.lon);
     }, 800);
   }
 
