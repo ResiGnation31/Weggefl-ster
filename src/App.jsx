@@ -665,11 +665,24 @@ export default function App() {
     if (isIntro && introData) {
       const tod = getTimeOfDay();
       const placeList = introData.places.join(", ");
+      // Regionaler Gruss basierend auf Koordinaten
+      const lat = simPosR.current.lat || gpsPos?.lat || 51;
+      const lon = simPosR.current.lon || gpsPos?.lon || 10;
+      let regionalGreeting = "Hallo";
+      if (lat > 53.5) regionalGreeting = "Moin";
+      else if (lat > 52.5 && lon > 13) regionalGreeting = "Na";
+      else if (lat < 48.5) regionalGreeting = "Grüß Gott";
+      else if (lat < 50 && lon > 11 && lon < 14) regionalGreeting = "Servus";
+      else if (lat > 50.5 && lon > 8 && lon < 10) regionalGreeting = "Ei Gude";
+      else if (lon < 7) regionalGreeting = "Hallo";
+      else if (lat > 51 && lat < 52 && lon > 6 && lon < 9) regionalGreeting = "Tach";
+      else if (lat < 49 && lon < 9) regionalGreeting = "Grüß Gott";
+
       const intros = [
-        "Hallo! Deine Reise geht von " + introData.start + " nach " + introData.end + ".",
-        "Los geht es von " + introData.start + " nach " + introData.end + "!",
-        "Willkommen! Heute fahren wir von " + introData.start + " nach " + introData.end + ".",
-        "Schoen, dass du dabei bist! Von " + introData.start + " nach " + introData.end + ".",
+        regionalGreeting + "! Deine Reise geht von " + introData.start + " nach " + introData.end + ".",
+        regionalGreeting + "! Los geht es von " + introData.start + " nach " + introData.end + ".",
+        regionalGreeting + "! Heute fahren wir von " + introData.start + " nach " + introData.end + ".",
+        regionalGreeting + "! Schoen, dass du dabei bist — von " + introData.start + " nach " + introData.end + ".",
       ];
       const introGreeting = intros[Math.floor(Math.random() * intros.length)];
       prompt = introGreeting + " Erzaehle jetzt direkt und sachlich was es ueber " + introData.start + " zu wissen gibt. Nutze echte Fakten: Geschichte, Einwohnerzahl, Sehenswuerdigkeiten. Ca. 80 Woerter, fliessendes Deutsch, kein #.";
