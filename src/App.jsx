@@ -957,9 +957,9 @@ export default function App() {
     setStoryText("");
     generatingR.current = false;
     const places = await fetchRoute(startPlace, endPlace);
+    if (routeR.current.length > 0) { simPosR.current = { lat: routeR.current[0].lat, lon: routeR.current[0].lon }; }
     setSimRunning(true);
     addLog("Fahrt gestartet", "start");
-    if (routeR.current.length > 0) { simPosR.current = { lat: routeR.current[0].lat, lon: routeR.current[0].lon }; }
     setTimeout(() => {
       generateStory(startPlace.name, true, {
         start: startPlace.name,
