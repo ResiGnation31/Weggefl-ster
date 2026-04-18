@@ -200,7 +200,8 @@ REGELN:
 - Wenn gar nichts: Raum beschreiben was Bebauung/Landschaft zeigt
 - NIEMALS erfinden
 - Natürlicher Übergang zur vorherigen Story wenn möglich
-- Fließender Text auf Deutsch, KEINE Überschriften, KEIN #`;
+- Fließender Text auf Deutsch, KEINE Überschriften, KEIN #, KEINE Markdown
+- Beginne DIREKT mit dem ersten Satz — kein Titel, keine Einleitung, kein Label`;
 
     // Generate text with Claude
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -226,7 +227,8 @@ REGELN:
       });
     }
 
-    const text = claudeData.content[0].text;
+    const rawText = claudeData.content[0].text;
+    const text = rawText.replace(/^#{1,6}\s*.+$/gm, "").replace(/\*\*/g, "").replace(/\*/g, "").replace(/^\s*\n/gm, "").trim();
 
     // If ElevenLabs key available and selected, generate audio
     if (elevenKey && useElevenLabs) {
