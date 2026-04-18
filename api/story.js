@@ -67,21 +67,38 @@ export default async function handler(req) {
       let wikiText = "";
       const maxLen = transport === "walk" ? 5000 : transport === "bike" ? 4000 : transport === "bus" ? 3000 : 2000;
       
-      // 1. Koordinaten-basierte Suche (genaueste Methode)
+      // 1. Direkter Artikel für den Ort (höchste Priorität)
+      if (searchTerm) {
+        // Versuche spezifischen Artikel: "Walbeck (Geldern)"
+        if (cityHint) {
+          const specific = await fetchWiki("de", searchTerm + " (" + cityHint + ")");
+          if (specific) wikiText = "=== " + searchTerm + " ===\n" + specific.slice(0, maxLen);
+        }
+        // Direkter Artikel ohne Klammer
+        if (!wikiText) {
+          const direct = await fetchWiki("de", searchTerm);
+          if (direct) wikiText = "=== " + searchTerm + " ===\n" + direct.slice(0, maxLen);
+        }
+      }
+
+      // 2. Koordinaten-basierte Suche für nahegelegene POIs
       if (lat && lon) {
         const geoRes = await fetch(
-          `https://de.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}|${lon}&gsradius=3000&gslimit=5&format=json&origin=*`,
+          `https://de.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}|${lon}&gsradius=5000&gslimit=8&format=json&origin=*`,
           { headers: { "User-Agent": "Weggefluesterer/1.0" } }
         );
         if (geoRes.ok) {
           const geoData = await geoRes.json();
           const results = geoData.query?.geosearch || [];
           const texts = [];
-          for (const result of results.slice(0, 3)) {
+          for (const result of results.slice(0, 4)) {
+            if (wikiText && wikiText.includes(result.title)) continue;
             const t = await fetchWiki("de", result.title);
-            if (t) texts.push("=== " + result.title + " ===\n" + t.slice(0, Math.floor(maxLen/3)));
+            if (t) texts.push("=== " + result.title + " ===\n" + t.slice(0, Math.floor(maxLen/4)));
           }
-          if (texts.length > 0) wikiText = texts.join("\n\n");
+          if (texts.length > 0) {
+            wikiText = (wikiText ? wikiText + "\n\n" : "") + texts.join("\n\n");
+          }
         }
       }
       
