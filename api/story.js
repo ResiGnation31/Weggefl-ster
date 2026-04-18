@@ -67,39 +67,48 @@ export default async function handler(req) {
       let wikiText = "";
       const maxLen = transport === "walk" ? 5000 : transport === "bike" ? 4000 : transport === "bus" ? 3000 : 2000;
       
-      // 1. Direkter Artikel für den Ort (höchste Priorität)
+      // Kombinierte Wikipedia-Suche
+      const wikiTexts = [];
+      const usedTitles = new Set();
+
+      const addWiki = async (title) => {
+        if (usedTitles.has(title)) return;
+        usedTitles.add(title);
+        const t = await fetchWiki("de", title);
+        if (t) wikiTexts.push("=== " + title + " ===\n" + t.slice(0, Math.floor(maxLen/3)));
+      };
+
+      // Suche 1: Textsuche nach Ortsname
       if (searchTerm) {
-        // Versuche spezifischen Artikel: "Walbeck (Geldern)"
-        if (cityHint) {
-          const specific = await fetchWiki("de", searchTerm + " (" + cityHint + ")");
-          if (specific) wikiText = "=== " + searchTerm + " ===\n" + specific.slice(0, maxLen);
-        }
-        // Direkter Artikel ohne Klammer
-        if (!wikiText) {
-          const direct = await fetchWiki("de", searchTerm);
-          if (direct) wikiText = "=== " + searchTerm + " ===\n" + direct.slice(0, maxLen);
+        const q = cityHint ? searchTerm + " " + cityHint : searchTerm;
+        const sr = await fetch(
+          "https://de.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + encodeURIComponent(q) + "&srlimit=4&format=json&origin=*",
+          { headers: { "User-Agent": "Weggefluesterer/1.0" } }
+        );
+        if (sr.ok) {
+          const sd = await sr.json();
+          for (const r of (sd.query?.search || []).slice(0, 3)) {
+            await addWiki(r.title);
+          }
         }
       }
 
-      // 2. Koordinaten-basierte Suche für nahegelegene POIs
+      // Suche 2: Koordinaten-basiert
       if (lat && lon) {
         const geoRes = await fetch(
-          `https://de.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}|${lon}&gsradius=5000&gslimit=8&format=json&origin=*`,
+          "https://de.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=" + lat + "|" + lon + "&gsradius=3000&gslimit=5&format=json&origin=*",
           { headers: { "User-Agent": "Weggefluesterer/1.0" } }
         );
         if (geoRes.ok) {
           const geoData = await geoRes.json();
-          const results = geoData.query?.geosearch || [];
-          const texts = [];
-          for (const result of results.slice(0, 4)) {
-            if (wikiText && wikiText.includes(result.title)) continue;
-            const t = await fetchWiki("de", result.title);
-            if (t) texts.push("=== " + result.title + " ===\n" + t.slice(0, Math.floor(maxLen/4)));
-          }
-          if (texts.length > 0) {
-            wikiText = (wikiText ? wikiText + "\n\n" : "") + texts.join("\n\n");
+          for (const r of (geoData.query?.geosearch || []).slice(0, 3)) {
+            await addWiki(r.title);
           }
         }
+      }
+
+      if (wikiTexts.length > 0) {
+        wikiText = wikiTexts.join("\n\n").slice(0, maxLen);
       }
       
       // 2. Fallback: Name-basierte Suche
