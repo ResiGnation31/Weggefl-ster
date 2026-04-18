@@ -828,26 +828,37 @@ export default function App() {
     if (name) generateStory(name, false, null);
   }
 
-  async function searchPlaces(q, setter) {
+  async function searchPlaces(q, setter, userLat, userLon) {
     if (q.length < 2) { setter([]); return; }
     try {
-      const r = await fetch(
-        "https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(q) + "&format=json&limit=5&accept-language=de",
-        { headers: { "User-Agent": "Weggefluesterer/1.0" } }
-      );
-      setter(await r.json());
+      let url = "https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(q) + "&format=json&limit=10&accept-language=de";
+      if (userLat && userLon) {
+        url += "&viewbox=" + (userLon-2) + "," + (userLat+2) + "," + (userLon+2) + "," + (userLat-2) + "&bounded=0";
+      }
+      const r = await fetch(url, { headers: { "User-Agent": "Weggefluesterer/1.0" } });
+      let results = await r.json();
+      if (userLat && userLon) {
+        results = results.sort((a, b) => {
+          const da = haversine(userLat, userLon, parseFloat(a.lat), parseFloat(a.lon));
+          const db = haversine(userLat, userLon, parseFloat(b.lat), parseFloat(b.lon));
+          return da - db;
+        }).slice(0, 5);
+      }
+      setter(results);
     } catch { setter([]); }
   }
 
   function onStartInput(val) {
     setStartInput(val);
     clearTimeout(searchT.current.s);
-    searchT.current.s = setTimeout(() => searchPlaces(val, setStartSugg), 350);
+    const uLat = gpsPos?.lat || null; const uLon = gpsPos?.lon || null;
+    searchT.current.s = setTimeout(() => searchPlaces(val, setStartSugg, uLat, uLon), 350);
   }
   function onEndInput(val) {
     setEndInput(val);
     clearTimeout(searchT.current.e);
-    searchT.current.e = setTimeout(() => searchPlaces(val, setEndSugg), 350);
+    const sLat = startPlace?.lat || gpsPos?.lat || null; const sLon = startPlace?.lon || gpsPos?.lon || null;
+    searchT.current.e = setTimeout(() => searchPlaces(val, setEndSugg, sLat, sLon), 350);
   }
 
   async function fetchRoute(start, end) {
@@ -1128,7 +1139,13 @@ export default function App() {
     if (val.length < 2) { setGpsEndSugg([]); return; }
     try {
       const r = await fetch("https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(val) + "&format=json&limit=4&accept-language=de", { headers: { "User-Agent": "Weggefluesterer/1.0" } });
-      setGpsEndSugg(await r.json());
+      const raw = await r.json();
+      const sorted = gpsPos ? raw.sort((a,b) => {
+        const da = haversine(gpsPos.lat, gpsPos.lon, parseFloat(a.lat), parseFloat(a.lon));
+        const db = haversine(gpsPos.lat, gpsPos.lon, parseFloat(b.lat), parseFloat(b.lon));
+        return da - db;
+      }) : raw;
+      setGpsEndSugg(sorted.slice(0,5));
     } catch { setGpsEndSugg([]); }
   }
 
