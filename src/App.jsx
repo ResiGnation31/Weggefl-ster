@@ -340,6 +340,7 @@ export default function App() {
   const [currentDist, setCurrentDist] = useState(0);
   const [speedKmh, setSpeedKmh]     = useState(36);
   const [gpsPos, setGpsPos]         = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
   const [gpsError, setGpsError]     = useState("");
   const [currentLoc, setCurrentLoc] = useState("");
   const [storyAudio, setStoryAudio] = useState(null);
@@ -851,13 +852,13 @@ export default function App() {
   function onStartInput(val) {
     setStartInput(val);
     clearTimeout(searchT.current.s);
-    const uLat = gpsPos?.lat || null; const uLon = gpsPos?.lon || null;
+    const uLat = gpsPos?.lat || userLocation?.lat || null; const uLon = gpsPos?.lon || userLocation?.lon || null;
     searchT.current.s = setTimeout(() => searchPlaces(val, setStartSugg, uLat, uLon), 350);
   }
   function onEndInput(val) {
     setEndInput(val);
     clearTimeout(searchT.current.e);
-    const sLat = startPlace?.lat || gpsPos?.lat || null; const sLon = startPlace?.lon || gpsPos?.lon || null;
+    const sLat = startPlace?.lat || gpsPos?.lat || userLocation?.lat || null; const sLon = startPlace?.lon || gpsPos?.lon || userLocation?.lon || null;
     searchT.current.e = setTimeout(() => searchPlaces(val, setEndSugg, sLat, sLon), 350);
   }
 
