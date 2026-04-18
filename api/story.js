@@ -114,7 +114,7 @@ export default async function handler(req) {
       // Brave Search für lokale Quellen
       if (braveKey && searchTerm) {
         try {
-          const searchQuery = encodeURIComponent(searchTerm + " Geschichte Sehenswürdigkeiten Niederrhein");
+          const searchQuery = encodeURIComponent(searchTerm + (cityHint ? " " + cityHint : "") + " Geschichte Sehenswürdigkeiten");
           const braveRes = await fetch(
             "https://api.search.brave.com/res/v1/web/search?q=" + searchQuery + "&count=3&search_lang=de&country=de&text_decorations=false",
             { headers: { "Accept": "application/json", "Accept-Encoding": "gzip", "X-Subscription-Token": braveKey } }
@@ -134,7 +134,7 @@ export default async function handler(req) {
       // Brave Search für lokale Quellen
       if (braveKey && searchTerm) {
         try {
-          const searchQuery = encodeURIComponent(searchTerm + " Geschichte Sehenswürdigkeiten Niederrhein");
+          const searchQuery = encodeURIComponent(searchTerm + (cityHint ? " " + cityHint : "") + " Geschichte Sehenswürdigkeiten");
           const braveRes = await fetch(
             "https://api.search.brave.com/res/v1/web/search?q=" + searchQuery + "&count=3&search_lang=de&country=de&text_decorations=false",
             { headers: { "Accept": "application/json", "Accept-Encoding": "gzip", "X-Subscription-Token": braveKey } }
