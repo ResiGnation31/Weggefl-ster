@@ -757,7 +757,7 @@ export default function App() {
     const pos = wps[idx];
     try {
       const _geo2 = await geocode(pos.lat, pos.lon);
-      const name = typeof _geo2 === "string" ? _geo2 : _geo2.name;
+      const name = typeof _geo2 === "object" ? (_geo2.district || _geo2.city || _geo2.place || _geo2.name) : _geo2;
       const surr = await getSurroundings(pos.lat, pos.lon);
       surroundingsR.current = surr;
       if (name) {
@@ -813,8 +813,8 @@ export default function App() {
     const idx = Math.min(Math.floor(futureDist / routeDistR.current * wps.length), wps.length-1);
     const pos = wps[idx];
     const geoData = await geocode(pos.lat, pos.lon);
-    const name = typeof geoData === "string" ? geoData : geoData.name;
-    if (name) generateStory(name, false, null, pos.lat, pos.lon);
+    const storyPlace = typeof geoData === "object" ? (geoData.district || geoData.city || geoData.place || geoData.name) : geoData;
+    if (storyPlace) generateStory(storyPlace, false, null, pos.lat, pos.lon);
   }
 
   async function searchPlaces(q, setter, userLat, userLon) {
