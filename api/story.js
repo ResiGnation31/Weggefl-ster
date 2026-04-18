@@ -114,9 +114,10 @@ export default async function handler(req) {
       // Brave Search für lokale Quellen
       if (braveKey && searchTerm) {
         try {
-          const searchQuery = encodeURIComponent(searchTerm + (cityHint ? " " + cityHint : "") + " Geschichte Sehenswürdigkeiten");
+          const locationHint = cityHint || searchTerm;
+          const searchQuery = encodeURIComponent(locationHint + " Geschichte Sehenswürdigkeiten");
           const braveRes = await fetch(
-            "https://api.search.brave.com/res/v1/web/search?q=" + searchQuery + "&count=3&search_lang=de&country=de&text_decorations=false",
+            "https://api.search.brave.com/res/v1/web/search?q=" + searchQuery + "&count=5&search_lang=de&country=de&text_decorations=false&result_filter=web",
             { headers: { "Accept": "application/json", "Accept-Encoding": "gzip", "X-Subscription-Token": braveKey } }
           );
           if (braveRes.ok) {
@@ -134,9 +135,10 @@ export default async function handler(req) {
       // Brave Search für lokale Quellen
       if (braveKey && searchTerm) {
         try {
-          const searchQuery = encodeURIComponent(searchTerm + (cityHint ? " " + cityHint : "") + " Geschichte Sehenswürdigkeiten");
+          const locationHint = cityHint || searchTerm;
+          const searchQuery = encodeURIComponent(locationHint + " Geschichte Sehenswürdigkeiten");
           const braveRes = await fetch(
-            "https://api.search.brave.com/res/v1/web/search?q=" + searchQuery + "&count=3&search_lang=de&country=de&text_decorations=false",
+            "https://api.search.brave.com/res/v1/web/search?q=" + searchQuery + "&count=5&search_lang=de&country=de&text_decorations=false&result_filter=web",
             { headers: { "Accept": "application/json", "Accept-Encoding": "gzip", "X-Subscription-Token": braveKey } }
           );
           if (braveRes.ok) {
