@@ -111,6 +111,48 @@ export default async function handler(req) {
         }
       }
 
+      // Brave Search für lokale Quellen
+      const braveKey = process.env.BRAVE_SEARCH_API_KEY;
+      if (braveKey && searchTerm) {
+        try {
+          const searchQuery = encodeURIComponent(searchTerm + " Geschichte Sehenswürdigkeiten Niederrhein");
+          const braveRes = await fetch(
+            "https://api.search.brave.com/res/v1/web/search?q=" + searchQuery + "&count=3&search_lang=de&country=de&text_decorations=false",
+            { headers: { "Accept": "application/json", "Accept-Encoding": "gzip", "X-Subscription-Token": braveKey } }
+          );
+          if (braveRes.ok) {
+            const braveData = await braveRes.json();
+            const results = braveData.web?.results || [];
+            for (const r of results.slice(0, 3)) {
+              if (r.description && r.description.length > 50) {
+                wikiTexts.push("=== " + r.title + " ===\n" + r.description);
+              }
+            }
+          }
+        } catch(e) {}
+      }
+
+      // Brave Search für lokale Quellen
+      const braveKey = process.env.BRAVE_SEARCH_API_KEY;
+      if (braveKey && searchTerm) {
+        try {
+          const searchQuery = encodeURIComponent(searchTerm + " Geschichte Sehenswürdigkeiten Niederrhein");
+          const braveRes = await fetch(
+            "https://api.search.brave.com/res/v1/web/search?q=" + searchQuery + "&count=3&search_lang=de&country=de&text_decorations=false",
+            { headers: { "Accept": "application/json", "Accept-Encoding": "gzip", "X-Subscription-Token": braveKey } }
+          );
+          if (braveRes.ok) {
+            const braveData = await braveRes.json();
+            const results = braveData.web?.results || [];
+            for (const r of results.slice(0, 3)) {
+              if (r.description && r.description.length > 50) {
+                wikiTexts.push("=== " + r.title + " ===\n" + r.description);
+              }
+            }
+          }
+        } catch(e) {}
+      }
+
       if (wikiTexts.length > 0) {
         wikiText = wikiTexts.join("\n\n").slice(0, maxLen);
       }
