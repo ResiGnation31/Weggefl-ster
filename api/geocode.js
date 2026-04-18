@@ -12,8 +12,10 @@ export default async function handler(req, res) {
     
     // Straße ohne Hausnummer
     const street = a.road || null;
-    // Ort (Dorf/Stadt)
-    const place = a.village || a.hamlet || a.suburb || a.town || a.city || a.county || null;
+    // Ort (Stadtteil zuerst, dann Stadt)
+    const district = a.city_district || a.suburb || a.village || a.hamlet || null;
+    const city = a.town || a.city || null;
+    const place = district || city || a.county || null;
     // Region
     const region = a.county || a.state_district || null;
     // Landnutzung aus display_name
