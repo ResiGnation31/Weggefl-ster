@@ -713,7 +713,7 @@ export default function App() {
       const res = await fetch("/api/story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: voiceEngineR.current, surroundings: surroundingsR.current, lat: storyLat || gpsPos?.lat || simPosR.current.lat || null, lon: storyLon || gpsPos?.lon || simPosR.current.lon || null, _debug: {storyLat, storyLon, simPos: simPosR.current, gpsPos: gpsPos}, previousStories: memoryR.current.map(m => m.place + ": " + m.summary).join("\n"), customPrompt: prompt }),
+        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: voiceEngineR.current, surroundings: surroundingsR.current, lat: storyLat || gpsPos?.lat || simPosR.current.lat || null, lon: storyLon || gpsPos?.lon || simPosR.current.lon || null, previousStories: memoryR.current.map(m => m.place + ": " + m.summary).join("\n"), customPrompt: prompt }),
       });
       const data = await res.json();
       if (res.ok && data.text) {
