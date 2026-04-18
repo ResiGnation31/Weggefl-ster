@@ -681,8 +681,10 @@ export default function App() {
       const intros = [
         regionalGreeting + "! Deine Reise geht von " + introData.start + " nach " + introData.end + ".",
         regionalGreeting + "! Los geht es von " + introData.start + " nach " + introData.end + ".",
+        "Deine Reise geht von " + introData.start + " nach " + introData.end + ".",
+        "Von " + introData.start + " nach " + introData.end + " — los geht es!",
+        "Heute fahren wir von " + introData.start + " nach " + introData.end + ".",
         regionalGreeting + "! Heute fahren wir von " + introData.start + " nach " + introData.end + ".",
-        regionalGreeting + "! Schoen, dass du dabei bist — von " + introData.start + " nach " + introData.end + ".",
       ];
       const introGreeting = intros[Math.floor(Math.random() * intros.length)];
       prompt = introGreeting + " Erzaehle jetzt direkt und sachlich was es ueber " + introData.start + " zu wissen gibt. Nutze echte Fakten: Geschichte, Einwohnerzahl, Sehenswuerdigkeiten. Ca. 80 Woerter, fliessendes Deutsch, kein #.";
