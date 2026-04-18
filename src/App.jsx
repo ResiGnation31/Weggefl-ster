@@ -654,7 +654,7 @@ export default function App() {
     fallbackTTS(text);
   }
 
-  async function generateStory(locationName, isIntro, introData) {
+  async function generateStory(locationName, isIntro, introData, storyLat, storyLon) {
     if (generatingR.current) return;
     generatingR.current = true;
     const kmh = speedR.current;
@@ -713,7 +713,7 @@ export default function App() {
       const res = await fetch("/api/story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: voiceEngineR.current, surroundings: surroundingsR.current, lat: gpsPos?.lat || simPosR.current.lat || null, lon: gpsPos?.lon || simPosR.current.lon || null, previousStories: memoryR.current.map(m => m.place + ": " + m.summary).join("\n"), customPrompt: prompt }),
+        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: voiceEngineR.current, surroundings: surroundingsR.current, lat: storyLat || gpsPos?.lat || simPosR.current.lat || null, lon: storyLon || gpsPos?.lon || simPosR.current.lon || null, previousStories: memoryR.current.map(m => m.place + ": " + m.summary).join("\n"), customPrompt: prompt }),
       });
       const data = await res.json();
       if (res.ok && data.text) {
@@ -826,7 +826,7 @@ export default function App() {
     const pos = wps[idx];
     const geoData = await geocode(pos.lat, pos.lon);
     const name = typeof geoData === "string" ? geoData : geoData.name;
-    if (name) generateStory(name, false, null);
+    if (name) generateStory(name, false, null, pos.lat, pos.lon);
   }
 
   async function searchPlaces(q, setter, userLat, userLon) {
