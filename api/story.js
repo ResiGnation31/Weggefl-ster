@@ -112,7 +112,6 @@ export default async function handler(req) {
       }
 
       // Brave Search für lokale Quellen
-      const braveKey = process.env.BRAVE_SEARCH_API_KEY;
       if (braveKey && searchTerm) {
         try {
           const searchQuery = encodeURIComponent(searchTerm + " Geschichte Sehenswürdigkeiten Niederrhein");
@@ -133,7 +132,6 @@ export default async function handler(req) {
       }
 
       // Brave Search für lokale Quellen
-      const braveKey = process.env.BRAVE_SEARCH_API_KEY;
       if (braveKey && searchTerm) {
         try {
           const searchQuery = encodeURIComponent(searchTerm + " Geschichte Sehenswürdigkeiten Niederrhein");
