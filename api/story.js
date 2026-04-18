@@ -19,7 +19,7 @@ export default async function handler(req) {
   }
 
   try {
-    const { placeName, category, speedKmh, transport, voiceEngine, surroundings, lat, lon, customPrompt } = await req.json();
+    const { placeName, category, speedKmh, transport, voiceEngine, surroundings, lat, lon, previousStories, customPrompt } = await req.json();
     const useElevenLabs = !voiceEngine || voiceEngine === "elevenlabs";
 
     const anthropicKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
@@ -111,21 +111,96 @@ export default async function handler(req) {
       }
     } catch(e) {}
 
-    const prompt = customPrompt || `Du bist ein sachlicher, informativer Reiseführer-Sprecher. Der Nutzer ${mode} gerade durch "${placeName}".
-${wikiContext}
-${surroundings ? "Umgebung: " + surroundings : ""}
+    // Raumtyp aus Geschwindigkeit ableiten
+    const kmh = speedKmh || 0;
+    let raumtyp = "ort";
+    if (kmh > 80) raumtyp = "autobahn";
+    else if (kmh > 50) raumtyp = "landstrasse";
+    else if (kmh > 15) raumtyp = "ortsdurchfahrt";
+    else if (transport === "walk") raumtyp = "spaziergang";
+    else if (transport === "bike" && kmh < 8) raumtyp = "joggen";
+    else if (kmh < 15 && kmh > 0) raumtyp = "ortseinfahrt";
 
-AUFGABE: Gib dem Hörer nützliche, echte Informationen über diesen Ort. Thema: ${category}. Länge: ca. ${length}.
+    const templates = {
+      autobahn: {
+        laenge: "ca. 100-130 Wörter",
+        stil: "ruhig, weit, erklärend",
+        fokus: "REGION: große Zusammenhänge, Wirtschaft, Landschaft, historische Achsen. NICHT einzelne Straßen.",
+        einstieg: "Sie bewegen sich gerade durch... / Die Region hier ist geprägt von...",
+      },
+      landstrasse: {
+        laenge: "ca. 80-110 Wörter",
+        stil: "anschaulich, bodenständig, atmosphärisch",
+        fokus: "Landschaft, Landwirtschaft, Dörfer, regionale Identität, Naturräume",
+        einstieg: "Typisch für diese Gegend ist... / Die Landschaft hier zeigt...",
+      },
+      ortseinfahrt: {
+        laenge: "ca. 50-80 Wörter",
+        stil: "kompakt, orientierend",
+        fokus: "Willkommen + Name + Größe + wofür bekannt + Ausblick",
+        einstieg: "Willkommen in... / Sie erreichen jetzt...",
+      },
+      ortsdurchfahrt: {
+        laenge: "ca. 60-90 Wörter",
+        stil: "konkret, ortsnah",
+        fokus: "Was sichtbar ist: Ortskern, Kirchen, Rathaus, Geschichte, Alltagskultur",
+        einstieg: "Sie fahren jetzt durch... / Der Bereich hier...",
+      },
+      spaziergang: {
+        laenge: "ca. 40-100 Wörter",
+        stil: "beobachtend, ruhig, dialogisch",
+        fokus: "Details: Gebäude, Plätze, Inschriften, kleine Geschichten",
+        einstieg: "Achten Sie auf... / Wenn Sie genau schauen...",
+      },
+      joggen: {
+        laenge: "ca. 20-45 Wörter",
+        stil: "klar, rhythmisch, kurz",
+        fokus: "Kurze Impulse: Natur, Weggeschichte, kleine Fakten",
+        einstieg: "Kurzer Fakt für unterwegs:",
+      },
+      ort: {
+        laenge: "ca. 60-90 Wörter",
+        stil: "informativ, zugänglich",
+        fokus: "Geschichte, Sehenswürdigkeiten, Einwohnerzahl, Wirtschaft, Besonderheiten",
+        einstieg: "Der Ort ist bekannt für... / Besonders charakteristisch ist...",
+      },
+    };
 
-WICHTIG:
-- Nutze NUR die Wikipedia-Informationen oben
-- Wenn keine Info zur aktuellen Straße vorhanden: erzähle über den Ort/das Dorf/die Stadt
-- Nenne konkrete Fakten: Einwohnerzahl, Gründungsjahr, wichtige Gebäude, Vereine, Besonderheiten
-- Erwähne Sehenswürdigkeiten die wirklich dort existieren
-- KEIN ausschmückender Schreibstil - klar, direkt, informativ
-- Sprich den Hörer an: "Du befindest dich...", "Hier gibt es...", "Bekannt ist die Stadt für..."
-- Fließender Text auf Deutsch, KEINE Überschriften, KEIN #
-- Wenn Wikipedia nichts hergibt: sage ehrlich "Über diese Straße sind keine besonderen Infos bekannt" und erzähle stattdessen über die Region`;
+    const t = templates[raumtyp] || templates.ort;
+
+    const themaFokus = {
+      "Geschichte": "historische Entwicklung, erste Erwähnung, prägende Ereignisse, wichtige Personen",
+      "Natur": "Landschaft, Naturräume, Flora, Fauna, Schutzgebiete",
+      "Persönlichkeiten": "bekannte Personen die hier geboren wurden oder wirkten",
+      "Mythen": "Sagen, Legenden, lokale Überlieferungen, Bräuche",
+      "Kulinarik": "regionale Produkte, Spezialitäten, Landwirtschaft, typische Gerichte",
+      "Architektur": "Gebäude, Baustile, Kirchen, Rathäuser, charakteristische Häuser",
+      "Reiseführer": "Gesamtbild: Identität, Geschichte, Sehenswürdigkeiten, Alltagskultur — je nach Raumtyp angepasst",
+    };
+
+    const prevContext = previousStories ? "BEREITS ERZÄHLT (nicht wiederholen, aber natürlich anknüpfen):\n" + previousStories + "\n\n" : "";
+
+    const prompt = customPrompt || `Du bist ein kluger, sachlicher Reisebegleiter für die gesamte Fahrt. Der Nutzer ${mode} gerade durch "${placeName}".
+
+${prevContext}WIKIPEDIA-INFORMATIONEN ZUM AKTUELLEN BEREICH:
+${wikiContext || "Keine Wikipedia-Daten — erzähle über die Region allgemein."}
+
+AKTUELLE UMGEBUNG: ${surroundings || "nicht bekannt"}
+
+RAUMTYP: ${raumtyp.toUpperCase()}
+THEMA: ${category} — Fokus: ${themaFokus[category] || "allgemeine Informationen"}
+LÄNGE: ${t.laenge}
+STIL: ${t.stil}
+INHALT: ${t.fokus}
+EINSTIEG: ${t.einstieg}
+
+REGELN:
+- Nur Fakten aus Wikipedia oben verwenden
+- Wenn keine Straßeninfos: über Ort oder Region erzählen
+- Wenn gar nichts: Raum beschreiben was Bebauung/Landschaft zeigt
+- NIEMALS erfinden
+- Natürlicher Übergang zur vorherigen Story wenn möglich
+- Fließender Text auf Deutsch, KEINE Überschriften, KEIN #`;
 
     // Generate text with Claude
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
