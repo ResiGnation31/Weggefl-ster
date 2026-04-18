@@ -718,7 +718,7 @@ export default function App() {
         "- Nur fliesender Text auf Deutsch, keine Aufzaehlungen, keine Ueberschriften";
     }
     setStoryLoading(true);
-    setStoryTitle(isIntro ? (introData.start + " -> " + introData.end) : locationName);
+    setStoryTitle(isIntro ? (introData.start + " → " + introData.end) : locationName);
     setStoryText("");
     addLog((isIntro ? "Einleitung" : locationName), "story");
     try {
