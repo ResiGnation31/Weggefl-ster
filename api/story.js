@@ -82,17 +82,38 @@ export default async function handler(req) {
         if (t) wikiTexts.push("=== " + title + " ===\n" + t.slice(0, Math.floor(maxLen/3)));
       };
 
-      // Suche 1: Textsuche nach Ortsname
-      if (searchTerm) {
-        const q = cityHint ? searchTerm + " " + cityHint : searchTerm;
-        const sr = await fetch(
-          "https://de.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + encodeURIComponent(q) + "&srlimit=4&format=json&origin=*",
-          { headers: { "User-Agent": "Weggefluesterer/1.0" } }
-        );
-        if (sr.ok) {
-          const sd = await sr.json();
-          for (const r of (sd.query?.search || []).slice(0, 3)) {
-            await addWiki(r.title);
+      // Suche 1: Je nach Raumtyp unterschiedliche Strategie
+      if (raumtyp === "landstrasse" || raumtyp === "autobahn") {
+        // Auf Landstraße/Autobahn: Region und Landschaft suchen
+        const regionTerms = [
+          cityHint || searchTerm,
+          "Niederrhein",
+        ].filter(Boolean);
+        for (const term of regionTerms.slice(0, 2)) {
+          const sr = await fetch(
+            "https://de.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + encodeURIComponent(term + " Landschaft Geschichte Region") + "&srlimit=3&format=json&origin=*",
+            { headers: { "User-Agent": "Weggefluesterer/1.0" } }
+          );
+          if (sr.ok) {
+            const sd = await sr.json();
+            for (const r of (sd.query?.search || []).slice(0, 2)) {
+              await addWiki(r.title);
+            }
+          }
+        }
+      } else {
+        // Ortssuche für Ortsdurchfahrt/Einfahrt/Spaziergang
+        if (searchTerm) {
+          const q = cityHint ? searchTerm + " " + cityHint : searchTerm;
+          const sr = await fetch(
+            "https://de.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + encodeURIComponent(q) + "&srlimit=4&format=json&origin=*",
+            { headers: { "User-Agent": "Weggefluesterer/1.0" } }
+          );
+          if (sr.ok) {
+            const sd = await sr.json();
+            for (const r of (sd.query?.search || []).slice(0, 3)) {
+              await addWiki(r.title);
+            }
           }
         }
       }
