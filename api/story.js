@@ -30,8 +30,10 @@ export default async function handler(req) {
     const parts = placeName.split(",").map(s => s.trim());
     const streetWords = ["weg", "strasse", "str.", "gasse", "platz", "allee", "ring", "pfad", "damm"];
     const isStreet = streetWords.some(w => parts[0].toLowerCase().includes(w));
-    const searchTerm = isStreet && parts[1] ? parts[1] : parts[0];
-    const cityHint = isStreet && parts[2] ? parts[2] : (!isStreet && parts[1] ? parts[1] : "");
+    const rawTerm = isStreet && parts[1] ? parts[1] : parts[0];
+    const dashParts = rawTerm.split("-");
+    const searchTerm = dashParts.length > 1 ? dashParts[1] : rawTerm;
+    const cityHint = dashParts.length > 1 ? dashParts[0] : (isStreet && parts[2] ? parts[2] : (!isStreet && parts[1] ? parts[1] : ""));
 
     // 3. Textlaenge
     const maxLen = transport === "walk" ? 5000 : transport === "bike" ? 4000 : 2000;
