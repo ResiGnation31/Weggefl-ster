@@ -154,7 +154,7 @@ export default async function handler(req) {
       "\nTHEMA: " + category + " — " + (themaFokus[category] || "allgemeine Informationen") +
       "\n\nAUFGABE (" + raumtyp.toUpperCase() + "): " + t.anweisung +
       "\nLAENGE: " + t.laenge +
-      "\n\nREGELN: Nur Fakten aus den Informationen oben. Niemals erfinden. Fliessendes Deutsch. KEIN #. Direkt beginnen.";
+      "\n\nREGELN: Nur Fakten aus den Informationen oben. Niemals erfinden. Fliessendes Deutsch. KEIN #. Direkt beginnen. Alle Zahlen ausschreiben (z.B. sechsundachtzigtausend statt 86000, neunzehnhundert statt 1900).";
 
     // 7. Claude
     const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
