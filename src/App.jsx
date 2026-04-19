@@ -1325,7 +1325,7 @@ export default function App() {
                 {startSugg.map((s,i) => {
                   const p = s.display_name.split(", ");
                   return (
-                    <div key={i} onClick={() => { const hausnr = /^\d+$/.test(p[0]) ? p[0] : ""; const strasse = hausnr ? p[1] : p[0]; const stadtteil = hausnr ? p[2] : ""; const stadt = hausnr ? p[3] : p[2]; const ort = stadt && stadtteil && stadt !== stadtteil ? stadt + "-" + stadtteil : stadt || stadtteil || p[2]; const fullAddr = hausnr ? strasse + " " + hausnr + ", " + ort : strasse + ", " + ort; setStartPlace({name:fullAddr,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setStartInput(fullAddr); setStartSugg([]); }}
+                    <div key={i} onClick={() => { const hausnr = /^\d+$/.test(p[0]) ? p[0] : ""; const strasse = hausnr ? p[1] : p[0]; const stadtteil = hausnr ? (/[Kk]reis|[Ll]andkreis/.test(p[2]) ? "" : p[2] === p[3] ? "" : p[2]) : ""; const stadt = hausnr ? (/[Kk]reis|[Ll]andkreis/.test(p[2]) ? p[2] : p[3]) : p[2]; const ort = stadt && stadtteil && stadt !== stadtteil ? stadt + "-" + stadtteil : stadt || stadtteil || p[2]; const fullAddr = hausnr ? strasse + " " + hausnr + ", " + ort : strasse + ", " + ort; setStartPlace({name:fullAddr,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setStartInput(fullAddr); setStartSugg([]); }}
                       style={{ padding:"10px 14px", cursor:"pointer", borderBottom:`1px solid ${T.borderFaint}` }}
                       onMouseEnter={e=>e.currentTarget.style.background=T.accentDim}
                       onMouseLeave={e=>e.currentTarget.style.background=""}>
@@ -1350,7 +1350,7 @@ export default function App() {
                 {endSugg.map((s,i) => {
                   const p = s.display_name.split(", ");
                   return (
-                    <div key={i} onClick={() => { const hausnrE = /^\d+$/.test(p[0]) ? p[0] : ""; const strasseE = hausnrE ? p[1] : p[0]; const stadtteilE = hausnrE ? p[2] : ""; const stadtE = hausnrE ? p[3] : p[2]; const ortE = stadtE && stadtteilE && stadtE !== stadtteilE ? stadtE + "-" + stadtteilE : stadtE || stadtteilE || p[2]; const fullAddrE = hausnrE ? strasseE + " " + hausnrE + ", " + ortE : strasseE + ", " + ortE; setEndPlace({name:fullAddrE,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setEndInput(fullAddrE); setEndSugg([]); }}
+                    <div key={i} onClick={() => { const hausnrE = /^\d+$/.test(p[0]) ? p[0] : ""; const strasseE = hausnrE ? p[1] : p[0]; const stadtteilE = hausnrE ? (/[Kk]reis|[Ll]andkreis/.test(p[2]) ? "" : p[2] === p[3] ? "" : p[2]) : ""; const stadtE = hausnrE ? (/[Kk]reis|[Ll]andkreis/.test(p[2]) ? p[2] : p[3]) : p[2]; const ortE = stadtE && stadtteilE && stadtE !== stadtteilE ? stadtE + "-" + stadtteilE : stadtE || stadtteilE || p[2]; const fullAddrE = hausnrE ? strasseE + " " + hausnrE + ", " + ortE : strasseE + ", " + ortE; setEndPlace({name:fullAddrE,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setEndInput(fullAddrE); setEndSugg([]); }}
                       style={{ padding:"10px 14px", cursor:"pointer", borderBottom:`1px solid ${T.borderFaint}` }}
                       onMouseEnter={e=>e.currentTarget.style.background=T.accentDim}
                       onMouseLeave={e=>e.currentTarget.style.background=""}>
@@ -1525,7 +1525,7 @@ export default function App() {
                         {gpsEndSugg.map((s,i) => {
                           const p = s.display_name.split(", ");
                           return (
-                            <div key={i} onClick={() => { const hausnrG = /^\d+$/.test(p[0]) ? p[0] : ""; const strasseG = hausnrG ? p[1] : p[0]; const stadtteilG = hausnrG ? p[2] : ""; const stadtG = hausnrG ? p[3] : p[2]; const ortG = stadtG && stadtteilG && stadtG !== stadtteilG ? stadtG + "-" + stadtteilG : stadtG || stadtteilG || p[2]; const fullAddrG = hausnrG ? strasseG + " " + hausnrG + ", " + ortG : strasseG + ", " + ortG; setGpsEndPlace({name:fullAddrG,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setGpsEndInput(fullAddrG); setGpsEndSugg([]); }}
+                            <div key={i} onClick={() => { const hausnrG = /^\d+$/.test(p[0]) ? p[0] : ""; const strasseG = hausnrG ? p[1] : p[0]; const stadtteilG = hausnrG ? (/[Kk]reis|[Ll]andkreis/.test(p[2]) ? "" : p[2] === p[3] ? "" : p[2]) : ""; const stadtG = hausnrG ? (/[Kk]reis|[Ll]andkreis/.test(p[2]) ? p[2] : p[3]) : p[2]; const ortG = stadtG && stadtteilG && stadtG !== stadtteilG ? stadtG + "-" + stadtteilG : stadtG || stadtteilG || p[2]; const fullAddrG = hausnrG ? strasseG + " " + hausnrG + ", " + ortG : strasseG + ", " + ortG; setGpsEndPlace({name:fullAddrG,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setGpsEndInput(fullAddrG); setGpsEndSugg([]); }}
                               style={{ padding:"10px 14px", cursor:"pointer", borderBottom:"1px solid " + T.border }}
                               onMouseEnter={e=>e.currentTarget.style.background=T.accentDim}
                               onMouseLeave={e=>e.currentTarget.style.background=""}>
