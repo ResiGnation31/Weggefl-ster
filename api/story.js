@@ -8,7 +8,7 @@ export default async function handler(req) {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
 
   try {
-    const { placeName, category, speedKmh, transport, voiceEngine, surroundings, lat, lon, previousStories, customPrompt } = await req.json();
+    const { placeName, category, speedKmh, transport, voiceEngine, surroundings, lat, lon, previousStories, streetAlreadyMentioned, customPrompt } = await req.json();
     const anthropicKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
     const elevenKey = process.env.ELEVENLABS_API_KEY;
     const braveKey = process.env.BRAVE_SEARCH_API_KEY;
@@ -154,7 +154,8 @@ export default async function handler(req) {
       "\nTHEMA: " + category + " — " + (themaFokus[category] || "allgemeine Informationen") +
       "\n\nAUFGABE (" + raumtyp.toUpperCase() + "): " + t.anweisung +
       "\nLAENGE: " + t.laenge +
-      "\n\nREGELN: Nur Fakten aus den Informationen oben. Niemals erfinden. Fliessendes Deutsch. KEIN #. Direkt beginnen. Alle Zahlen ausschreiben (z.B. sechsundachtzigtausend statt 86000, neunzehnhundert statt 1900).";
+      "\n\nREGELN: Nur Fakten aus den Informationen oben. Niemals erfinden. Fliessendes Deutsch. KEIN #. Direkt beginnen. Alle Zahlen ausschreiben (z.B. sechsundachtzigtausend statt 86000, neunzehnhundert statt 1900)." +
+      (streetAlreadyMentioned ? " Den Strassennamen NICHT erwaehnen — er wurde bereits in einer vorherigen Story genannt." : "");
 
     // 7. Claude
     const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {

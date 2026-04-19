@@ -418,6 +418,7 @@ export default function App() {
   const simPosR        = useRef({ lat: null, lon: null });
   const routeSpeedMapR = useRef([]);
   const simStepDistR   = useRef(0);
+  const lastMentionedStreetR = useRef("");
 
   useEffect(() => { categoryR.current = category; }, [category]);
   useEffect(() => { speedR.current = speedKmh; }, [speedKmh]);
@@ -735,10 +736,16 @@ export default function App() {
     setStoryText("");
     addLog((isIntro ? "Einleitung" : locationName), "story");
     try {
+      // Straße aus locationName extrahieren
+      const locParts = locationName.split(",").map(s => s.trim());
+      const streetWords = ["weg", "straße", "str.", "gasse", "platz", "allee", "ring", "pfad", "damm"];
+      const currentStreet = streetWords.some(w => locParts[0].toLowerCase().includes(w)) ? locParts[0] : "";
+      const streetAlreadyMentioned = currentStreet && lastMentionedStreetR.current === currentStreet;
+      if (currentStreet) lastMentionedStreetR.current = currentStreet;
       const res = await fetch("/api/story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: voiceEngineR.current, surroundings: surroundingsR.current, lat: storyLat || gpsPos?.lat || simPosR.current.lat || null, lon: storyLon || gpsPos?.lon || simPosR.current.lon || null, previousStories: memoryR.current.map(m => m.place + ": " + m.summary).join("\n"), customPrompt: prompt }),
+        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: voiceEngineR.current, surroundings: surroundingsR.current, lat: storyLat || gpsPos?.lat || simPosR.current.lat || null, lon: storyLon || gpsPos?.lon || simPosR.current.lon || null, previousStories: memoryR.current.map(m => m.place + ": " + m.summary).join("\n"), streetAlreadyMentioned, customPrompt: prompt }),
       });
       const data = await res.json();
       if (res.ok && data.text) {
