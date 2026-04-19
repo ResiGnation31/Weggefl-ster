@@ -418,12 +418,6 @@ export default function App() {
   const simPosR        = useRef({ lat: null, lon: null });
   const routeSpeedMapR = useRef([]);
   const simStepDistR   = useRef(0);
-  const gpsRouteR      = useRef([]);
-  const gpsQueueR      = useRef([]);
-  const gpsQueueLoadingR = useRef(false);
-  const gpsRouteIdxR   = useRef(0);
-  const lastGpsLatR    = useRef(null);
-  const lastGpsLonR    = useRef(null);
 
   useEffect(() => { categoryR.current = category; }, [category]);
   useEffect(() => { speedR.current = speedKmh; }, [speedKmh]);
@@ -774,50 +768,6 @@ export default function App() {
     setStoryLoading(false);
     generatingR.current = false;
     await speakText(fallback, null);
-  }
-
-  async function fillGpsQueue(currentLat, currentLon) {
-    if (gpsQueueLoadingR.current) return;
-    if (gpsQueueR.current.length >= 3) return;
-    gpsQueueLoadingR.current = true;
-    try {
-      const route = gpsRouteR.current;
-      if (!route.length) { gpsQueueLoadingR.current = false; return; }
-      // Nächste 3 Punkte auf der Route voraus
-      const totalPts = route.length;
-      const needed = 3 - gpsQueueR.current.length;
-      for (let i = 0; i < needed; i++) {
-        const offset = (gpsRouteIdxR.current + i + 1) * Math.floor(totalPts / 5);
-        const idx = Math.min(offset, totalPts - 1);
-        const pt = route[idx];
-        if (!pt) continue;
-        const geoD = await geocode(pt.lat, pt.lon);
-        const name = typeof geoD === "object" ? geoD.name : geoD;
-        if (!name) continue;
-        // Nicht doppelt in Queue
-        if (gpsQueueR.current.find(q => q.place === name)) continue;
-        const res = await fetch("/api/story", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            placeName: name,
-            category: categoryR.current,
-            speedKmh: speedR.current,
-            transport: transportR.current,
-            voiceEngine: "none",
-            lat: pt.lat,
-            lon: pt.lon,
-            previousStories: memoryR.current.map(m => m.place + ": " + m.summary).join("\n")
-          })
-        });
-        const data = await res.json();
-        if (data.text) {
-          gpsQueueR.current.push({ text: data.text, place: name, lat: pt.lat, lon: pt.lon });
-          gpsRouteIdxR.current += 1;
-        }
-      }
-    } catch(e) { console.error("fillGpsQueue error:", e); }
-    gpsQueueLoadingR.current = false;
   }
 
   async function preloadNextStory() {
@@ -1183,38 +1133,12 @@ export default function App() {
           surroundingsR.current = (surroundingsR.current || "") + (poisText ? " | Voraus: " + poisText : "");
           if (subMode === "guided" && endDest) {
             const startGeoData = await geocode(lat, lon);
-            const startGeoName = typeof startGeoData === "object" ? startGeoData.name : startGeoData;
-            generateStory(endDest.name, true, { start: startGeoName || "deinem Standort", end: endDest.name, places: availPOIs.slice(0,3).map(p=>p.name).concat([endDest.name]) }, lat, lon);
-            // Route laden und Queue im Hintergrund befüllen
-            fetchRoute({name: startGeoName, lat, lon}, endDest).then(() => {
-              gpsRouteR.current = routeR.current;
-              fillGpsQueue(lat, lon);
-            });
+          const startGeoName = typeof startGeoData === "object" ? startGeoData.name : startGeoData;
+          generateStory(endDest.name, true, { start: startGeoName || "deinem Standort", end: endDest.name, places: availPOIs.slice(0,3).map(p=>p.name).concat([endDest.name]) }, lat, lon);
           } else {
             _geocode_tmp = await geocode(lat, lon); generateStory((typeof _geocode_tmp === "string" ? _geocode_tmp : _geocode_tmp.name) || "diesem Ort", false, null, lat, lon);
           }
-        } else if (subMode === "guided" && !speakingR.current && !generatingR.current) {
-          // Queue-basiertes nahtloses Abspielen
-          if (gpsQueueR.current.length > 0) {
-            lastStoryTime = now;
-            const next = gpsQueueR.current.shift();
-            setStoryTitle(next.place);
-            setStoryText(next.text);
-            setStoryLoading(false);
-            const summary = next.text.slice(0, 120) + "...";
-            memoryR.current = [...memoryR.current.slice(-4), { place: next.place, summary }];
-            setStoryCount(c => c + 1);
-            const speakClean = next.text.replace(/^#{1,6}\s*.+$/gm, "").replace(/\*{1,2}([^*]+)\*{1,2}/g, "$1").trim();
-            speakText(speakClean, next.audio || null);
-            fillGpsQueue(lat, lon);
-          } else if (!gpsQueueLoadingR.current) {
-            lastStoryTime = now;
-            const geoD = await geocode(lat, lon);
-            const currentName = typeof geoD === "object" ? geoD.name : geoD;
-            if (currentName) generateStory(currentName, false, null, lat, lon);
-            fillGpsQueue(lat, lon);
-          }
-        } else if (subMode !== "guided" && !speakingR.current && !generatingR.current &&
+        } else if (!speakingR.current && !generatingR.current && 
                    (now - lastStoryTime > minTime)) {
           lastStoryTime = now;
           // Nächsten unbenutzten POI nehmen
@@ -1475,7 +1399,7 @@ export default function App() {
         </div>
 
         {/* Map */}
-        {(route.length > 0 || (gpsSubMode === "guided" && gpsPos)) && (
+        {route.length > 0 && (
           <MapView
             route={route}
             currentDist={currentDist}
@@ -1483,7 +1407,6 @@ export default function App() {
             simRunning={simRunning}
             speedKmh={speedKmh}
             currentLoc={currentLoc}
-            gpsPos={gpsMode === "real" ? gpsPos : null}
           />
         )}
 
