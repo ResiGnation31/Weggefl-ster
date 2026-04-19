@@ -711,7 +711,7 @@ export default function App() {
         "Regeln:\n" +
         "- Erzaehle ueber den aktuellen Bereich: Geschichte, Kultur, interessante Fakten\n" +
         "- Starte SOFORT mit einer konkreten Szene, Person oder Jahreszahl\n" +
-        "- Erwaehne Sehenswuerdigkeiten NUR wenn sie in 'Kommende Sehenswuerdigkeiten' stehen, und nur dann sagen dass man vorbeikommt\n" +
+        "- Sehenswuerdigkeiten der Stadt/Region duerfen erwaehnt werden, aber NIEMALS so als wuerde man gleich daran vorbeifahren ('Gleich wirst du...', 'In wenigen Minuten...', 'Schau mal rechts...' sind VERBOTEN) - nur als allgemeiner Fakt ('Die Stadt ist bekannt fuer...', 'Hier gibt es...')\n" +
         "- Echte spezifische Details: Namen, Jahreszahlen, unbekannte Fakten\n" +
         "- KEINE Erfindungen - nur was wirklich dort existiert\n" +
         "- Ende mit natuerlichem Uebergang\n" +
