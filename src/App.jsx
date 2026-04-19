@@ -544,11 +544,13 @@ export default function App() {
     clearInterval(progRef.current);
     setSpProgress(100);
     setTimeout(() => {
-      if (!manualStopR.current && !speakingR.current && !generatingR.current && (simDistR.current > 0 || gpsRef.current) && simDistR.current < routeDistR.current && !arrivedR.current) {
+      const isGPS = !!gpsRef.current;
+      const isActiveSim = simDistR.current > 0 && simDistR.current < routeDistR.current;
+      if (!manualStopR.current && !speakingR.current && !generatingR.current && (isGPS || isActiveSim) && !arrivedR.current) {
         triggerNextStory();
       }
     }, 500);
-    if (!manualStopR.current && (simDistR.current > 0 || gpsRef.current) && simDistR.current < routeDistR.current) {
+    if (!manualStopR.current && (!!gpsRef.current || (simDistR.current > 0 && simDistR.current < routeDistR.current))) {
       setTimeout(() => preloadNextStory(), 1000);
     }
   }
