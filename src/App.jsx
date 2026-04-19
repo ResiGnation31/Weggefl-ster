@@ -709,9 +709,9 @@ export default function App() {
         "Laenge: ca. " + words + " Woerter\n\n" +
         transition + "\n\n" +
         "Regeln:\n" +
-        "- Greife einen der kommenden Orte oder Sehenswuerdigkeiten auf - nicht den aktuellen Standort\n" +
+        "- Erzaehle ueber den aktuellen Bereich: Geschichte, Kultur, interessante Fakten\n" +
         "- Starte SOFORT mit einer konkreten Szene, Person oder Jahreszahl\n" +
-        "- Sprich den Hoerer direkt an: 'Gleich wirst du...', 'In wenigen Minuten...', 'Schau mal...'\n" +
+        "- Erwaehne Sehenswuerdigkeiten NUR wenn sie in 'Kommende Sehenswuerdigkeiten' stehen, und nur dann sagen dass man vorbeikommt\n" +
         "- Echte spezifische Details: Namen, Jahreszahlen, unbekannte Fakten\n" +
         "- KEINE Erfindungen - nur was wirklich dort existiert\n" +
         "- Ende mit natuerlichem Uebergang\n" +
