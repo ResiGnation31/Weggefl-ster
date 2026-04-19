@@ -22,8 +22,11 @@ export default async function handler(req, res) {
     const displayName = data.display_name || "";
     
     // Kombination: Straße + Ort
+    const houseNum = a.house_number || "";
     let name = "";
-    if (street && place) {
+    if (street && houseNum && place) {
+      name = street + " " + houseNum + ", " + place;
+    } else if (street && place) {
       name = street + ", " + place;
     } else if (place) {
       name = place;
