@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     const displayName = data.display_name || "";
 
     // "Geldern-Walbeck" oder nur "Geldern"
-    const ortName = city && district ? city + "-" + district : district || city || a.county || "";
+    const ortName = city && district && city !== district ? city + "-" + district : city || district || a.county || "";
 
     let name = "";
     if (street && houseNum && ortName) {
