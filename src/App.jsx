@@ -1324,7 +1324,7 @@ export default function App() {
                 {startSugg.map((s,i) => {
                   const p = s.display_name.split(", ");
                   return (
-                    <div key={i} onClick={() => { setStartPlace({name:p[0],lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setStartInput(p[0]); setStartSugg([]); }}
+                    <div key={i} onClick={() => { const fullAddr = p.slice(0,3).join(", "); setStartPlace({name:fullAddr,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setStartInput(fullAddr); setStartSugg([]); }}
                       style={{ padding:"10px 14px", cursor:"pointer", borderBottom:`1px solid ${T.borderFaint}` }}
                       onMouseEnter={e=>e.currentTarget.style.background=T.accentDim}
                       onMouseLeave={e=>e.currentTarget.style.background=""}>
@@ -1349,7 +1349,7 @@ export default function App() {
                 {endSugg.map((s,i) => {
                   const p = s.display_name.split(", ");
                   return (
-                    <div key={i} onClick={() => { setEndPlace({name:p[0],lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setEndInput(p[0]); setEndSugg([]); }}
+                    <div key={i} onClick={() => { const fullAddrE = p.slice(0,3).join(", "); setEndPlace({name:fullAddrE,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setEndInput(fullAddrE); setEndSugg([]); }}
                       style={{ padding:"10px 14px", cursor:"pointer", borderBottom:`1px solid ${T.borderFaint}` }}
                       onMouseEnter={e=>e.currentTarget.style.background=T.accentDim}
                       onMouseLeave={e=>e.currentTarget.style.background=""}>
