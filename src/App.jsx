@@ -1525,7 +1525,7 @@ export default function App() {
                         {gpsEndSugg.map((s,i) => {
                           const p = s.display_name.split(", ");
                           return (
-                            <div key={i} onClick={() => { setGpsEndPlace({name:p[0],lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setGpsEndInput(p[0]); setGpsEndSugg([]); }}
+                            <div key={i} onClick={() => { const hausnrG = /^\d+$/.test(p[0]) ? p[0] : ""; const strasseG = hausnrG ? p[1] : p[0]; const stadtteilG = hausnrG ? p[2] : ""; const stadtG = hausnrG ? p[3] : p[2]; const ortG = stadtG && stadtteilG ? stadtG + "-" + stadtteilG : stadtteilG || stadtG || p[2]; const fullAddrG = hausnrG ? strasseG + " " + hausnrG + ", " + ortG : strasseG + ", " + ortG; setGpsEndPlace({name:fullAddrG,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setGpsEndInput(fullAddrG); setGpsEndSugg([]); }}
                               style={{ padding:"10px 14px", cursor:"pointer", borderBottom:"1px solid " + T.border }}
                               onMouseEnter={e=>e.currentTarget.style.background=T.accentDim}
                               onMouseLeave={e=>e.currentTarget.style.background=""}>
