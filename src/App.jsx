@@ -785,7 +785,7 @@ export default function App() {
     const wps = routeR.current;
     if (!wps.length) { preloadingR.current = false; return; }
     const speedKmhNow = speedR.current;
-    const lookAheadMeters = Math.max(500, speedKmhNow * 30); // 30 Sekunden voraus
+    const lookAheadMeters = Math.max(400, speedKmhNow * 15); // 15 Sekunden voraus
     const lookahead = Math.min(simDistR.current + lookAheadMeters, routeDistR.current - 50);
     const idx = Math.min(Math.floor(lookahead / routeDistR.current * wps.length), wps.length-1);
     const pos = wps[idx];
