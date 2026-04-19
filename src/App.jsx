@@ -960,10 +960,16 @@ export default function App() {
     if (routeR.current.length > 0) { simPosR.current = { lat: routeR.current[0].lat, lon: routeR.current[0].lon }; }
     setSimRunning(true);
     addLog("Fahrt gestartet", "start");
+    const cleanPlaceName = (n) => {
+      const pts = n.split(",").map(s => s.trim());
+      const sw = ["weg", "straße", "str.", "gasse", "platz", "allee", "ring", "pfad", "damm"];
+      const isSt = sw.some(w => pts[0].toLowerCase().includes(w));
+      return isSt && pts[1] ? pts[1] : pts[0];
+    };
     setTimeout(() => {
-      generateStory(startPlace.name, true, {
-        start: startPlace.name,
-        end: endPlace.name,
+      generateStory(cleanPlaceName(startPlace.name), true, {
+        start: cleanPlaceName(startPlace.name),
+        end: cleanPlaceName(endPlace.name),
         places: places.length > 0 ? places : [startPlace.name, endPlace.name],
       }, routeR.current[0]?.lat, routeR.current[0]?.lon);
     }, 800);
