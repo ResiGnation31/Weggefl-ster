@@ -154,7 +154,7 @@ export default async function handler(req) {
       "\nTHEMA: " + category + " — " + (themaFokus[category] || "allgemeine Informationen") +
       "\n\nAUFGABE (" + raumtyp.toUpperCase() + "): " + t.anweisung +
       "\nLAENGE: " + t.laenge +
-      "\n\nREGELN: Nur Fakten aus den Informationen oben. Niemals erfinden. Fliessendes Deutsch. KEIN #. Direkt beginnen. Alle Zahlen ausschreiben (z.B. sechsundachtzigtausend statt 86000, neunzehnhundert statt 1900)." +
+      "\n\nREGELN: Nur Fakten aus den Informationen oben. Niemals erfinden. Fliessendes Deutsch. KEIN #. Direkt beginnen. Alle Zahlen ausschreiben (z.B. sechsundachtzigtausend statt 86000, neunzehnhundert statt 1900). NIEMALS kommerzielle Einrichtungen erwaehnen (Banken, Supermärkte, Tankstellen, Restaurants, Geschaefte)." +
       (streetAlreadyMentioned ? " Den Strassennamen NICHT erwaehnen — er wurde bereits in einer vorherigen Story genannt." : "") +
       (raumtyp === "autobahn" || raumtyp === "landstrasse" ? " Sage NIEMALS dass man durch einen Ort faehrt — man faehrt VORBEI oder der Ort liegt IN DER NAEHE. Keine Formulierungen wie 'Sie fahren durch' oder 'Sie befinden sich in'." : "") +
       "\n\nWAEHLE einen dieser Blickwinkel der noch NICHT in den vorherigen Stories verwendet wurde: (1) Geschichte und Vergangenheit, (2) Menschen und Persoenlichkeiten, (3) Natur und Landschaft, (4) Wirtschaft und Alltag, (5) Kultur und Brauchtum. Nimm den Blickwinkel der am wenigsten abgedeckt wurde.";
