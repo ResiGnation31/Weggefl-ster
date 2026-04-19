@@ -747,8 +747,8 @@ export default function App() {
         setStoryAudio(data.audio || null);
         setStoryLoading(false);
         if (!isIntro) {
-          const summary = data.text.slice(0, 120) + "...";
-          memoryR.current = [...memoryR.current.slice(-4), { place: locationName, summary }];
+          const summary = data.text.slice(0, 300) + "...";
+          memoryR.current = [...memoryR.current.slice(-6), { place: locationName, summary }];
           setStoryCount(c => c + 1);
         }
         generatingR.current = false;
@@ -820,8 +820,8 @@ export default function App() {
       const { text, place } = nextStoryR.current;
       nextStoryR.current = null;
       generatingR.current = true;
-      const summary = text.slice(0, 120) + "...";
-      memoryR.current = [...memoryR.current.slice(-4), { place, summary }];
+      const summary = text.slice(0, 300) + "...";
+      memoryR.current = [...memoryR.current.slice(-6), { place, summary }];
       setStoryCount(c => c + 1);
       setStoryTitle(place);
       setStoryText(text);

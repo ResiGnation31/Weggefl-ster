@@ -130,7 +130,7 @@ export default async function handler(req) {
     };
 
     const modeLabel = { car: "Auto faehrst", bus: "Bus faehrst", bike: "Fahrrad faehrst", walk: "zu Fuss gehst" }[transport] || "faehrst";
-    const prevContext = previousStories ? "BEREITS ERZAEHLT (nicht wiederholen):\n" + previousStories + "\n\n" : "";
+    const prevContext = previousStories ? "BEREITS ERZAEHLT — diese Fakten, Orte, Personen und Jahreszahlen NIEMALS nochmal erwaehnen:\n" + previousStories + "\n\nWICHTIG: Jede Story muss komplett neue Informationen enthalten. Kein einziges Detail aus obiger Liste wiederholen.\n\n" : "";
 
     const prompt = customPrompt || "Du bist ein sachlicher Reisebegleiter. Der Nutzer " + modeLabel + " gerade durch \"" + placeName + "\"." +
       "\n\n" + prevContext +
