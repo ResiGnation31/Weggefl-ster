@@ -825,7 +825,7 @@ export default function App() {
     const idx = Math.min(Math.floor(futureDist / routeDistR.current * wps.length), wps.length-1);
     const pos = wps[idx];
     const geoData = await geocode(pos.lat, pos.lon);
-    const storyPlace = typeof geoData === "object" ? (geoData.district || geoData.city || geoData.place || geoData.name) : geoData;
+    const storyPlace = typeof geoData === "object" ? geoData.name : geoData;
     if (storyPlace) generateStory(storyPlace, false, null, pos.lat, pos.lon);
   }
 
@@ -961,7 +961,8 @@ export default function App() {
     setSimRunning(true);
     addLog("Fahrt gestartet", "start");
     const cleanPlaceName = (n) => {
-      const pts = n.split(",").map(s => s.trim());
+      const noNum = n.replace(/^\d+,\s*/, "");
+      const pts = noNum.split(",").map(s => s.trim());
       const sw = ["weg", "straße", "str.", "gasse", "platz", "allee", "ring", "pfad", "damm"];
       const isSt = sw.some(w => pts[0].toLowerCase().includes(w));
       return isSt && pts[1] ? pts[1] : pts[0];

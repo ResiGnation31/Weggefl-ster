@@ -9,38 +9,37 @@ export default async function handler(req, res) {
     );
     const data = await r.json();
     const a = data.address;
-    
-    // Straße ohne Hausnummer
+
     const street = a.road || null;
-    // Ort (Stadtteil zuerst, dann Stadt)
+    const houseNum = a.house_number || "";
     const district = a.city_district || a.suburb || a.village || a.hamlet || null;
     const city = a.town || a.city || null;
-    const place = district || city || a.county || null;
-    // Region
     const region = a.county || a.state_district || null;
-    // Landnutzung aus display_name
     const displayName = data.display_name || "";
-    
-    // Kombination: Straße + Ort
-    const houseNum = a.house_number || "";
+
+    // "Geldern-Walbeck" oder nur "Geldern"
+    const ortName = city && district ? city + "-" + district : district || city || a.county || "";
+
     let name = "";
-    if (street && houseNum && place) {
-      name = street + " " + houseNum + ", " + place;
-    } else if (street && place) {
-      name = street + ", " + place;
-    } else if (place) {
-      name = place;
+    if (street && houseNum && ortName) {
+      name = street + " " + houseNum + ", " + ortName;
+    } else if (street && ortName) {
+      name = street + ", " + ortName;
+    } else if (ortName) {
+      name = ortName;
     } else if (street) {
       name = street;
     } else {
       name = "Unbekannter Ort";
     }
-    
+
     res.setHeader('Cache-Control', 's-maxage=60');
-    res.json({ 
+    res.json({
       name,
       street: street || "",
-      place: place || "",
+      place: ortName || "",
+      district: district || "",
+      city: city || "",
       region: region || "",
       displayName
     });
