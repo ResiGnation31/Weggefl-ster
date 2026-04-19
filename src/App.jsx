@@ -543,11 +543,11 @@ export default function App() {
     clearInterval(progRef.current);
     setSpProgress(100);
     setTimeout(() => {
-      if (!manualStopR.current && !speakingR.current && !generatingR.current && simDistR.current > 0 && simDistR.current < routeDistR.current && !arrivedR.current) {
+      if (!manualStopR.current && !speakingR.current && !generatingR.current && (simDistR.current > 0 || gpsRef.current) && simDistR.current < routeDistR.current && !arrivedR.current) {
         triggerNextStory();
       }
     }, 500);
-    if (!manualStopR.current && simDistR.current > 0 && simDistR.current < routeDistR.current) {
+    if (!manualStopR.current && (simDistR.current > 0 || gpsRef.current) && simDistR.current < routeDistR.current) {
       setTimeout(() => preloadNextStory(), 1000);
     }
   }
@@ -830,6 +830,14 @@ export default function App() {
       await speakText(text, null);
       return;
     }
+    // GPS Modus
+    if (gpsRef.current && gpsPos) {
+      const geoData = await geocode(gpsPos.lat, gpsPos.lon);
+      const storyPlace = typeof geoData === "object" ? geoData.name : geoData;
+      if (storyPlace) generateStory(storyPlace, false, null, gpsPos.lat, gpsPos.lon);
+      return;
+    }
+    // Simulation Modus
     const wps = routeR.current;
     if (!wps.length) return;
     const speedNow = speedR.current;
