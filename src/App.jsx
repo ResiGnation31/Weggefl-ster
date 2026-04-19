@@ -782,7 +782,7 @@ export default function App() {
     const pos = wps[idx];
     try {
       const _geo2 = await geocode(pos.lat, pos.lon);
-      const name = typeof _geo2 === "object" ? (_geo2.district || _geo2.city || _geo2.place || _geo2.name) : _geo2;
+      const name = typeof _geo2 === "object" ? _geo2.name : _geo2;
       const surr = await getSurroundings(pos.lat, pos.lon);
       surroundingsR.current = surr;
       if (name) {
