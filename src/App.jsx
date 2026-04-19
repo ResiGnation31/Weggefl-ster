@@ -654,6 +654,19 @@ export default function App() {
     fallbackTTS(text);
   }
 
+  
+  function formatNominatimAddress(s) {
+    const a = s.address || {};
+    const hausnr = a.house_number || "";
+    const strasse = a.road || "";
+    const stadtteil = a.suburb || (a.city_district !== a.town && a.city_district !== a.city ? a.city_district : "") || "";
+    const stadt = a.town || a.city || a.village || a.hamlet || "";
+    const ort = stadt && stadtteil && stadt !== stadtteil ? stadt + "-" + stadtteil : stadt || stadtteil || "";
+    if (strasse && hausnr && ort) return strasse + " " + hausnr + ", " + ort;
+    if (strasse && ort) return strasse + ", " + ort;
+    return ort || strasse || s.display_name.split(", ").slice(0,2).join(", ");
+  }
+
   async function generateStory(locationName, isIntro, introData, storyLat, storyLon) {
     if (generatingR.current) return;
     generatingR.current = true;
@@ -832,7 +845,7 @@ export default function App() {
   async function searchPlaces(q, setter, userLat, userLon) {
     if (q.length < 2) { setter([]); return; }
     try {
-      let url = "https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(q) + "&format=json&limit=10&accept-language=de";
+      let url = "https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(q) + "&format=json&limit=10&accept-language=de&addressdetails=1";
       if (userLat && userLon) {
         url += "&viewbox=" + (userLon-2) + "," + (userLat+2) + "," + (userLon+2) + "," + (userLat-2) + "&bounded=0";
       }
@@ -1150,7 +1163,7 @@ export default function App() {
     setGpsEndInput(val);
     if (val.length < 2) { setGpsEndSugg([]); return; }
     try {
-      const r = await fetch("https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(val) + "&format=json&limit=4&accept-language=de", { headers: { "User-Agent": "Weggefluesterer/1.0" } });
+      const r = await fetch("https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(val) + "&format=json&limit=4&accept-language=de&addressdetails=1", { headers: { "User-Agent": "Weggefluesterer/1.0" } });
       const raw = await r.json();
       const sorted = gpsPos ? raw.sort((a,b) => {
         const da = haversine(gpsPos.lat, gpsPos.lon, parseFloat(a.lat), parseFloat(a.lon));
@@ -1325,7 +1338,7 @@ export default function App() {
                 {startSugg.map((s,i) => {
                   const p = s.display_name.split(", ");
                   return (
-                    <div key={i} onClick={() => { const hausnr = /^\d+$/.test(p[0]) ? p[0] : ""; const strasse = hausnr ? p[1] : p[0]; const stadtteil = hausnr ? (/[Kk]reis|[Ll]andkreis/.test(p[2]) ? "" : p[2] === p[3] ? "" : p[2]) : ""; const stadt = hausnr ? (/[Kk]reis|[Ll]andkreis/.test(p[2]) ? p[2] : p[3]) : p[2]; const ort = stadt && stadtteil && stadt !== stadtteil ? stadt + "-" + stadtteil : stadt || stadtteil || p[2]; const fullAddr = hausnr ? strasse + " " + hausnr + ", " + ort : strasse + ", " + ort; setStartPlace({name:fullAddr,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setStartInput(fullAddr); setStartSugg([]); }}
+                    <div key={i} onClick={() => { const fullAddr = formatNominatimAddress(s); setStartPlace({name:fullAddr,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setStartInput(fullAddr); setStartSugg([]); }}
                       style={{ padding:"10px 14px", cursor:"pointer", borderBottom:`1px solid ${T.borderFaint}` }}
                       onMouseEnter={e=>e.currentTarget.style.background=T.accentDim}
                       onMouseLeave={e=>e.currentTarget.style.background=""}>
@@ -1350,7 +1363,7 @@ export default function App() {
                 {endSugg.map((s,i) => {
                   const p = s.display_name.split(", ");
                   return (
-                    <div key={i} onClick={() => { const hausnrE = /^\d+$/.test(p[0]) ? p[0] : ""; const strasseE = hausnrE ? p[1] : p[0]; const stadtteilE = hausnrE ? (/[Kk]reis|[Ll]andkreis/.test(p[2]) ? "" : p[2] === p[3] ? "" : p[2]) : ""; const stadtE = hausnrE ? (/[Kk]reis|[Ll]andkreis/.test(p[2]) ? p[2] : p[3]) : p[2]; const ortE = stadtE && stadtteilE && stadtE !== stadtteilE ? stadtE + "-" + stadtteilE : stadtE || stadtteilE || p[2]; const fullAddrE = hausnrE ? strasseE + " " + hausnrE + ", " + ortE : strasseE + ", " + ortE; setEndPlace({name:fullAddrE,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setEndInput(fullAddrE); setEndSugg([]); }}
+                    <div key={i} onClick={() => { const fullAddrE = formatNominatimAddress(s); setEndPlace({name:fullAddrE,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setEndInput(fullAddrE); setEndSugg([]); }}
                       style={{ padding:"10px 14px", cursor:"pointer", borderBottom:`1px solid ${T.borderFaint}` }}
                       onMouseEnter={e=>e.currentTarget.style.background=T.accentDim}
                       onMouseLeave={e=>e.currentTarget.style.background=""}>
@@ -1525,7 +1538,7 @@ export default function App() {
                         {gpsEndSugg.map((s,i) => {
                           const p = s.display_name.split(", ");
                           return (
-                            <div key={i} onClick={() => { const hausnrG = /^\d+$/.test(p[0]) ? p[0] : ""; const strasseG = hausnrG ? p[1] : p[0]; const stadtteilG = hausnrG ? (/[Kk]reis|[Ll]andkreis/.test(p[2]) ? "" : p[2] === p[3] ? "" : p[2]) : ""; const stadtG = hausnrG ? (/[Kk]reis|[Ll]andkreis/.test(p[2]) ? p[2] : p[3]) : p[2]; const ortG = stadtG && stadtteilG && stadtG !== stadtteilG ? stadtG + "-" + stadtteilG : stadtG || stadtteilG || p[2]; const fullAddrG = hausnrG ? strasseG + " " + hausnrG + ", " + ortG : strasseG + ", " + ortG; setGpsEndPlace({name:fullAddrG,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setGpsEndInput(fullAddrG); setGpsEndSugg([]); }}
+                            <div key={i} onClick={() => { const fullAddrG = formatNominatimAddress(s); setGpsEndPlace({name:fullAddrG,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setGpsEndInput(fullAddrG); setGpsEndSugg([]); }}
                               style={{ padding:"10px 14px", cursor:"pointer", borderBottom:"1px solid " + T.border }}
                               onMouseEnter={e=>e.currentTarget.style.background=T.accentDim}
                               onMouseLeave={e=>e.currentTarget.style.background=""}>
