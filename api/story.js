@@ -79,13 +79,21 @@ export default async function handler(req) {
       for (const t of titles.slice(0, 3)) await addWiki(t);
     }
 
+    // Geosearch ZUERST — lokale Wikipedia-Artikel haben höchste Priorität
+    const geoInfoTexts = [];
     if (lat && lon) {
       try {
         const radius = (raumtyp === "autobahn" || raumtyp === "landstrasse") ? 5000 : 2000;
         const r = await fetch("https://de.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=" + lat + "|" + lon + "&gsradius=" + radius + "&gslimit=5&format=json&origin=*", { headers: { "User-Agent": "Weggefluesterer/1.0" } });
         if (r.ok) {
           const d = await r.json();
-          for (const item of (d.query?.geosearch || []).slice(0, 3)) await addWiki(item.title);
+          for (const item of (d.query?.geosearch || []).slice(0, 3)) {
+            if (!usedTitles.has(item.title)) {
+              usedTitles.add(item.title);
+              const t = await fetchWiki(item.title);
+              if (t) geoInfoTexts.push("=== " + item.title + " ===\n" + t.slice(0, Math.floor(maxLen / 4)));
+            }
+          }
         }
       } catch {}
     }
@@ -105,7 +113,7 @@ export default async function handler(req) {
       } catch {}
     }
 
-    const wikiContext = infoTexts.join("\n\n").slice(0, maxLen);
+    const wikiContext = [...geoInfoTexts, ...infoTexts].join("\n\n").slice(0, maxLen);
 
     // 6. Templates
     const templates = {
