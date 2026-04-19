@@ -74,9 +74,16 @@ export default async function handler(req) {
       const titles = await wikiSearch((cityHint || searchTerm) + " Landschaft Geschichte Natur", 4);
       for (const t of titles.slice(0, 3)) await addWiki(t);
     } else {
-      if (cityHint) await addWiki(searchTerm + " (" + cityHint + ")");
-      const titles = await wikiSearch(cityHint ? searchTerm + " " + cityHint : searchTerm, 4);
-      for (const t of titles.slice(0, 3)) await addWiki(t);
+      if (cityHint) {
+        await addWiki(searchTerm + " (" + cityHint + ")");
+        const titles = await wikiSearch(searchTerm + " " + cityHint, 4);
+        for (const t of titles.slice(0, 3)) {
+          if (t.toLowerCase().includes(cityHint.toLowerCase()) || t.toLowerCase().includes(searchTerm.toLowerCase())) await addWiki(t);
+        }
+      } else {
+        const titles = await wikiSearch(searchTerm, 4);
+        for (const t of titles.slice(0, 3)) await addWiki(t);
+      }
     }
 
     // Geosearch ZUERST — lokale Wikipedia-Artikel haben höchste Priorität
