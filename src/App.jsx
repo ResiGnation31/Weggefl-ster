@@ -706,7 +706,7 @@ export default function App() {
       let memCtx = "";
       if (memory.length > 0) {
         const memLines = memory.map(function(m, i) { return (i+1) + ". " + m.place + ": " + m.summary; }).join("\n");
-        memCtx = "Bereits erzaehlt:\n" + memLines + "\n\nWICHTIG: Wiederhole KEINE dieser Fakten. Knaepfe mit einem natuerlichen Uebergang an.\n\n";
+        memCtx = "STRENG VERBOTEN zu wiederholen:\n" + memLines + "\n\nJede der oben genannten Personen, Jahreszahlen, Gebaeude, Ereignisse und Fakten sind TABU. Waehle komplett andere Aspekte.\n\n";
       }
       const transition = count === 0
         ? "Beginne sofort mit der Geschichte."
