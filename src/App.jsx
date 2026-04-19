@@ -1475,7 +1475,7 @@ export default function App() {
         </div>
 
         {/* Map */}
-        {route.length > 0 && (
+        {(route.length > 0 || (gpsSubMode === "guided" && gpsPos)) && (
           <MapView
             route={route}
             currentDist={currentDist}
@@ -1483,6 +1483,7 @@ export default function App() {
             simRunning={simRunning}
             speedKmh={speedKmh}
             currentLoc={currentLoc}
+            gpsPos={gpsMode === "real" ? gpsPos : null}
           />
         )}
 

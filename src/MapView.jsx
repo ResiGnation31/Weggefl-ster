@@ -9,7 +9,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
 
-export default function MapView({ route, currentDist, routeDist, simRunning, speedKmh, currentLoc }) {
+export default function MapView({ route, currentDist, routeDist, simRunning, speedKmh, currentLoc, gpsPos }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const routeLayerRef = useRef(null);
@@ -58,8 +58,13 @@ export default function MapView({ route, currentDist, routeDist, simRunning, spe
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !route.length) return;
-    const idx = Math.min(Math.floor(currentDist / Math.max(routeDist, 1) * route.length), route.length - 1);
-    const pos = route[idx];
+    let pos;
+    if (gpsPos && gpsPos.lat) {
+      pos = gpsPos;
+    } else {
+      const idx = Math.min(Math.floor(currentDist / Math.max(routeDist, 1) * route.length), route.length - 1);
+      pos = route[idx];
+    }
     const carIcon = L.divIcon({
       html: '<div style="width:24px;height:24px;background:#B25E00;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,0.4)">&#x1F697;</div>',
       className: "", iconAnchor: [12, 12],
@@ -70,10 +75,10 @@ export default function MapView({ route, currentDist, routeDist, simRunning, spe
     } else {
       carMarkerRef.current = L.marker([pos.lat, pos.lon], { icon: carIcon }).addTo(map);
     }
-    if (simRunning) {
+    if (simRunning || gpsPos) {
       map.panTo([pos.lat, pos.lon], { animate: true, duration: 0.5 });
     }
-  }, [currentDist, route, routeDist, simRunning, speedKmh]);
+  }, [currentDist, route, routeDist, simRunning, speedKmh, gpsPos]);
 
   return (
     <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", marginBottom: 12, border: "1px solid rgba(178,94,0,0.2)" }}>
