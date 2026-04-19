@@ -687,7 +687,7 @@ export default function App() {
         regionalGreeting + "! Heute fahren wir von " + introData.start + " nach " + introData.end + ".",
       ];
       const introGreeting = intros[Math.floor(Math.random() * intros.length)];
-      prompt = introGreeting + " Erzaehle jetzt direkt und sachlich was es ueber " + introData.start + " zu wissen gibt. Nutze echte Fakten: Geschichte, Einwohnerzahl, Sehenswuerdigkeiten. Ca. 80 Woerter, fliessendes Deutsch, kein #.";
+      prompt = "Beginne exakt mit diesem Satz: '" + introGreeting + "' — dann 2-3 Saetze interessante Fakten ueber " + introData.start + ". Nutze echte Fakten: Geschichte, Einwohnerzahl, Sehenswuerdigkeiten. Ca. 60-80 Woerter gesamt, fliessendes Deutsch, kein #.";
     } else {
       const count = storyCount;
       let memCtx = "";
