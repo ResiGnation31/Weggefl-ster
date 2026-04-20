@@ -1166,7 +1166,13 @@ export default function App() {
             if (d < minDist2) { minDist2 = d; closestIdx = i; }
           }
           simDistR.current = (closestIdx / route.length) * routeDistR.current;
-          if (!speakingR.current && !generatingR.current) {
+          // Mindestabstand zwischen Stories wie in Simulation
+          const distSinceLast = simDistR.current - lastStoryDistR.current;
+          const speedKmhNow = speed * 3.6;
+          const minStoryDist = Math.max(300, speedKmhNow * 8);
+          if (!speakingR.current && !generatingR.current && !manualStopR.current &&
+              distSinceLast > minStoryDist && simDistR.current > 50) {
+            lastStoryDistR.current = simDistR.current;
             triggerNextStory();
           }
           if (speakingR.current && !nextStoryR.current && !preloadingR.current) {
