@@ -1251,7 +1251,7 @@ export default function App() {
     gpsBg:"rgba(255,255,255,0.75)",
   };
   return (
-    <div style={{ minHeight:"100vh", position:"relative", background:T.bg, fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif", color:T.text, overflowX:"hidden", transition:"background 0.3s, color 0.3s" }}>
+    <div style={{ minHeight:"100vh", position:"relative", background:T.bg, fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif", color:T.text, overflowX:"hidden", transition:"background 0.3s, color 0.3s", paddingTop:"env(safe-area-inset-top)" }}>
       <AutoBackground progress={bgProgress.car}/>
       <BusBackground progress={bgProgress.bus}/>
       <BikeBackground progress={bgProgress.bike}/>
