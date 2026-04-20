@@ -1721,7 +1721,11 @@ export default function App() {
       )}
 
       {/* Profile Bottom Sheet */}
-      <div style={{
+      <div
+        onTouchStart={e => { e._sheetY = e.touches[0].clientY; e.currentTarget._startY = e.touches[0].clientY; e.currentTarget.style.transition = "none"; }}
+        onTouchMove={e => { const dy = e.touches[0].clientY - e.currentTarget._startY; if (dy > 0) e.currentTarget.style.transform = `translateX(-50%) translateY(${dy}px)`; }}
+        onTouchEnd={e => { const dy = e.changedTouches[0].clientY - e.currentTarget._startY; e.currentTarget.style.transition = "transform 0.4s cubic-bezier(0.32,0.72,0,1)"; if (dy > 80) { setProfileOpen(false); e.currentTarget.style.transform = "translateX(-50%) translateY(0)"; } else { e.currentTarget.style.transform = "translateX(-50%) translateY(0)"; } }}
+        style={{
         position:"fixed", bottom:0, left:"50%", transform: profileOpen ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(100%)",
         width:"100%", maxWidth:480, zIndex:301,
         background: isDark ? "#1C1917" : "#F5F0E8",
