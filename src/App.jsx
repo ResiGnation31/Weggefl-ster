@@ -535,7 +535,6 @@ export default function App() {
     clearInterval(progRef.current);
     setSpeaking(false);
     speakingR.current = false;
-    setTimeout(() => { manualStopR.current = false; }, 3000);
   }
 
   function onStoryEnd() {
@@ -1144,21 +1143,38 @@ export default function App() {
         if (firstPosition) {
           firstPosition = false;
           lastStoryTime = now;
-          // Intro mit verfügbaren POIs
           const availPOIs = gpsPOIs.filter(p => !usedGpsPOIs.includes(p.name));
           const poisText = availPOIs.slice(0, 5).map(p => p.name).join(", ");
           surroundingsR.current = (surroundingsR.current || "") + (poisText ? " | Voraus: " + poisText : "");
           if (subMode === "guided" && endDest) {
             const startGeoData = await geocode(lat, lon);
-          const startGeoName = typeof startGeoData === "object" ? startGeoData.name : startGeoData;
-          generateStory(endDest.name, true, { start: startGeoName || "deinem Standort", end: endDest.name, places: availPOIs.slice(0,3).map(p=>p.name).concat([endDest.name]) }, lat, lon);
+            const startGeoName = typeof startGeoData === "object" ? startGeoData.name : startGeoData;
+            await fetchRoute({name: startGeoName, lat, lon}, endDest);
+            simDistR.current = 0;
+            generateStory(endDest.name, true, { start: startGeoName || "deinem Standort", end: endDest.name, places: availPOIs.slice(0,3).map(p=>p.name).concat([endDest.name]) }, lat, lon);
           } else {
-            _geocode_tmp = await geocode(lat, lon); generateStory((typeof _geocode_tmp === "string" ? _geocode_tmp : _geocode_tmp.name) || "diesem Ort", false, null, lat, lon);
+            _geocode_tmp = await geocode(lat, lon);
+            generateStory((typeof _geocode_tmp === "string" ? _geocode_tmp : _geocode_tmp.name) || "diesem Ort", false, null, lat, lon);
           }
-        } else if (!speakingR.current && !generatingR.current && 
+        } else if (subMode === "guided" && routeR.current.length > 0) {
+          // GPS Position auf Route projizieren
+          const route = routeR.current;
+          let minDist2 = Infinity;
+          let closestIdx = 0;
+          for (let i = 0; i < route.length; i++) {
+            const d = haversine(lat, lon, route[i].lat, route[i].lon);
+            if (d < minDist2) { minDist2 = d; closestIdx = i; }
+          }
+          simDistR.current = (closestIdx / route.length) * routeDistR.current;
+          if (!speakingR.current && !generatingR.current) {
+            triggerNextStory();
+          }
+          if (speakingR.current && !nextStoryR.current && !preloadingR.current) {
+            preloadNextStory();
+          }
+        } else if (subMode !== "guided" && !speakingR.current && !generatingR.current &&
                    (now - lastStoryTime > minTime)) {
           lastStoryTime = now;
-          // Nächsten unbenutzten POI nehmen
           const availPOIs = gpsPOIs.filter(p => !usedGpsPOIs.includes(p.name));
           if (availPOIs.length > 0) {
             const poi = availPOIs[0];
@@ -1640,7 +1656,7 @@ export default function App() {
                       <path d="M11 17l-5-5 5-5"/><path d="M18 17l-5-5 5-5"/>
                     </svg>
                   </button>
-                  <button onClick={() => speaking ? stopAudio(true) : speakText(storyText, storyAudio || null)}
+                  <button onClick={() => speaking ? stopAudio(true) : (manualStopR.current = false, speakText(storyText, storyAudio || null))}
                     style={{ width:44, height:44, borderRadius:"50%", background:T.accent, border:"none", cursor:"pointer", fontSize:16, flexShrink:0, color:T.btnText, display:"flex", alignItems:"center", justifyContent:"center" }}>
                     {speaking ? "⏸" : "▶"}
                   </button>
