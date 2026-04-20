@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import MapView from "./MapView";
+import Auth from "./Auth";
+import { supabase } from "./supabase";
 
 function deg2rad(d) { return d * Math.PI / 180; }
 function haversine(lat1, lon1, lat2, lon2) {
@@ -311,6 +313,8 @@ export default function App() {
   const [activeColor, setActiveColor] = useState(() => localStorage.getItem("wg_color") || "gold");
   const [colorOpen, setColorOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [profilePhoto, setProfilePhoto] = useState(() => localStorage.getItem("wg_photo") || null);
 
   const colorMap = {
@@ -456,6 +460,18 @@ export default function App() {
       window.removeEventListener("touchmove", onMove);
       window.removeEventListener("touchend", onUp);
     };
+  }, []);
+
+  // Auth Check beim Start
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => { categoryR.current = category; }, [category]);
@@ -1288,6 +1304,9 @@ export default function App() {
     errorBg:"rgba(255,59,48,0.08)", errorBorder:"rgba(255,59,48,0.2)", errorText:"#C0392B",
     gpsBg:"rgba(255,255,255,0.75)",
   };
+  if (authLoading) return <div style={{ minHeight:"100vh", background:"#F5EFE6", display:"flex", alignItems:"center", justifyContent:"center" }}><div style={{ width:40, height:40, borderRadius:"50%", border:"3px solid #B25E00", borderTopColor:"transparent", animation:"spin 0.8s linear infinite" }}/></div>;
+  if (!user) return <Auth onLogin={setUser}/>;
+
   return (
     <div style={{ minHeight:"100vh", position:"relative", background:T.bg, fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif", color:T.text, overflowX:"hidden", transition:"background 0.3s, color 0.3s", paddingTop:"env(safe-area-inset-top)" }}>
       <AutoBackground progress={bgProgress.car}/>
@@ -1835,7 +1854,8 @@ export default function App() {
           {/* Ausloggen */}
           <button style={{ display:"flex", alignItems:"center", gap:14, width:"100%", padding:"14px 16px", borderRadius:14, border:"none", cursor:"pointer", background:"transparent", marginTop:8, textAlign:"left" }}
             onMouseEnter={e => e.currentTarget.style.background = "rgba(255,59,48,0.08)"}
-            onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+              onClick={() => { supabase.auth.signOut(); setUser(null); setProfileOpen(false); }}>
             <div style={{ width:40, height:40, borderRadius:12, background:"rgba(255,59,48,0.1)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#FF3B30" strokeWidth="1.8" strokeLinecap="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
