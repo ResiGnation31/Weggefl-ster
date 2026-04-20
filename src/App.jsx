@@ -428,7 +428,10 @@ export default function App() {
       if (!sheetDragging.current || !sheetRef.current) return;
       const y = e.touches ? e.touches[0].clientY : e.clientY;
       const dy = y - sheetDragY.current;
-      if (dy > 0) sheetRef.current.style.transform = `translateX(-50%) translateY(${dy}px)`;
+      if (dy > 0) {
+        if (e.cancelable) e.preventDefault();
+        sheetRef.current.style.transform = `translateX(-50%) translateY(${dy}px)`;
+      }
     };
     const onUp = (e) => {
       if (!sheetDragging.current || !sheetRef.current) return;
@@ -445,7 +448,7 @@ export default function App() {
     };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
-    window.addEventListener("touchmove", onMove, { passive: true });
+    window.addEventListener("touchmove", onMove, { passive: false });
     window.addEventListener("touchend", onUp);
     return () => {
       window.removeEventListener("mousemove", onMove);
