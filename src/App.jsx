@@ -1722,9 +1722,9 @@ export default function App() {
 
       {/* Profile Bottom Sheet */}
       <div
-        onTouchStart={e => { e.currentTarget._startY = e.touches[0].clientY; e.currentTarget._dragging = false; e.currentTarget.style.transition = "none"; }}
-        onTouchMove={e => { const dy = e.touches[0].clientY - e.currentTarget._startY; if (dy > 5) { e.currentTarget._dragging = true; e.stopPropagation(); } if (dy > 0) e.currentTarget.style.transform = `translateX(-50%) translateY(${dy}px)`; }}
-        onTouchEnd={e => { const dy = e.changedTouches[0].clientY - e.currentTarget._startY; e.currentTarget.style.transition = "transform 0.4s cubic-bezier(0.32,0.72,0,1)"; if (dy > 80) { setProfileOpen(false); } e.currentTarget.style.transform = "translateX(-50%) translateY(0)"; }}
+        onPointerDown={e => { e.currentTarget._startY = e.clientY; e.currentTarget._dragging = false; e.currentTarget.setPointerCapture(e.pointerId); e.currentTarget.style.transition = "none"; }}
+        onPointerMove={e => { if (e.currentTarget._startY === undefined) return; const dy = e.clientY - e.currentTarget._startY; if (dy > 5) e.currentTarget._dragging = true; if (dy > 0) e.currentTarget.style.transform = `translateX(-50%) translateY(${dy}px)`; }}
+        onPointerUp={e => { const dy = e.clientY - e.currentTarget._startY; e.currentTarget.style.transition = "transform 0.4s cubic-bezier(0.32,0.72,0,1)"; e.currentTarget._startY = undefined; if (dy > 80) { setProfileOpen(false); e.currentTarget.style.transform = "translateX(-50%) translateY(100%)"; } else { e.currentTarget.style.transform = "translateX(-50%) translateY(0)"; } }}
         style={{
         position:"fixed", bottom:0, left:"50%", transform: profileOpen ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(100%)",
         width:"100%", maxWidth:480, zIndex:301,
