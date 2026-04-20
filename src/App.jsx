@@ -418,7 +418,42 @@ export default function App() {
   const simPosR        = useRef({ lat: null, lon: null });
   const routeSpeedMapR = useRef([]);
   const simStepDistR   = useRef(0);
+  const sheetDragY     = useRef(0);
+  const sheetDragging  = useRef(false);
+  const sheetRef       = useRef(null);
   const lastMentionedStreetR = useRef("");
+
+  useEffect(() => {
+    const onMove = (e) => {
+      if (!sheetDragging.current || !sheetRef.current) return;
+      const y = e.touches ? e.touches[0].clientY : e.clientY;
+      const dy = y - sheetDragY.current;
+      if (dy > 0) sheetRef.current.style.transform = `translateX(-50%) translateY(${dy}px)`;
+    };
+    const onUp = (e) => {
+      if (!sheetDragging.current || !sheetRef.current) return;
+      const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+      const dy = y - sheetDragY.current;
+      sheetDragging.current = false;
+      sheetRef.current.style.transition = "transform 0.4s cubic-bezier(0.32,0.72,0,1)";
+      if (dy > 80) {
+        setProfileOpen(false);
+        sheetRef.current.style.transform = "translateX(-50%) translateY(100%)";
+      } else {
+        sheetRef.current.style.transform = "translateX(-50%) translateY(0)";
+      }
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("touchmove", onMove, { passive: true });
+    window.addEventListener("touchend", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onUp);
+    };
+  }, []);
 
   useEffect(() => { categoryR.current = category; }, [category]);
   useEffect(() => { speedR.current = speedKmh; }, [speedKmh]);
@@ -1722,9 +1757,9 @@ export default function App() {
 
       {/* Profile Bottom Sheet */}
       <div
-        onPointerDown={e => { e.currentTarget._startY = e.clientY; e.currentTarget._dragging = false; e.currentTarget.setPointerCapture(e.pointerId); e.currentTarget.style.transition = "none"; }}
-        onPointerMove={e => { if (e.currentTarget._startY === undefined) return; const dy = e.clientY - e.currentTarget._startY; if (dy > 5) e.currentTarget._dragging = true; if (dy > 0) e.currentTarget.style.transform = `translateX(-50%) translateY(${dy}px)`; }}
-        onPointerUp={e => { const dy = e.clientY - e.currentTarget._startY; e.currentTarget.style.transition = "transform 0.4s cubic-bezier(0.32,0.72,0,1)"; e.currentTarget._startY = undefined; if (dy > 80) { setProfileOpen(false); e.currentTarget.style.transform = "translateX(-50%) translateY(100%)"; } else { e.currentTarget.style.transform = "translateX(-50%) translateY(0)"; } }}
+        ref={sheetRef}
+        onMouseDown={e => { sheetDragY.current = e.clientY; sheetDragging.current = true; if(sheetRef.current) sheetRef.current.style.transition = "none"; }}
+        onTouchStart={e => { sheetDragY.current = e.touches[0].clientY; sheetDragging.current = true; if(sheetRef.current) sheetRef.current.style.transition = "none"; e.stopPropagation(); }}
         style={{
         position:"fixed", bottom:0, left:"50%", transform: profileOpen ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(100%)",
         width:"100%", maxWidth:480, zIndex:301,
