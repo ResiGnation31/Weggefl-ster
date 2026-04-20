@@ -1771,6 +1771,7 @@ export default function App() {
         padding:"0 0 40px",
         transition:"transform 0.4s cubic-bezier(0.32,0.72,0,1)",
         boxShadow:"0 -8px 40px rgba(0,0,0,0.2)",
+        willChange:"transform",
       }}>
         {/* Handle */}
         <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 8px" }}>
