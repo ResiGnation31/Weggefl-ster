@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      workbox: { maximumFileSizeToCacheInBytes: 5 * 1024 * 1024 },
       registerType: 'autoUpdate',
       manifest: {
         name: 'Weggeflüsterer',

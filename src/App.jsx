@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import MapView from "./MapView";
+import MapboxView from "./MapboxView";
 import Auth from "./Auth";
 import { supabase } from "./supabase";
 
@@ -361,6 +362,7 @@ export default function App() {
   const [voiceIdx, setVoiceIdx]     = useState(0);
   const [log, setLog]               = useState([]);
   const [gpsSubMode, setGpsSubMode]   = useState(null);
+  const [exploreMode, setExploreMode] = useState("berieselung");
   const [voiceEngine, setVoiceEngine]   = useState("elevenlabs");
   const [playbackRate, setPlaybackRate] = useState(() => parseFloat(localStorage.getItem("wg_rate") || "1"));
   const [voiceDropOpen, setVoiceDropOpen] = useState(false);
@@ -1506,6 +1508,35 @@ export default function App() {
           />
         )}
 
+        {/* Stadtguide Modus */}
+        {exploreMode === "stadtguide" && gpsSubMode === "free" && (
+          <div style={{ marginBottom:14 }}>
+            <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+              <button onClick={() => { setExploreMode("berieselung"); startGPS("free", null); }}
+                style={{ flex:1, padding:9, background:"transparent", border:"1px solid " + T.border, borderRadius:10, color:T.textMuted, fontSize:13, cursor:"pointer" }}>
+                🎧 Berieselung
+              </button>
+              <button style={{ flex:1, padding:9, background:T.accentDim, border:"1px solid " + T.accent, borderRadius:10, color:T.accent, fontSize:13, fontWeight:600, cursor:"pointer" }}>
+                🗺️ Stadtguide
+              </button>
+            </div>
+            <div style={{ height:400, borderRadius:16, overflow:"hidden", border:"1px solid " + T.border }}>
+              <MapboxView
+                userLat={gpsPos?.lat}
+                userLon={gpsPos?.lon}
+                isDark={isDark}
+                onLocationSelect={(place) => {
+                  generateStory(place.name, false, null, place.lat, place.lon);
+                }}
+              />
+            </div>
+            <button onClick={() => { setGpsSubMode(null); setExploreMode("berieselung"); }}
+              style={{ width:"100%", marginTop:10, padding:11, background:"transparent", border:"1px solid " + T.border, borderRadius:12, color:T.textMuted, fontSize:14, cursor:"pointer" }}>
+              Stop
+            </button>
+          </div>
+        )}
+
         {/* Progress */}
         {routeDist > 0 && (
           <div style={{ marginBottom:12 }}>
@@ -1652,10 +1683,16 @@ export default function App() {
                   </button>
                 </div>
                 <div style={{ fontSize:".72rem", color:T.textMuted, textAlign:"center" }}>— oder —</div>
-                <button onClick={() => { setGpsSubMode("free"); startGPS("free", null); }}
-                  style={{ width:"100%", padding:15, background:"transparent", border:"1px solid " + T.border, borderRadius:14, color:T.text, fontSize:16, fontWeight:600, cursor:"pointer", transition:"all 0.2s" }}>
-                  Frei erkunden
-                </button>
+                <div style={{ display:"flex", gap:8 }}>
+                  <button onClick={() => { setExploreMode("berieselung"); setGpsSubMode("free"); startGPS("free", null); }}
+                    style={{ flex:1, padding:13, background:"transparent", border:"1px solid " + T.border, borderRadius:12, color:T.text, fontSize:14, fontWeight:600, cursor:"pointer" }}>
+                    🎧 Berieselung
+                  </button>
+                  <button onClick={() => { setExploreMode("stadtguide"); setGpsSubMode("free"); }}
+                    style={{ flex:1, padding:13, background:"transparent", border:"1px solid " + T.border, borderRadius:12, color:T.text, fontSize:14, fontWeight:600, cursor:"pointer" }}>
+                    🗺️ Stadtguide
+                  </button>
+                </div>
               </div>
             ) : (
               <div style={{ display:"flex", gap:9 }}>
