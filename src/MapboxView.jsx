@@ -53,9 +53,17 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark 
   }, [isDark]);
 
   useEffect(() => {
-    if (!mapInstanceRef.current || !userLat || !userLon) return;
-    if (userMarkerRef.current) userMarkerRef.current.setLngLat([userLon, userLat]);
-    mapInstanceRef.current.flyTo({ center: [userLon, userLat], zoom: 14, duration: 1000 });
+    if (!userLat || !userLon) return;
+    if (mapInstanceRef.current) {
+      if (userMarkerRef.current) {
+        userMarkerRef.current.setLngLat([userLon, userLat]);
+      } else {
+        const el = document.createElement("div");
+        el.style.cssText = "width:16px;height:16px;background:#B25E00;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)";
+        userMarkerRef.current = new mapboxgl.Marker(el).setLngLat([userLon, userLat]).addTo(mapInstanceRef.current);
+      }
+      mapInstanceRef.current.flyTo({ center: [userLon, userLat], zoom: 15, duration: 1200 });
+    }
   }, [userLat, userLon]);
 
   return (
