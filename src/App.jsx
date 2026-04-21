@@ -1897,7 +1897,7 @@ export default function App() {
               }}/>
               {tabs.map(({ id, label, svg }) => (
                 <button key={id} onClick={() => handleTransport(id)}
-                  style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"transparent", border:"none", cursor:"pointer", padding:"8px 4px", position:"relative", zIndex:1 }}>
+                  style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"transparent", border:"none", cursor:"pointer", padding:"8px 4px", position:"relative", zIndex:1, WebkitTapHighlightColor:"transparent", outline:"none" }}>
                   <div style={{ color: transport===id ? T.accent : T.textMuted, transition:"color 0.3s ease", display:"flex" }}>{svg}</div>
                   <span style={{ fontSize:10, color: transport===id ? T.accent : T.textMuted, fontWeight: transport===id ? 700 : 400, transition:"color 0.3s ease", whiteSpace:"nowrap" }}>{label}</span>
                 </button>
