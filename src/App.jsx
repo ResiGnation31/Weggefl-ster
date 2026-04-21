@@ -1881,7 +1881,7 @@ export default function App() {
           ];
           const activeIdx = tabs.findIndex(t => t.id === transport);
           return (
-            <div style={{ display:"flex", position:"relative", padding:"0 8px", width:"100%" }}>
+            <div style={{ display:"flex", position:"relative", width:"100%" }}>
               {/* Sliding background */}
               <div style={{
                 position:"absolute",
