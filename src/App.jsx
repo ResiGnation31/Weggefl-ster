@@ -1884,13 +1884,13 @@ export default function App() {
               <div style={{
                 display:"flex", flexDirection:"column", alignItems:"center", gap:3,
                 background: transport===id ? T.accentDim : "transparent",
-                borderRadius: transport===id ? 20 : 12,
-                padding: transport===id ? "8px 16px" : "8px 10px",
-                transition:"all 0.35s cubic-bezier(0.34,1.56,0.64,1)",
-                transform: transport===id ? "scale(1.05)" : "scale(1)",
+                borderRadius: 20,
+                padding: "8px 16px",
+                transition:"background 0.3s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1)",
+                transform: transport===id ? "scale(1.06)" : "scale(1)",
               }}>
-                <div style={{ color: transport===id ? T.accent : T.textMuted, transition:"color 0.25s", display:"flex" }}>{svg}</div>
-                <span style={{ fontSize:10, letterSpacing:"0.1px", color: transport===id ? T.accent : T.textMuted, fontWeight: transport===id ? 700 : 400, transition:"all 0.25s", whiteSpace:"nowrap" }}>{label}</span>
+                <div style={{ color: transport===id ? T.accent : T.textMuted, transition:"color 0.3s ease", display:"flex" }}>{svg}</div>
+                <span style={{ fontSize:10, letterSpacing:"0.1px", color: transport===id ? T.accent : T.textMuted, fontWeight: transport===id ? 700 : 400, transition:"color 0.3s ease, font-weight 0.3s ease", whiteSpace:"nowrap" }}>{label}</span>
               </div>
             </button>
           ))}
