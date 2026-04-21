@@ -1881,12 +1881,12 @@ export default function App() {
           ];
           const activeIdx = tabs.findIndex(t => t.id === transport);
           return (
-            <div style={{ display:"flex", position:"relative", padding:"0 8px" }}>
+            <div style={{ display:"flex", position:"relative", padding:"0 8px", width:"100%" }}>
               {/* Sliding background */}
               <div style={{
                 position:"absolute",
                 top: 4,
-                left: `calc(8px + ${activeIdx} * 25%)`,
+                left: `calc(${activeIdx * 25}% + 8px)`,
                 width: "25%",
                 height: "calc(100% - 8px)",
                 background: T.accentDim,
