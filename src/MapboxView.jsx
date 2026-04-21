@@ -27,10 +27,18 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
     }
     mapInstanceRef.current.on("click", async (e) => {
       const { lng, lat } = e.lngLat;
-      if (markerRef.current) markerRef.current.remove();
-      const el = document.createElement("div");
-      el.style.cssText = "width:14px;height:14px;background:#E74C3C;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)";
-      markerRef.current = new mapboxgl.Marker(el).setLngLat([lng, lat]).addTo(mapInstanceRef.current);
+      // Zuerst: Gibt es einen benannten POI an dieser Stelle?
+      const features = mapInstanceRef.current.queryRenderedFeatures(e.point);
+      const poi = features.find(f => f.properties?.name);
+      const poiName = poi?.properties?.name || null;
+      if (poiName) {
+        // POI direkt antippen -> sofort Story
+        const place = { name: poiName, lat, lon: lng };
+        setSelectedPlace(place);
+        if (onLocationSelect) onLocationSelect(place);
+        return;
+      }
+      // Kein POI: Reverse-Geocoding für leere Stelle
       try {
         const r = await fetch("https://api.mapbox.com/geocoding/v5/mapbox.places/" + lng + "," + lat + ".json?language=de&access_token=" + mapboxgl.accessToken);
         const d = await r.json();
