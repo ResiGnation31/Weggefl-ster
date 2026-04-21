@@ -1892,7 +1892,7 @@ export default function App() {
                 height: 56,
                 background: T.accentDim,
                 borderRadius: 20,
-                transition: "left 0.35s cubic-bezier(0.34,1.56,0.64,1)",
+                transition: "left 0.7s cubic-bezier(0.34,1.56,0.64,1)",
                 pointerEvents: "none",
               }}/>
               {tabs.map(({ id, label, svg }) => (
