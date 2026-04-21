@@ -1688,7 +1688,7 @@ export default function App() {
                     style={{ flex:1, padding:13, background:"transparent", border:"1px solid " + T.border, borderRadius:12, color:T.text, fontSize:14, fontWeight:600, cursor:"pointer" }}>
                     🎧 Berieselung
                   </button>
-                  <button onClick={() => { setExploreMode("stadtguide"); setGpsSubMode("free"); }}
+                  <button onClick={() => { setExploreMode("stadtguide"); setGpsSubMode("free"); startGPS("free", null); }}
                     style={{ flex:1, padding:13, background:"transparent", border:"1px solid " + T.border, borderRadius:12, color:T.text, fontSize:14, fontWeight:600, cursor:"pointer" }}>
                     🗺️ Stadtguide
                   </button>

@@ -4,7 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
-export default function MapboxView({ onLocationSelect, userLat, userLon, isDark }) {
+export default function MapboxView({ onLocationSelect, userLat, userLon, isDark, followUser = true }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
@@ -62,7 +62,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark 
         el.style.cssText = "width:16px;height:16px;background:#B25E00;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)";
         userMarkerRef.current = new mapboxgl.Marker(el).setLngLat([userLon, userLat]).addTo(mapInstanceRef.current);
       }
-      mapInstanceRef.current.flyTo({ center: [userLon, userLat], zoom: 15, duration: 1200 });
+      if (followUser) mapInstanceRef.current.flyTo({ center: [userLon, userLat], zoom: 15, duration: 1200 });
     }
   }, [userLat, userLon]);
 
