@@ -1883,10 +1883,11 @@ export default function App() {
               style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4, background:"transparent", border:"none", cursor:"pointer", padding:"4px 0", position:"relative" }}>
               <div style={{
                 display:"flex", flexDirection:"column", alignItems:"center", gap:3,
-                background: transport===id ? T.accentDim : "transparent",
+                background: T.accentDim,
                 borderRadius: 20,
                 padding: "8px 16px",
-                transition:"background 0.3s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1)",
+                opacity: transport===id ? 1 : 0,
+                transition:"opacity 0.3s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1)",
                 transform: transport===id ? "scale(1.06)" : "scale(1)",
               }}>
                 <div style={{ color: transport===id ? T.accent : T.textMuted, transition:"color 0.3s ease", display:"flex" }}>{svg}</div>
