@@ -1872,24 +1872,26 @@ export default function App() {
 
       {/* Transport Bar */}
       <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background: isDark ? "rgba(26,23,20,0.92)" : "rgba(245,240,232,0.88)", backdropFilter:"blur(20px)", borderTop:"0.5px solid " + T.border, padding:"10px 0 18px", zIndex:200, transition:"background 0.4s" }}>
-        <div style={{ display:"flex" }}>
+        <div style={{ display:"flex", alignItems:"center", padding:"0 8px", gap:4 }}>
           {[
-            { id:"car", label:"Auto", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:24,height:24}}><rect x="1" y="11" width="22" height="9" rx="2"/><path d="M5 11L7 6h10l2 5"/><circle cx="7.5" cy="20" r="1.5"/><circle cx="16.5" cy="20" r="1.5"/></svg> },
-            { id:"bus", label:"Bus", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:24,height:24}}><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 10h18M8 19v2M16 19v2"/><circle cx="7" cy="15" r="1"/><circle cx="17" cy="15" r="1"/></svg> },
-            { id:"bike", label:"Fahrrad", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:24,height:24}}><circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M6 15l4-8h4l2 4-4 4-2-4"/><path d="M14 7h2"/></svg> },
-            { id:"walk", label:"Zu Fuß", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:24,height:24}}><circle cx="12" cy="4" r="1.5"/><path d="M10 8l-2 5h4l2 5M8 13l-2 6M16 13l1 6"/></svg> },
+            { id:"car", label:"Auto", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:22,height:22}}><rect x="1" y="11" width="22" height="9" rx="2"/><path d="M5 11L7 6h10l2 5"/><circle cx="7.5" cy="20" r="1.5"/><circle cx="16.5" cy="20" r="1.5"/></svg> },
+            { id:"bus", label:"Bus", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:22,height:22}}><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 10h18M8 19v2M16 19v2"/><circle cx="7" cy="15" r="1"/><circle cx="17" cy="15" r="1"/></svg> },
+            { id:"bike", label:"Fahrrad", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:22,height:22}}><circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M6 15l4-8h4l2 4-4 4-2-4"/><path d="M14 7h2"/></svg> },
+            { id:"walk", label:"Zu Fuß", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:22,height:22}}><circle cx="12" cy="4" r="1.5"/><path d="M10 8l-2 5h4l2 5M8 13l-2 6M16 13l1 6"/></svg> },
           ].map(({ id, label, svg }) => (
             <button key={id} onClick={() => handleTransport(id)}
-              style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"transparent", border:"none", cursor:"pointer", padding:"4px 0" }}>
-              <div style={{ width:44, height:44, borderRadius:12,
+              style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4, background:"transparent", border:"none", cursor:"pointer", padding:"4px 0", position:"relative" }}>
+              <div style={{
+                display:"flex", flexDirection:"column", alignItems:"center", gap:3,
                 background: transport===id ? T.accentDim : "transparent",
-                display:"flex", alignItems:"center", justifyContent:"center",
-                color: transport===id ? T.accent : T.textMuted,
-                transition:"all 0.3s cubic-bezier(0.34,1.56,0.64,1)",
-                transform: transport===id ? "scale(1.08)" : "scale(1)" }}>
-                {svg}
+                borderRadius: transport===id ? 20 : 12,
+                padding: transport===id ? "8px 16px" : "8px 10px",
+                transition:"all 0.35s cubic-bezier(0.34,1.56,0.64,1)",
+                transform: transport===id ? "scale(1.05)" : "scale(1)",
+              }}>
+                <div style={{ color: transport===id ? T.accent : T.textMuted, transition:"color 0.25s", display:"flex" }}>{svg}</div>
+                <span style={{ fontSize:10, letterSpacing:"0.1px", color: transport===id ? T.accent : T.textMuted, fontWeight: transport===id ? 700 : 400, transition:"all 0.25s", whiteSpace:"nowrap" }}>{label}</span>
               </div>
-              <span style={{ fontSize:10, letterSpacing:"0.1px", color: transport===id ? T.accent : T.textMuted, fontWeight: transport===id ? 600 : 400, transition:"color 0.2s" }}>{label}</span>
             </button>
           ))}
         </div>
