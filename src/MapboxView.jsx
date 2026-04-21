@@ -66,9 +66,25 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark 
     }
   }, [userLat, userLon]);
 
+  function flyToUser() {
+    if (mapInstanceRef.current && userLat && userLon) {
+      mapInstanceRef.current.flyTo({ center: [userLon, userLat], zoom: 15, duration: 800 });
+    }
+  }
+
   return (
     <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", height: "100%" }}>
       <div ref={mapRef} style={{ width: "100%", height: "100%" }}/>
+      {/* Standort Button */}
+      <button onClick={flyToUser} style={{ position:"absolute", top:10, left:10, width:36, height:36, background:"white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10 }}>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#B25E00" strokeWidth="2" strokeLinecap="round">
+          <circle cx="12" cy="12" r="4"/>
+          <line x1="12" y1="2" x2="12" y2="6"/>
+          <line x1="12" y1="18" x2="12" y2="22"/>
+          <line x1="2" y1="12" x2="6" y2="12"/>
+          <line x1="18" y1="12" x2="22" y2="12"/>
+        </svg>
+      </button>
       {selectedPlace && (
         <div style={{ position: "absolute", bottom: 16, left: 16, right: 16, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(10px)", borderRadius: 14, padding: "12px 16px", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <div>

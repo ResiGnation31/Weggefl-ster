@@ -1411,7 +1411,7 @@ export default function App() {
           {["sim","real"].map(m => (
             <button key={m} onClick={() => { setGpsMode(m); if(m==="sim") stopGPS(); }}
               style={{ flex:1, padding:"9px", borderRadius:9, border:"none", background:gpsMode===m?T.bgCard:"transparent", color:gpsMode===m?T.text:T.textMuted, fontFamily:"sans-serif", fontSize:".82rem", fontWeight:gpsMode===m?600:400, cursor:"pointer", transition:"all 0.2s", boxShadow:gpsMode===m?"0 1px 4px rgba(0,0,0,0.08)":"none" }}>
-              {m==="sim" ? "Simulation" : "GPS"}
+              {m==="sim" ? "Simulation" : <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" strokeDasharray="2 4"/></svg>}
             </button>
           ))}
         </div>
