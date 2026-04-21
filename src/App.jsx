@@ -1885,10 +1885,11 @@ export default function App() {
               {/* Sliding background */}
               <div style={{
                 position:"absolute",
-                top: 4,
-                left: `calc(${activeIdx * 25}% + 8px)`,
-                width: "25%",
-                height: "calc(100% - 8px)",
+                top: "50%",
+                left: `calc(${activeIdx * 25}% + 12.5%)`,
+                transform: "translate(-50%, -50%)",
+                width: 72,
+                height: 56,
                 background: T.accentDim,
                 borderRadius: 20,
                 transition: "left 0.35s cubic-bezier(0.34,1.56,0.64,1)",
