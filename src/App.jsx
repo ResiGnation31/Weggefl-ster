@@ -1525,6 +1525,7 @@ export default function App() {
                 userLat={gpsPos?.lat}
                 userLon={gpsPos?.lon}
                 isDark={isDark}
+                accent={T.accent}
                 onLocationSelect={(place) => {
                   generateStory(place.name, false, null, place.lat, place.lon);
                 }}

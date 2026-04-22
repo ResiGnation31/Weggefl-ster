@@ -4,7 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
-export default function MapboxView({ onLocationSelect, userLat, userLon, isDark, followUser = true }) {
+export default function MapboxView({ onLocationSelect, userLat, userLon, isDark, followUser = true, accent = "accent" }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [is3D, setIs3D] = useState(true);
 
@@ -65,7 +65,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
     });
     if (userLat && userLon) {
       const el = document.createElement("div");
-      el.style.cssText = "width:16px;height:16px;background:#B25E00;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)";
+      el.style.cssText = "width:16px;height:16px;background:accent;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)";
       userMarkerRef.current = new mapboxgl.Marker(el).setLngLat([userLon, userLat]).addTo(mapInstanceRef.current);
     }
     mapInstanceRef.current.on("click", async (e) => {
@@ -110,7 +110,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
         userMarkerRef.current.setLngLat([userLon, userLat]);
       } else {
         const el = document.createElement("div");
-        el.style.cssText = "width:16px;height:16px;background:#B25E00;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)";
+        el.style.cssText = "width:16px;height:16px;background:accent;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)";
         userMarkerRef.current = new mapboxgl.Marker(el).setLngLat([userLon, userLat]).addTo(mapInstanceRef.current);
       }
       if (followUser) mapInstanceRef.current.flyTo({ center: [userLon, userLat], zoom: 15, duration: 1200 });
@@ -158,7 +158,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
 
       {/* Standort Button */}
       <button onClick={flyToUser} style={{ position:"absolute", top:10, left:10, width:36, height:36, background:"white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10 }}>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#B25E00" strokeWidth="2" strokeLinecap="round">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="accent" strokeWidth="2" strokeLinecap="round">
           <circle cx="12" cy="12" r="4"/>
           <line x1="12" y1="2" x2="12" y2="6"/>
           <line x1="12" y1="18" x2="12" y2="22"/>
@@ -168,15 +168,15 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
       </button>
 
       {/* 2D/3D Toggle */}
-      <button onClick={toggle3D} style={{ position:"absolute", top:10, left:98, width:36, height:36, background: is3D ? "#B25E00" : "white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10, color: is3D ? "white" : "#B25E00", fontWeight:700, fontSize:13 }}>
+      <button onClick={toggle3D} style={{ position:"absolute", top:10, left:98, width:36, height:36, background: is3D ? "accent" : "white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10, color: is3D ? "white" : "accent", fontWeight:700, fontSize:13 }}>
         {is3D ? "3D" : "2D"}
       </button>
 
       {/* Vollbild Button */}
       <button onClick={toggleFullscreen} style={{ position:"absolute", top:10, left:54, width:36, height:36, background:"white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10 }}>
         {isFullscreen
-          ? <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#B25E00" strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
-          : <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#B25E00" strokeWidth="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          ? <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="accent" strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+          : <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="accent" strokeWidth="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
         }
       </button>
 
@@ -184,7 +184,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
       <div style={{ position:"absolute", top:10, right:50, display:"flex", gap:4, zIndex:10 }}>
         {styles.map(s => (
           <button key={s.id} onClick={() => switchStyle(s.id)}
-            style={{ width:36, height:36, background: mapStyle===s.id ? "#B25E00" : "white", border:"none", borderRadius:8, cursor:"pointer", fontSize:16, boxShadow:"0 2px 8px rgba(0,0,0,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            style={{ width:36, height:36, background: mapStyle===s.id ? "accent" : "white", border:"none", borderRadius:8, cursor:"pointer", fontSize:16, boxShadow:"0 2px 8px rgba(0,0,0,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
             {s.label}
           </button>
         ))}
@@ -197,7 +197,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
             <p style={{ margin: "2px 0 0", fontSize: 11, color: "#8B7355" }}>Tippe fuer eine Story</p>
           </div>
           <button onClick={() => onLocationSelect && onLocationSelect(selectedPlace)}
-            style={{ background: "#B25E00", color: "white", border: "none", borderRadius: 10, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            style={{ background: "accent", color: "white", border: "none", borderRadius: 10, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             Story
           </button>
         </div>
