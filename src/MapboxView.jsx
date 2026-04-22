@@ -6,6 +6,15 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 export default function MapboxView({ onLocationSelect, userLat, userLon, isDark, followUser = true }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [is3D, setIs3D] = useState(true);
+
+  function toggle3D() {
+    setIs3D(f => {
+      const next = !f;
+      mapInstanceRef.current?.easeTo({ pitch: next ? 45 : 0, bearing: 0, duration: 600 });
+      return next;
+    });
+  }
 
   function toggleFullscreen() {
     setIsFullscreen(f => {
@@ -156,6 +165,11 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
           <line x1="2" y1="12" x2="6" y2="12"/>
           <line x1="18" y1="12" x2="22" y2="12"/>
         </svg>
+      </button>
+
+      {/* 2D/3D Toggle */}
+      <button onClick={toggle3D} style={{ position:"absolute", top:10, left:98, width:36, height:36, background: is3D ? "#B25E00" : "white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10, color: is3D ? "white" : "#B25E00", fontWeight:700, fontSize:13 }}>
+        {is3D ? "3D" : "2D"}
       </button>
 
       {/* Vollbild Button */}
