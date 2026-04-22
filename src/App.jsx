@@ -725,7 +725,7 @@ export default function App() {
     return ort || strasse || s.display_name.split(", ").slice(0,2).join(", ");
   }
 
-  async function generateStory(locationName, isIntro, introData, storyLat, storyLon) {
+  async function generateStory(locationName, isIntro, introData, storyLat, storyLon, forceTransport) {
     if (generatingR.current) return;
     generatingR.current = true;
     const kmh = speedR.current;
@@ -789,7 +789,7 @@ export default function App() {
       const res = await fetch("/api/story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: kmh, transport: transportR.current, voiceEngine: voiceEngineR.current, surroundings: surroundingsR.current, lat: storyLat || gpsPos?.lat || simPosR.current.lat || null, lon: storyLon || gpsPos?.lon || simPosR.current.lon || null, previousStories: memoryR.current.map(m => m.place + ": " + m.summary).join("\n"), streetAlreadyMentioned, customPrompt: prompt }),
+        body: JSON.stringify({ placeName: locationName, category: cat, speedKmh: forceTransport === "walk" ? 0 : kmh, transport: forceTransport || transportR.current, voiceEngine: voiceEngineR.current, surroundings: surroundingsR.current, lat: storyLat || gpsPos?.lat || simPosR.current.lat || null, lon: storyLon || gpsPos?.lon || simPosR.current.lon || null, previousStories: memoryR.current.map(m => m.place + ": " + m.summary).join("\n"), streetAlreadyMentioned, customPrompt: prompt }),
       });
       const data = await res.json();
       if (res.ok && data.text) {
@@ -1498,6 +1498,7 @@ export default function App() {
         {/* Stadtguide Modus */}
         {exploreMode === "stadtguide" && gpsSubMode === "free" && (
           <div style={{ marginBottom:14 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:T.textMuted, textTransform:"uppercase", letterSpacing:"0.8px", marginBottom:8 }}>🚶 Frei erkunden</div>
             <div style={{ display:"flex", gap:8, marginBottom:10 }}>
               <button onClick={() => { setExploreMode("berieselung"); startGPS("free", null); }}
                 style={{ flex:1, padding:9, background:"transparent", border:"1px solid " + T.border, borderRadius:10, color:T.textMuted, fontSize:13, cursor:"pointer" }}>
@@ -1515,7 +1516,7 @@ export default function App() {
                 accent={T.accent}
                 heading={gpsPos?.heading}
                 onLocationSelect={(place) => {
-                  generateStory(place.name, false, null, place.lat, place.lon);
+                  generateStory(place.name, false, null, place.lat, place.lon, "walk");
                 }}
               />
             </div>
