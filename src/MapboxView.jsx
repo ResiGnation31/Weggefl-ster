@@ -162,7 +162,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
 
       {/* Standort Button */}
       <button onClick={flyToUser} style={{ position:"absolute", top:10, left:10, width:36, height:36, background:"white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10 }}>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="accent" strokeWidth="2" strokeLinecap="round">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round">
           <circle cx="12" cy="12" r="4"/>
           <line x1="12" y1="2" x2="12" y2="6"/>
           <line x1="12" y1="18" x2="12" y2="22"/>
@@ -189,8 +189,8 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
       {/* Vollbild Button */}
       <button onClick={toggleFullscreen} style={{ position:"absolute", top:10, left:54, width:36, height:36, background:"white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10 }}>
         {isFullscreen
-          ? <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="accent" strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
-          : <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="accent" strokeWidth="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          ? <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={accent} strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+          : <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={accent} strokeWidth="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
         }
       </button>
 
