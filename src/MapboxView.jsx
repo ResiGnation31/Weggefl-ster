@@ -66,7 +66,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
     });
     if (userLat && userLon) {
       const el = document.createElement("div");
-      el.style.cssText = "width:16px;height:16px;background:accent;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)";
+      el.style.cssText = `width:16px;height:16px;background:${accent};border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)`;
       userMarkerRef.current = new mapboxgl.Marker(el).setLngLat([userLon, userLat]).addTo(mapInstanceRef.current);
     }
     mapInstanceRef.current.on("click", async (e) => {
@@ -111,7 +111,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
         userMarkerRef.current.setLngLat([userLon, userLat]);
       } else {
         const el = document.createElement("div");
-        el.style.cssText = "width:16px;height:16px;background:accent;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)";
+        el.style.cssText = `width:16px;height:16px;background:${accent};border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)`;
         userMarkerRef.current = new mapboxgl.Marker(el).setLngLat([userLon, userLat]).addTo(mapInstanceRef.current);
       }
       if (followUser) {
