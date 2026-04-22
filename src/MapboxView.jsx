@@ -20,8 +20,8 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
       zoom: userLat ? 14 : 6,
     });
     mapInstanceRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
-    mapInstanceRef.current.on("load", () => {
-      // 3D Gebäude
+    function add3DBuildings(dark) {
+      if (mapInstanceRef.current.getLayer("3d-buildings")) return;
       mapInstanceRef.current.addLayer({
         id: "3d-buildings",
         source: "composite",
@@ -30,13 +30,15 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
         type: "fill-extrusion",
         minzoom: 14,
         paint: {
-          "fill-extrusion-color": isDark ? "#2a2a2a" : "#e8e0d8",
+          "fill-extrusion-color": dark ? "#2a2a2a" : "#e8e0d8",
           "fill-extrusion-height": ["get", "height"],
           "fill-extrusion-base": ["get", "min_height"],
           "fill-extrusion-opacity": 0.8
         }
       });
-      // Kamera leicht kippen für 3D-Effekt
+    }
+    mapInstanceRef.current.on("load", () => {
+      add3DBuildings(isDark);
       mapInstanceRef.current.easeTo({ pitch: 45, bearing: 0, duration: 1000 });
     });
     if (userLat && userLon) {
