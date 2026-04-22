@@ -20,6 +20,25 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
       zoom: userLat ? 14 : 6,
     });
     mapInstanceRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+    mapInstanceRef.current.on("load", () => {
+      // 3D Gebäude
+      mapInstanceRef.current.addLayer({
+        id: "3d-buildings",
+        source: "composite",
+        "source-layer": "building",
+        filter: ["==", "extrude", "true"],
+        type: "fill-extrusion",
+        minzoom: 14,
+        paint: {
+          "fill-extrusion-color": isDark ? "#2a2a2a" : "#e8e0d8",
+          "fill-extrusion-height": ["get", "height"],
+          "fill-extrusion-base": ["get", "min_height"],
+          "fill-extrusion-opacity": 0.8
+        }
+      });
+      // Kamera leicht kippen für 3D-Effekt
+      mapInstanceRef.current.easeTo({ pitch: 45, bearing: 0, duration: 1000 });
+    });
     if (userLat && userLon) {
       const el = document.createElement("div");
       el.style.cssText = "width:16px;height:16px;background:#B25E00;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)";
