@@ -182,7 +182,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
       </button>
 
       {/* 2D/3D Toggle */}
-      <button onClick={toggle3D} style={{ position:"absolute", top:10, left:98, width:36, height:36, background: is3D ? "accent" : "white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10, color: is3D ? "white" : "accent", fontWeight:700, fontSize:13 }}>
+      <button onClick={toggle3D} style={{ position:"absolute", top:10, left:98, width:36, height:36, background: is3D ? accent : "white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10, color: is3D ? "white" : accent, fontWeight:700, fontSize:13 }}>
         {is3D ? "3D" : "2D"}
       </button>
 
@@ -198,7 +198,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
       <div style={{ position:"absolute", top:10, right:50, display:"flex", gap:4, zIndex:10 }}>
         {styles.map(s => (
           <button key={s.id} onClick={() => switchStyle(s.id)}
-            style={{ width:36, height:36, background: mapStyle===s.id ? "accent" : "white", border:"none", borderRadius:8, cursor:"pointer", fontSize:16, boxShadow:"0 2px 8px rgba(0,0,0,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            style={{ width:36, height:36, background: mapStyle===s.id ? accent : "white", border:"none", borderRadius:8, cursor:"pointer", fontSize:16, boxShadow:"0 2px 8px rgba(0,0,0,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
             {s.label}
           </button>
         ))}
