@@ -6,6 +6,16 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 export default function MapboxView({ onLocationSelect, userLat, userLon, isDark, followUser = true }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  function toggleFullscreen() {
+    setIsFullscreen(f => {
+      const next = !f;
+      setTimeout(() => {
+        mapInstanceRef.current?.resize();
+      }, 50);
+      return next;
+    });
+  }
   const [mapStyle, setMapStyle] = useState(isDark ? 'dark' : 'streets');
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -133,7 +143,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
   }
 
   return (
-    <div style={{ position: isFullscreen ? "fixed" : "relative", top: isFullscreen ? 0 : "auto", left: isFullscreen ? 0 : "auto", right: isFullscreen ? 0 : "auto", bottom: isFullscreen ? 0 : "auto", zIndex: isFullscreen ? 9999 : "auto", borderRadius: isFullscreen ? 0 : 16, overflow: "hidden", height: isFullscreen ? "100dvh" : "100%", transition: "all 0.3s ease" }}>
+    <div style={{ position: isFullscreen ? "fixed" : "relative", top: isFullscreen ? 0 : "auto", left: isFullscreen ? 0 : "auto", right: isFullscreen ? 0 : "auto", bottom: isFullscreen ? 0 : "auto", width: isFullscreen ? "100vw" : "100%", zIndex: isFullscreen ? 9999 : "auto", borderRadius: isFullscreen ? 0 : 16, overflow: "hidden", height: isFullscreen ? "100dvh" : "100%", transition: "all 0.3s ease" }}>
       <div ref={mapRef} style={{ width: "100%", height: "100%" }}/>
 
       {/* Standort Button */}
@@ -148,7 +158,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
       </button>
 
       {/* Vollbild Button */}
-      <button onClick={() => setIsFullscreen(f => !f)} style={{ position:"absolute", top:10, left:54, width:36, height:36, background:"white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10 }}>
+      <button onClick={toggleFullscreen} style={{ position:"absolute", top:10, left:54, width:36, height:36, background:"white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10 }}>
         {isFullscreen
           ? <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#B25E00" strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
           : <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#B25E00" strokeWidth="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
