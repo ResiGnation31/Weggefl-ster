@@ -1643,9 +1643,9 @@ export default function App() {
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 <div style={{ padding:"0" }}>
                   <div style={{ fontSize:11, fontWeight:600, color:T.textMuted, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.8px", textAlign:"left" }}>Mit Ziel fahren</div>
-                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, padding:"10px 14px", background:T.bgInput, borderRadius:"12px 12px 4px 4px" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, padding:"10px 14px 10px 10px", background:T.bgInput, borderRadius:10, border:"1px solid " + T.border, boxSizing:"border-box" }}>
                     <div style={{ flexShrink:0 }}><svg width="14" height="18" viewBox="0 0 14 18" fill="none"><path d="M7 0C3.13 0 0 3.13 0 7c0 5.25 7 11 7 11s7-5.75 7-11c0-3.87-3.13-7-7-7z" fill="#34C759"/><circle cx="7" cy="7" r="2.5" fill="white"/></svg></div>
-                    <span style={{ fontSize:13, color:T.text }}>{currentLoc || "Warte auf GPS..."}</span>
+                    <span style={{ fontSize:".88rem", color:T.text }}>{currentLoc || "Warte auf GPS..."}</span>
                   </div>
                   <div style={{ position:"relative", marginBottom:10 }}>
                     <div style={{ position:"relative" }}>
