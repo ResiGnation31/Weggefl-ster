@@ -171,16 +171,6 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
         </svg>
       </button>
 
-      {/* Kompass / Heading Button */}
-      <button onClick={() => setFollowHeading(f => !f)} style={{ position:"absolute", top:54, left:10, width:36, height:36, background: followHeading ? accent : "white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10 }}
-        title={followHeading ? "Fahrtrichtung" : "Norden"}>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" strokeWidth="2" strokeLinecap="round">
-          <polygon points="12,2 15,10 12,8 9,10" fill={followHeading ? "white" : accent} stroke={followHeading ? "white" : accent}/>
-          <polygon points="12,22 9,14 12,16 15,14" fill={followHeading ? "rgba(255,255,255,0.4)" : "#ccc"} stroke={followHeading ? "rgba(255,255,255,0.4)" : "#ccc"}/>
-          <circle cx="12" cy="12" r="1.5" fill={followHeading ? "white" : accent}/>
-        </svg>
-      </button>
-
       {/* 2D/3D Toggle */}
       <button onClick={toggle3D} style={{ position:"absolute", top:10, left:98, width:36, height:36, background: is3D ? accent : "white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10, color: is3D ? "white" : accent, fontWeight:700, fontSize:13 }}>
         {is3D ? "3D" : "2D"}
