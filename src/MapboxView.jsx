@@ -4,9 +4,10 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
-export default function MapboxView({ onLocationSelect, userLat, userLon, isDark, followUser = true, accent = "accent" }) {
+export default function MapboxView({ onLocationSelect, userLat, userLon, isDark, followUser = true, accent = "#B25E00", heading = null }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [is3D, setIs3D] = useState(true);
+  const [followHeading, setFollowHeading] = useState(false);
 
   function toggle3D() {
     setIs3D(f => {
@@ -113,7 +114,10 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
         el.style.cssText = "width:16px;height:16px;background:accent;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)";
         userMarkerRef.current = new mapboxgl.Marker(el).setLngLat([userLon, userLat]).addTo(mapInstanceRef.current);
       }
-      if (followUser) mapInstanceRef.current.flyTo({ center: [userLon, userLat], zoom: 15, duration: 1200 });
+      if (followUser) {
+        const bearing = followHeading && heading != null ? heading : 0;
+        mapInstanceRef.current.easeTo({ center: [userLon, userLat], zoom: 15, bearing, duration: 800 });
+      }
     }
   }, [userLat, userLon]);
 
@@ -164,6 +168,16 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
           <line x1="12" y1="18" x2="12" y2="22"/>
           <line x1="2" y1="12" x2="6" y2="12"/>
           <line x1="18" y1="12" x2="22" y2="12"/>
+        </svg>
+      </button>
+
+      {/* Kompass / Heading Button */}
+      <button onClick={() => setFollowHeading(f => !f)} style={{ position:"absolute", top:54, left:10, width:36, height:36, background: followHeading ? accent : "white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10 }}
+        title={followHeading ? "Fahrtrichtung" : "Norden"}>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" strokeWidth="2" strokeLinecap="round">
+          <polygon points="12,2 15,10 12,8 9,10" fill={followHeading ? "white" : accent} stroke={followHeading ? "white" : accent}/>
+          <polygon points="12,22 9,14 12,16 15,14" fill={followHeading ? "rgba(255,255,255,0.4)" : "#ccc"} stroke={followHeading ? "rgba(255,255,255,0.4)" : "#ccc"}/>
+          <circle cx="12" cy="12" r="1.5" fill={followHeading ? "white" : accent}/>
         </svg>
       </button>
 

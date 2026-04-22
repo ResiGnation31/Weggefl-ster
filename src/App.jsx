@@ -1167,7 +1167,7 @@ export default function App() {
         const lon = pos.coords.longitude;
         const heading = pos.coords.heading;
         const speed = pos.coords.speed || 0;
-        setGpsPos({ lat, lon });
+        setGpsPos({ lat, lon, heading });
         setGpsError("");
         const now = Date.now();
 
@@ -1526,6 +1526,7 @@ export default function App() {
                 userLon={gpsPos?.lon}
                 isDark={isDark}
                 accent={T.accent}
+                heading={gpsPos?.heading}
                 onLocationSelect={(place) => {
                   generateStory(place.name, false, null, place.lat, place.lon);
                 }}
