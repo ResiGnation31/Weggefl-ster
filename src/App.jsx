@@ -1678,11 +1678,11 @@ export default function App() {
                 <div style={{ fontSize:".72rem", color:T.textMuted, textAlign:"center" }}>— oder —</div>
                 <div style={{ display:"flex", gap:8 }}>
                   <button onClick={() => { setExploreMode("berieselung"); setGpsSubMode("free"); startGPS("free", null); }}
-                    style={{ flex:1, padding:13, background:T.accentDim, border:"1px solid " + T.accentBorder, borderRadius:12, color:T.accent, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"sans-serif" }}>
+                    style={{ flex:1, padding:13, background:T.accentDim, border:"none", borderRadius:12, color:T.textMuted, fontSize:15, fontWeight:500, cursor:"pointer", fontFamily:"sans-serif" }}>
                     Berieselung
                   </button>
                   <button onClick={() => { setExploreMode("stadtguide"); setGpsSubMode("free"); startGPS("free", null); }}
-                    style={{ flex:1, padding:13, background:T.accentDim, border:"1px solid " + T.accentBorder, borderRadius:12, color:T.accent, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"sans-serif" }}>
+                    style={{ flex:1, padding:13, background:T.accentDim, border:"none", borderRadius:12, color:T.textMuted, fontSize:15, fontWeight:500, cursor:"pointer", fontFamily:"sans-serif" }}>
                     Kartenguide
                   </button>
                 </div>
