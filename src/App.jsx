@@ -773,20 +773,7 @@ export default function App() {
       const availPOIs = routePOIsR.current.filter(p => !usedPOIsR.current.includes(p.name));
       const nextPOIs = availPOIs.slice(0, 5).map(p => p.name + " (" + p.type + ")").join(", ");
       const poisText = nextPOIs ? "\nKommende Sehenswuerdigkeiten auf der Route: " + nextPOIs : "";
-      prompt = memCtx +
-        "Du bist ein faszinierender Reisebegleiter. Der Fahrer faehrt mit " + kmh + " km/h.\n" +
-        "Aktueller Bereich: " + locationName + surr + poisText + "\n" +
-        "Thema: " + cat + "\n" +
-        "Laenge: ca. " + words + " Woerter\n\n" +
-        transition + "\n\n" +
-        "Regeln:\n" +
-        "- Erzaehle ueber den aktuellen Bereich: Geschichte, Kultur, interessante Fakten\n" +
-        "- Starte SOFORT mit einer konkreten Szene, Person oder Jahreszahl\n" +
-        "- Sehenswuerdigkeiten der Stadt/Region duerfen erwaehnt werden, aber NIEMALS so als wuerde man gleich daran vorbeifahren ('Gleich wirst du...', 'In wenigen Minuten...', 'Schau mal rechts...' sind VERBOTEN) - nur als allgemeiner Fakt ('Die Stadt ist bekannt fuer...', 'Hier gibt es...')\n" +
-        "- Echte spezifische Details: Namen, Jahreszahlen, unbekannte Fakten\n" +
-        "- KEINE Erfindungen - nur was wirklich dort existiert\n" +
-        "- Ende mit natuerlichem Uebergang\n" +
-        "- Nur fliesender Text auf Deutsch, keine Aufzaehlungen, keine Ueberschriften";
+      prompt = null; // API baut Prompt selbst mit Wikipedia + Brave
     }
     setStoryLoading(true);
     setStoryTitle(isIntro ? (introData.start + " → " + introData.end) : locationName);
