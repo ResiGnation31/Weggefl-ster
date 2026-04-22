@@ -1495,17 +1495,17 @@ export default function App() {
           />
         )}
 
-        {/* Stadtguide Modus */}
+        {/* Kartenguide Modus */}
         {exploreMode === "stadtguide" && gpsSubMode === "free" && (
           <div style={{ marginBottom:14 }}>
-            <div style={{ fontSize:11, fontWeight:700, color:T.textMuted, textTransform:"uppercase", letterSpacing:"0.8px", marginBottom:8 }}>🚶 Frei erkunden</div>
+            <div style={{ fontSize:11, fontWeight:700, color:T.textMuted, textTransform:"uppercase", letterSpacing:"0.8px", marginBottom:8 }}>Frei erkunden</div>
             <div style={{ display:"flex", gap:8, marginBottom:10 }}>
               <button onClick={() => { setExploreMode("berieselung"); startGPS("free", null); }}
-                style={{ flex:1, padding:9, background:"transparent", border:"1px solid " + T.border, borderRadius:10, color:T.textMuted, fontSize:13, cursor:"pointer" }}>
-                🎧 Berieselung
+                style={{ flex:1, padding:9, background:"transparent", border:"1px solid " + T.accentBorder, borderRadius:10, color:T.textMuted, fontSize:13, cursor:"pointer", fontFamily:"sans-serif" }}>
+                Berieselung
               </button>
-              <button style={{ flex:1, padding:9, background:T.accentDim, border:"1px solid " + T.accent, borderRadius:10, color:T.accent, fontSize:13, fontWeight:600, cursor:"pointer" }}>
-                🗺️ Stadtguide
+              <button style={{ flex:1, padding:9, background:T.accentDim, border:"1px solid " + T.accent, borderRadius:10, color:T.accent, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"sans-serif" }}>
+                Kartenguide
               </button>
             </div>
             <div style={{ height:400, borderRadius:16, overflow:"hidden", border:"1px solid " + T.border }}>
@@ -1683,7 +1683,7 @@ export default function App() {
                   </button>
                   <button onClick={() => { setExploreMode("stadtguide"); setGpsSubMode("free"); startGPS("free", null); }}
                     style={{ flex:1, padding:13, background:"transparent", border:"1px solid " + T.border, borderRadius:12, color:T.text, fontSize:14, fontWeight:600, cursor:"pointer" }}>
-                    🗺️ Stadtguide
+                    Kartenguide
                   </button>
                 </div>
               </div>
