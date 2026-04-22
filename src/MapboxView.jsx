@@ -5,6 +5,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 export default function MapboxView({ onLocationSelect, userLat, userLon, isDark, followUser = true }) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [mapStyle, setMapStyle] = useState(isDark ? 'dark' : 'streets');
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
@@ -101,9 +103,39 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
     }
   }
 
+  const styles = [
+    { id: 'streets', label: '🗺️', url: 'mapbox://styles/mapbox/streets-v12' },
+    { id: 'dark', label: '🌙', url: 'mapbox://styles/mapbox/dark-v11' },
+    { id: 'satellite', label: '🛰️', url: 'mapbox://styles/mapbox/satellite-streets-v12' },
+  ];
+
+  function switchStyle(styleId) {
+    setMapStyle(styleId);
+    const url = styles.find(s => s.id === styleId).url;
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setStyle(url);
+      mapInstanceRef.current.once("styledata", () => {
+        if (mapInstanceRef.current.getSource("composite")) {
+          if (mapInstanceRef.current.getLayer("3d-buildings")) mapInstanceRef.current.removeLayer("3d-buildings");
+          mapInstanceRef.current.addLayer({
+            id: "3d-buildings", source: "composite", "source-layer": "building",
+            filter: ["==", "extrude", "true"], type: "fill-extrusion", minzoom: 14,
+            paint: {
+              "fill-extrusion-color": styleId === 'dark' ? "#2a2a2a" : "#e8e0d8",
+              "fill-extrusion-height": ["get", "height"],
+              "fill-extrusion-base": ["get", "min_height"],
+              "fill-extrusion-opacity": 0.8
+            }
+          });
+        }
+      });
+    }
+  }
+
   return (
-    <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", height: "100%" }}>
+    <div style={{ position: isFullscreen ? "fixed" : "relative", top: isFullscreen ? 0 : "auto", left: isFullscreen ? 0 : "auto", right: isFullscreen ? 0 : "auto", bottom: isFullscreen ? 0 : "auto", zIndex: isFullscreen ? 9999 : "auto", borderRadius: isFullscreen ? 0 : 16, overflow: "hidden", height: isFullscreen ? "100dvh" : "100%", transition: "all 0.3s ease" }}>
       <div ref={mapRef} style={{ width: "100%", height: "100%" }}/>
+
       {/* Standort Button */}
       <button onClick={flyToUser} style={{ position:"absolute", top:10, left:10, width:36, height:36, background:"white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10 }}>
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#B25E00" strokeWidth="2" strokeLinecap="round">
@@ -114,6 +146,25 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
           <line x1="18" y1="12" x2="22" y2="12"/>
         </svg>
       </button>
+
+      {/* Vollbild Button */}
+      <button onClick={() => setIsFullscreen(f => !f)} style={{ position:"absolute", top:10, left:54, width:36, height:36, background:"white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10 }}>
+        {isFullscreen
+          ? <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#B25E00" strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+          : <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#B25E00" strokeWidth="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        }
+      </button>
+
+      {/* Kartenstil Auswahl */}
+      <div style={{ position:"absolute", top:10, right:50, display:"flex", gap:4, zIndex:10 }}>
+        {styles.map(s => (
+          <button key={s.id} onClick={() => switchStyle(s.id)}
+            style={{ width:36, height:36, background: mapStyle===s.id ? "#B25E00" : "white", border:"none", borderRadius:8, cursor:"pointer", fontSize:16, boxShadow:"0 2px 8px rgba(0,0,0,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+
       {selectedPlace && (
         <div style={{ position: "absolute", bottom: 16, left: 16, right: 16, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(10px)", borderRadius: 14, padding: "12px 16px", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <div>
