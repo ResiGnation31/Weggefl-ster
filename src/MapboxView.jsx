@@ -7,6 +7,7 @@ mapboxgl.accessToken = (import.meta.env.VITE_MAPBOX_TOKEN || "").trim();
 export default function MapboxView({ onLocationSelect, userLat, userLon, isDark, followUser = true, accent = "#B25E00", heading = null }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [is3D, setIs3D] = useState(true);
+  const [locked, setLocked] = useState(true);
   const [followHeading, setFollowHeading] = useState(false);
 
   function toggle3D() {
@@ -43,6 +44,8 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
       zoom: userLat ? 14 : 6,
     });
     mapInstanceRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+    // Wenn Nutzer Karte manuell bewegt -> Folgen pausieren
+    mapInstanceRef.current.on("dragstart", () => setLocked(false));
     function add3DBuildings(dark) {
       if (mapInstanceRef.current.getLayer("3d-buildings")) return;
       mapInstanceRef.current.addLayer({
@@ -114,7 +117,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
         el.style.cssText = `width:16px;height:16px;background:${accent};border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3)`;
         userMarkerRef.current = new mapboxgl.Marker(el).setLngLat([userLon, userLat]).addTo(mapInstanceRef.current);
       }
-      if (followUser) {
+      if (followUser && locked) {
         const bearing = followHeading && heading != null ? heading : 0;
         mapInstanceRef.current.easeTo({ center: [userLon, userLat], zoom: 15, bearing, duration: 800 });
       }
@@ -123,6 +126,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
 
   function flyToUser() {
     if (mapInstanceRef.current && userLat && userLon) {
+      setLocked(true);
       mapInstanceRef.current.flyTo({ center: [userLon, userLat], zoom: 15, duration: 800 });
     }
   }
