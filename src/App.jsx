@@ -1735,7 +1735,7 @@ export default function App() {
                   startGPS("free", null);
                   if (mode === "foto") setTimeout(() => document.getElementById("fotoInput")?.click(), 300);
                 }}
-                  style={{ flex:1, padding:10, background: gpsSubMode==="free" && exploreMode===mode ? (isDark?"rgba(255,255,255,0.12)":"white") : "transparent", border:"none", borderRadius:10, color: gpsSubMode==="free" && exploreMode===mode ? T.accent : T.textMuted, fontSize:13, fontWeight: gpsSubMode==="free" && exploreMode===mode ? 600 : 500, cursor:"pointer", fontFamily:"sans-serif", boxShadow: gpsSubMode==="free" && exploreMode===mode ? "0 1px 4px rgba(0,0,0,0.1)" : "none", transition:"all 0.15s" }}>
+                  style={{ flex:1, padding:10, background: gpsSubMode==="free" && exploreMode===mode ? (isDark?"rgba(255,255,255,0.12)":"white") : "transparent", border:"none", borderRadius:10, color: gpsSubMode==="free" && exploreMode===mode ? T.accent : T.textMuted, fontSize:13, fontWeight: gpsSubMode==="free" && exploreMode===mode ? 600 : 500, cursor:"pointer", fontFamily:"sans-serif", boxShadow: gpsSubMode==="free" && exploreMode===mode ? "0 2px 8px rgba(0,0,0,0.12)" : "none", transition:"all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}>
                   {mode === "berieselung" ? "Berieselung" : mode === "stadtguide" ? "Kartenguide" : "KI-Kamera"}
                 </button>
               ))}
