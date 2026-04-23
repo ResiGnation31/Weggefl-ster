@@ -1674,9 +1674,12 @@ export default function App() {
             {/* MIT ZIEL FAHREN — einklappbar */}
             <div style={{ marginBottom:10 }}>
               {!gpsZielOpen && (
-                <button onClick={() => setGpsZielOpen(true)} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", padding:"4px 0", marginBottom:6, color:T.textMuted, fontSize:13 }}>
-                  <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke={T.textMuted} strokeWidth="2" strokeLinecap="round"><path d="M2 4l4 4 4-4"/></svg>
-                </button>
+                <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:8 }}>
+                  <button onClick={() => setGpsZielOpen(true)} style={{ display:"flex", alignItems:"center", gap:6, background:T.bgInput, border:"1px solid " + T.border, borderRadius:10, cursor:"pointer", padding:"10px 14px", color:T.textMuted, fontSize:13 }}>
+                    Mit Ziel fahren
+                    <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke={T.textMuted} strokeWidth="2" strokeLinecap="round"><path d="M2 4l4 4 4-4"/></svg>
+                  </button>
+                </div>
               )}
               {(gpsZielOpen &&
                 <div>
@@ -1720,7 +1723,7 @@ export default function App() {
 
             {/* FREI ERKUNDEN — immer sichtbar */}
             <div style={{ fontSize:".72rem", color:T.textMuted, textAlign:"center", marginBottom:8 }}>— oder —</div>
-            <div style={{ display:"flex", gap:8, marginBottom: (gpsSubMode==="free") ? 10 : 0 }}>
+            <div style={{ display:"flex", background: isDark?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.7)", borderRadius:14, padding:4, gap:2, marginBottom: (gpsSubMode==="free") ? 10 : 0 }}>
               {["berieselung","stadtguide","foto"].map(mode => (
                 <button key={mode} onClick={() => {
                   stopGPS();
@@ -1732,7 +1735,7 @@ export default function App() {
                   startGPS("free", null);
                   if (mode === "foto") setTimeout(() => document.getElementById("fotoInput")?.click(), 300);
                 }}
-                  style={{ flex:1, padding:11, background: gpsSubMode==="free" && exploreMode===mode ? T.btnPrimary : T.accentDim, border:"none", borderRadius:12, color: gpsSubMode==="free" && exploreMode===mode ? T.btnText : T.textMuted, fontSize:13, fontWeight: gpsSubMode==="free" && exploreMode===mode ? 600 : 500, cursor:"pointer", fontFamily:"sans-serif" }}>
+                  style={{ flex:1, padding:10, background: gpsSubMode==="free" && exploreMode===mode ? (isDark?"rgba(255,255,255,0.12)":"white") : "transparent", border:"none", borderRadius:10, color: gpsSubMode==="free" && exploreMode===mode ? T.accent : T.textMuted, fontSize:13, fontWeight: gpsSubMode==="free" && exploreMode===mode ? 600 : 500, cursor:"pointer", fontFamily:"sans-serif", boxShadow: gpsSubMode==="free" && exploreMode===mode ? "0 1px 4px rgba(0,0,0,0.1)" : "none", transition:"all 0.15s" }}>
                   {mode === "berieselung" ? "Berieselung" : mode === "stadtguide" ? "Kartenguide" : "KI-Kamera"}
                 </button>
               ))}
