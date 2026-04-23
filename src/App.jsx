@@ -1479,8 +1479,7 @@ export default function App() {
             <div key={id} style={{ flex:1, position:"relative" }}>
               <button onClick={() => setActiveDropdown(activeDropdown===id ? null : id)}
                 style={{ width:"100%", padding:"8px 4px", background: activeDropdown===id ? (isDark?"rgba(255,255,255,0.12)":"white") : "transparent", border:"none", borderRadius:11, cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:2, boxShadow: activeDropdown===id ? "0 1px 4px rgba(0,0,0,0.1)" : "none", transition:"all 0.15s" }}>
-                <span style={{ fontSize:11, color:T.accent, fontWeight:600, textAlign:"center", lineHeight:1.2 }}>{label}</span>
-                <svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke={T.textMuted} strokeWidth="1.8" strokeLinecap="round" style={{ transform: activeDropdown===id?"rotate(180deg)":"rotate(0deg)", transition:"transform 0.2s" }}><path d="M1.5 3.5l3 3 3-3"/></svg>
+                <span style={{ fontSize:13, color:T.accent, fontWeight:600, textAlign:"center", lineHeight:1.2 }}>{label}</span>
               </button>
               {activeDropdown===id && (
                 <div style={{ position:"absolute", top:"calc(100% + 6px)", left:"50%", transform:"translateX(-50%)", zIndex:300, background: isDark?"rgba(30,26,22,0.97)":"rgba(252,249,244,0.97)", backdropFilter:"blur(24px)", borderRadius:14, padding:8, boxShadow:"0 8px 32px rgba(0,0,0,0.18)", minWidth:160 }}>
@@ -1644,60 +1643,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Voice + Speed nebeneinander */}
-        <div style={{ display:"flex", gap:32, marginBottom:16, alignItems:"flex-start" }}>
 
-          {/* Stimme */}
-          <div style={{ flex:1, position:"relative" }}>
-            <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase", textAlign:"left" }}>Stimme</p>
-            <button onClick={() => setVoiceDropOpen(o => !o)} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", padding:0 }}>
-              <span style={{ fontSize:13, color:T.text, fontWeight:400 }}>
-                {voiceEngine === "elevenlabs" ? "Helmut" : voiceEngine === "edge" ? "Online" : "Browser"}
-              </span>
-              <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke={T.textMuted} strokeWidth="1.8" strokeLinecap="round">
-                <path d="M2 4l4 4 4-4"/>
-              </svg>
-            </button>
-            {voiceDropOpen && (
-              <div style={{ position:"absolute", top:36, left:0, zIndex:200, background: isDark ? "rgba(30,26,22,0.97)" : "rgba(250,247,242,0.97)", backdropFilter:"blur(24px)", borderRadius:14, padding:"8px", boxShadow:"0 8px 32px rgba(0,0,0,0.18)", minWidth:220 }}>
-                {[
-                  { key:"elevenlabs", label:"Helmut Stieglbauer", sub:"ElevenLabs — beste Qualität" },
-                  { key:"edge",       label:"Google Stimme",       sub:"Google TTS — gute Qualität" },
-                  { key:"browser",    label:"Browser-Stimme",     sub:"Lokal — einfache Qualität" },
-                ].map(({ key, label, sub }) => (
-                  <button key={key} onClick={() => { setVoiceEngine(key); voiceEngineR.current = key; localStorage.setItem("wg_voice", key); setVoiceDropOpen(false); }}
-                    style={{ display:"flex", flexDirection:"column", width:"100%", padding:"10px 12px", borderRadius:10, border:"none", cursor:"pointer", background: voiceEngine===key ? T.accentDim : "transparent", marginBottom:2, textAlign:"left" }}>
-                    <span style={{ fontSize:13, color: voiceEngine===key ? T.accent : T.text, fontWeight: voiceEngine===key ? 600 : 400 }}>{label}</span>
-                    <span style={{ fontSize:11, color:T.textMuted, marginTop:2 }}>{sub}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Geschwindigkeit */}
-          <div style={{ flex:1, position:"relative" }}>
-            <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase", textAlign:"left" }}>Sprechtempo</p>
-            <button onClick={() => setSpeedDropOpen(o => !o)} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", padding:0 }}>
-              <span style={{ fontSize:13, color:T.text, fontWeight:400 }}>{playbackRate}x</span>
-              <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke={T.textMuted} strokeWidth="1.8" strokeLinecap="round">
-                <path d="M2 4l4 4 4-4"/>
-              </svg>
-            </button>
-            {speedDropOpen && (
-              <div style={{ position:"absolute", top:36, left:0, zIndex:200, background: isDark ? "rgba(30,26,22,0.97)" : "rgba(250,247,242,0.97)", backdropFilter:"blur(24px)", borderRadius:14, padding:"8px", boxShadow:"0 8px 32px rgba(0,0,0,0.18)", minWidth:140 }}>
-                {[1, 1.25, 1.5, 1.75, 2].map(r => (
-                  <button key={r} onClick={() => { setPlaybackRate(r); localStorage.setItem("wg_rate", r); if (audioRef.current) audioRef.current.playbackRate = r; setSpeedDropOpen(false); window.speechSynthesis?.cancel(); }}
-                    style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", padding:"10px 12px", borderRadius:10, border:"none", cursor:"pointer", background: playbackRate===r ? T.accentDim : "transparent", marginBottom:2 }}>
-                    <span style={{ fontSize:13, color: playbackRate===r ? T.accent : T.text, fontWeight: playbackRate===r ? 600 : 400 }}>{r}x</span>
-                    {playbackRate===r && <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke={T.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-        </div>
 
         {/* CTA */}
         {gpsMode === "sim" && (
