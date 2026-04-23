@@ -1645,6 +1645,8 @@ export default function App() {
                         stopGPS();
                         window.speechSynthesis?.cancel();
                         if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
+                        setStoryText(""); setStoryTitle(""); setStoryLoading(false);
+                        generatingR.current = false; speakingR.current = false;
                         setExploreMode(mode);
                         setGpsSubMode("free");
                         setGpsZielOpen(false);
