@@ -1482,7 +1482,7 @@ export default function App() {
                 <span style={{ fontSize:13, color:T.accent, fontWeight:600, textAlign:"center", lineHeight:1.2 }}>{label}</span>
               </button>
               {activeDropdown===id && (
-                <div style={{ position:"fixed", top:"auto", left:"auto", zIndex:9999, background: isDark?"rgba(30,26,22,0.97)":"rgba(252,249,244,0.97)", backdropFilter:"blur(24px)", borderRadius:14, padding:8, boxShadow:"0 8px 32px rgba(0,0,0,0.18)", minWidth:160, maxHeight:"60vh", overflowY:"auto" }}>
+                <div style={{ position:"fixed", top:200, left:16, right:16, zIndex:9999, background: isDark?"rgba(30,26,22,0.97)":"rgba(252,249,244,0.97)", backdropFilter:"blur(24px)", borderRadius:14, padding:8, boxShadow:"0 8px 32px rgba(0,0,0,0.18)", minWidth:160, maxHeight:"60vh", overflowY:"auto" }}>
                   <div style={{ fontSize:10, fontWeight:700, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase", padding:"4px 8px 8px", borderBottom:`1px solid ${T.border}`, marginBottom:6 }}>{title}</div>
                   {items.map((item, i) => (
                     <button key={item} onClick={() => { onSelect(item); setActiveDropdown(null); }}
