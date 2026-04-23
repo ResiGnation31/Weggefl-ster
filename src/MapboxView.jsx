@@ -165,8 +165,8 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
       <div ref={mapRef} style={{ width: "100%", height: "100%" }}/>
 
       {/* Standort Button */}
-      <button onClick={flyToUser} style={{ position:"absolute", top:10, left:10, width:36, height:36, background:"white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10 }}>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={accent} strokeWidth="2" strokeLinecap="round">
+      <button onClick={flyToUser} style={{ position:"absolute", top:10, left:10, width:36, height:36, background: locked ? accent : "white", border:"none", borderRadius:8, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.2)", zIndex:10 }}>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={locked ? "white" : accent} strokeWidth="2" strokeLinecap="round">
           <circle cx="12" cy="12" r="4"/>
           <line x1="12" y1="2" x2="12" y2="6"/>
           <line x1="12" y1="18" x2="12" y2="22"/>
