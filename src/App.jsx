@@ -1469,7 +1469,7 @@ export default function App() {
         </div>}
 
         {/* Settings Bar */}
-        <div style={{ display:"flex", gap:6, marginBottom:14, background: isDark?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.7)", borderRadius:16, padding:5, backdropFilter:"blur(8px)" }}>
+        <div style={{ display:"flex", gap:6, marginBottom:14, background: isDark?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.7)", borderRadius:16, padding:5, backdropFilter:"blur(8px)", position:"relative", zIndex:100 }}>
           {[
             { id:"thema", label: category === "Lieblingsthemen" ? "★ Lieblings" : category, items: ["Lieblingsthemen", ...CATEGORIES], onSelect: (v) => { setCategory(v); categoryR.current = v; localStorage.setItem("wg_category", v); }, active: category, title: "THEMA" },
             { id:"stimme", label: voiceEngine==="elevenlabs" ? "Helmut" : voiceEngine==="edge" ? "Google" : "Browser", items: ["elevenlabs","edge","browser"], labels: ["Helmut","Google","Browser"], onSelect: (v) => { setVoiceEngine(v); voiceEngineR.current = v; localStorage.setItem("wg_voice", v); }, active: voiceEngine, title: "STIMME" },
@@ -1482,7 +1482,7 @@ export default function App() {
                 <span style={{ fontSize:13, color:T.accent, fontWeight:600, textAlign:"center", lineHeight:1.2 }}>{label}</span>
               </button>
               {activeDropdown===id && (
-                <div style={{ position:"fixed", top:200, left:16, right:16, zIndex:9999, background: isDark?"rgba(30,26,22,0.97)":"rgba(252,249,244,0.97)", backdropFilter:"blur(24px)", borderRadius:14, padding:8, boxShadow:"0 8px 32px rgba(0,0,0,0.18)", minWidth:160, maxHeight:"60vh", overflowY:"auto" }}>
+                <div style={{ position:"absolute", top:"calc(100% + 6px)", left:"50%", transform:"translateX(-50%)", zIndex:9999, background: isDark?"rgba(30,26,22,0.97)":"rgba(252,249,244,0.97)", backdropFilter:"blur(24px)", borderRadius:14, padding:8, boxShadow:"0 8px 32px rgba(0,0,0,0.18)", minWidth:160, maxHeight:"60vh", overflowY:"auto" }}>
                   <div style={{ fontSize:10, fontWeight:700, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase", padding:"4px 8px 8px", borderBottom:`1px solid ${T.border}`, marginBottom:6 }}>{title}</div>
                   {items.map((item, i) => (
                     <button key={item} onClick={() => { onSelect(item); setActiveDropdown(null); }}
