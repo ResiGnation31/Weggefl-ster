@@ -161,7 +161,7 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
   }
 
   return (
-    <div style={{ position: isFullscreen ? "fixed" : "relative", top: 0, left: 0, right: 0, bottom: 0, width: isFullscreen ? "100vw" : "100%", height: isFullscreen ? "100dvh" : "100%", zIndex: isFullscreen ? 9999 : "auto", borderRadius: isFullscreen ? 0 : 16, overflow: "hidden", transition: "border-radius 0.3s ease" }}>
+    <div style={{ position: isFullscreen ? "fixed" : "relative", top: 0, left: 0, right: 0, bottom: 0, width: isFullscreen ? "100vw" : "100%", height: isFullscreen ? "100vh" : "100%", zIndex: isFullscreen ? 9999 : "auto", borderRadius: isFullscreen ? 0 : 16, overflow: "hidden", transition: "border-radius 0.3s ease" }}>
       <div ref={mapRef} style={{ width: "100%", height: "100%" }}/>
 
       {/* Standort Button */}
