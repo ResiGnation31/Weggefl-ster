@@ -1713,8 +1713,11 @@ export default function App() {
 
             {/* MIT ZIEL FAHREN — immer sichtbar als Toggle */}
             <div style={{ marginBottom:10 }}>
-              <div style={{ fontSize:11, fontWeight:700, color:T.textMuted, textTransform:"uppercase", letterSpacing:"0.8px", marginBottom:10, textAlign:"left" }}>Mit Ziel fahren</div>
-              {(
+              <button onClick={() => setGpsZielOpen(o => !o)} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", background:"none", border:"none", cursor:"pointer", padding:"0 0 10px 0" }}>
+                <span style={{ fontSize:11, fontWeight:700, color:T.textMuted, textTransform:"uppercase", letterSpacing:"0.8px" }}>Mit Ziel fahren</span>
+                <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke={T.textMuted} strokeWidth="2" strokeLinecap="round" style={{ transform: gpsZielOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}><path d="M2 4l4 4 4-4"/></svg>
+              </button>
+              {(gpsZielOpen &&
                 <div>
                   <div style={{ position:"relative", marginBottom:8 }}>
                     <div style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}><svg width="14" height="18" viewBox="0 0 14 18" fill="none"><path d="M7 0C3.13 0 0 3.13 0 7c0 5.25 7 11 7 11s7-5.75 7-11c0-3.87-3.13-7-7-7z" fill="#34C759"/><circle cx="7" cy="7" r="2.5" fill="white"/></svg></div>
