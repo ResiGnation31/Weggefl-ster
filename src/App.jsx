@@ -1865,7 +1865,7 @@ export default function App() {
 
       {/* Profile Sheet Overlay */}
       {profileOpen && (
-        <div onClick={() => setProfileOpen(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.2)", zIndex:500, backdropFilter:"blur(2px)" }}/>
+        <div onClick={() => setProfileOpen(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.15)", zIndex:299, backdropFilter:"none" }}/>
       )}
 
       {/* Profile Bottom Sheet */}
