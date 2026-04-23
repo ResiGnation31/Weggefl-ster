@@ -1314,6 +1314,7 @@ export default function App() {
         @keyframes car{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
         *{box-sizing:border-box}
         input::placeholder{color:${T.textMuted}}
+        @keyframes lumoFloat{from{transform:translateY(0px)}to{transform:translateY(-6px)}}
         input{caret-color:${T.accent}}
         ::-webkit-scrollbar{width:3px}
         ::-webkit-scrollbar-thumb{background:${T.accentDim};border-radius:2px}
@@ -1722,6 +1723,8 @@ export default function App() {
         {(storyTitle || storyLoading) && (
           <div style={{ background:T.storyBg, border:`1px solid ${T.storyBorder}`, borderRadius:18, overflow:"hidden", marginBottom:14, animation:"slideIn .35s ease", boxShadow:isDark?"none":"0 2px 16px rgba(0,0,0,0.06)" }}>
             <div style={{ padding:"16px 18px 0", display:"flex", alignItems:"flex-start", justifyContent:"space-between" }}>
+              {/* Lumo */}
+              <img src="/lumo.png" alt="Lumo" style={{ width:56, height:56, objectFit:"contain", mixBlendMode:"multiply", marginRight:10, flexShrink:0, animation: speaking ? "lumoFloat 1.5s ease-in-out infinite alternate" : "none", filter: isDark ? "brightness(0.9)" : "none" }}/>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:".66rem", color:T.textMuted, textTransform:"uppercase", letterSpacing:".12em", marginBottom:4 }}>
                   {storyCount === 0 ? "🎙️ Einleitung" : "📍 Story " + storyCount}
