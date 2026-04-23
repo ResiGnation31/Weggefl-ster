@@ -1690,6 +1690,37 @@ export default function App() {
               );
             })()}
 
+            {/* KI-Kamera Input */}
+            <input type="file" accept="image/*" capture="environment" id="fotoInput" style={{ display:"none" }}
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = async (ev) => {
+                  const base64 = ev.target.result.split(",")[1];
+                  setStoryLoading(true);
+                  setStoryTitle("Foto wird analysiert...");
+                  setStoryText("");
+                  try {
+                    const res = await fetch("/api/story", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ placeName: "Foto", category: categoryR.current, speedKmh: 0, transport: "walk", voiceEngine: voiceEngineR.current, lat: gpsPos?.lat, lon: gpsPos?.lon, imageBase64: base64, customPrompt: null })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.text) {
+                      setStoryTitle("KI-Kamera Story");
+                      setStoryText(data.text);
+                      setStoryAudio(data.audio || null);
+                      setStoryLoading(false);
+                      await speakText(data.text, null);
+                    }
+                  } catch(e) { setStoryLoading(false); }
+                };
+                reader.readAsDataURL(file);
+              }}
+            />
+
             {/* Stop wenn aktiv */}
             {gpsSubMode && (
               <button onClick={() => { stopGPS(); setGpsSubMode(null); setExploreMode("berieselung"); setGpsEndPlace(null); setGpsEndInput(""); setGpsEndSugg([]); window.speechSynthesis?.cancel(); if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; } }}
