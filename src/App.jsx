@@ -1785,8 +1785,6 @@ export default function App() {
                 Stop
               </button>
             )}
-              </div>
-            )}
           </div>
         )}
         {/* Story panel */}
