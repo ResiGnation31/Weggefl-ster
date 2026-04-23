@@ -198,6 +198,15 @@ export default function MapboxView({ onLocationSelect, userLat, userLon, isDark,
         ))}
       </div>
 
+      {/* KI-Kamera Button */}
+      <button onClick={() => document.getElementById("mapFotoInput").click()}
+        style={{ position:"absolute", bottom:70, right:10, width:44, height:44, background:accent, border:"none", borderRadius:12, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.3)", zIndex:10 }}>
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </button>
+      <input type="file" accept="image/*" capture="environment" id="mapFotoInput" style={{ display:"none" }}
+        onChange={(e) => { const file = e.target.files?.[0]; if (file && onLocationSelect) { const reader = new FileReader(); reader.onload = (ev) => { onLocationSelect({ name: "Foto", imageBase64: ev.target.result.split(",")[1], lat: userLat, lon: userLon }); }; reader.readAsDataURL(file); } }}
+      />
+
       {selectedPlace && (
         <div style={{ position: "absolute", bottom: 16, left: 16, right: 16, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(10px)", borderRadius: 14, padding: "12px 16px", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <div>

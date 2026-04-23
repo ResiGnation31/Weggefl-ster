@@ -1530,7 +1530,7 @@ export default function App() {
         {/* Foto Modus */}
         {exploreMode === "foto" && gpsSubMode === "free" && (
           <div style={{ marginBottom:14 }}>
-            <div style={{ fontSize:11, fontWeight:700, color:T.textMuted, textTransform:"uppercase", letterSpacing:"0.8px", marginBottom:8 }}>Foto erkunden</div>
+            <div style={{ fontSize:11, fontWeight:700, color:T.textMuted, textTransform:"uppercase", letterSpacing:"0.8px", marginBottom:8 }}>KI-Kamera</div>
             <div style={{ display:"flex", gap:8, marginBottom:10 }}>
               <button onClick={() => { setExploreMode("berieselung"); startGPS("free", null); }}
                 style={{ flex:1, padding:9, background:"transparent", border:"1px solid " + T.border, borderRadius:10, color:T.textMuted, fontSize:13, cursor:"pointer", fontFamily:"sans-serif" }}>
