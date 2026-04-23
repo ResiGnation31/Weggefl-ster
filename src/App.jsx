@@ -340,6 +340,7 @@ export default function App() {
   const [routeError, setRouteError] = useState("");
   const [gpsMode, setGpsMode]       = useState("sim");
   const [gpsZielOpen, setGpsZielOpen] = useState(true);
+  useEffect(() => { if (gpsMode === "real") setGpsZielOpen(true); }, [gpsMode]);
   const [simDist, setSimDist]       = useState(0);
   const [simSpeed, setSimSpeed]     = useState(1);
   const [simRunning, setSimRunning] = useState(false);
