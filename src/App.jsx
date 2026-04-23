@@ -340,6 +340,8 @@ export default function App() {
   const [routeError, setRouteError] = useState("");
   const [gpsMode, setGpsMode]       = useState("sim");
   const [gpsZielOpen, setGpsZielOpen] = useState(true);
+  const [frequency, setFrequency] = useState(() => localStorage.getItem("wg_frequency") || "mittel");
+  const [activeDropdown, setActiveDropdown] = useState(null);
   useEffect(() => { if (gpsMode === "real") setGpsZielOpen(true); }, [gpsMode]);
   const [simDist, setSimDist]       = useState(0);
   const [simSpeed, setSimSpeed]     = useState(1);
@@ -1466,23 +1468,34 @@ export default function App() {
           {routeError && <div style={{ fontSize:".75rem", color:T.errorText, marginTop:10 }}>⚠️ {routeError}</div>}
         </div>}
 
-        <div style={{ padding:"0 0 4px", marginBottom:14 }}>
-          <p style={{ margin:"0 0 10px", fontSize:11, fontWeight:600, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase", textAlign:"left" }}>Thema</p>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
-            <button onClick={() => {}}
-              style={{ padding:"7px 14px", borderRadius:100, fontSize:13, cursor:"pointer", border:"none", background:T.accent, color:"#fff", fontWeight:600, display:"flex", alignItems:"center", gap:5 }}>
-              <svg viewBox="0 0 12 12" width="11" height="11" fill="none">
-                <path d="M6 1l1.3 2.6L10 4.1l-2 1.9.5 2.7L6 7.4 3.5 8.7l.5-2.7-2-1.9 2.7-.5z" fill="#fff" opacity="0.9"/>
-              </svg>
-              Lieblingsthemen
-            </button>
-            {CATEGORIES.map(c => (
-              <button key={c} onClick={() => { setCategory(c); categoryR.current = c; localStorage.setItem("wg_category", c); }}
-                style={{ padding:"7px 14px", borderRadius:100, fontSize:13, cursor:"pointer", border:"none", background: category===c ? T.accentDim : (isDark?"rgba(255,255,255,0.07)":"rgba(255,255,255,0.55)"), color: category===c ? T.accent : T.textMuted, fontWeight: category===c ? 600 : 400, backdropFilter:"blur(4px)", transition:"all 0.2s" }}>
-                {c}
+        {/* Settings Bar */}
+        <div style={{ display:"flex", gap:6, marginBottom:14, background: isDark?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.7)", borderRadius:16, padding:5, backdropFilter:"blur(8px)" }}>
+          {[
+            { id:"thema", label: category === "Lieblingsthemen" ? "★ Lieblings" : category, items: ["Lieblingsthemen", ...CATEGORIES], onSelect: (v) => { setCategory(v); categoryR.current = v; localStorage.setItem("wg_category", v); }, active: category, title: "THEMA" },
+            { id:"stimme", label: voiceEngine==="elevenlabs" ? "Helmut" : voiceEngine==="edge" ? "Google" : "Browser", items: ["elevenlabs","edge","browser"], labels: ["Helmut","Google","Browser"], onSelect: (v) => { setVoiceEngine(v); voiceEngineR.current = v; localStorage.setItem("wg_voice", v); }, active: voiceEngine, title: "STIMME" },
+            { id:"tempo", label: playbackRate+"x", items: [1,1.25,1.5,1.75,2], labels: ["1x","1.25x","1.5x","1.75x","2x"], onSelect: (v) => { setPlaybackRate(v); localStorage.setItem("wg_rate", v); if(audioRef.current) audioRef.current.playbackRate=v; window.speechSynthesis?.cancel(); }, active: playbackRate, title: "TEMPO" },
+            { id:"freq", label: frequency.charAt(0).toUpperCase()+frequency.slice(1), items: ["dauerhaft","hoch","mittel","niedrig"], onSelect: (v) => { setFrequency(v); localStorage.setItem("wg_frequency", v); }, active: frequency, title: "FREQUENZ" },
+          ].map(({ id, label, items, labels, onSelect, active, title }) => (
+            <div key={id} style={{ flex:1, position:"relative" }}>
+              <button onClick={() => setActiveDropdown(activeDropdown===id ? null : id)}
+                style={{ width:"100%", padding:"8px 4px", background: activeDropdown===id ? (isDark?"rgba(255,255,255,0.12)":"white") : "transparent", border:"none", borderRadius:11, cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:2, boxShadow: activeDropdown===id ? "0 1px 4px rgba(0,0,0,0.1)" : "none", transition:"all 0.15s" }}>
+                <span style={{ fontSize:11, color:T.accent, fontWeight:600, textAlign:"center", lineHeight:1.2 }}>{label}</span>
+                <svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke={T.textMuted} strokeWidth="1.8" strokeLinecap="round" style={{ transform: activeDropdown===id?"rotate(180deg)":"rotate(0deg)", transition:"transform 0.2s" }}><path d="M1.5 3.5l3 3 3-3"/></svg>
               </button>
-            ))}
-          </div>
+              {activeDropdown===id && (
+                <div style={{ position:"absolute", top:"calc(100% + 6px)", left:"50%", transform:"translateX(-50%)", zIndex:300, background: isDark?"rgba(30,26,22,0.97)":"rgba(252,249,244,0.97)", backdropFilter:"blur(24px)", borderRadius:14, padding:8, boxShadow:"0 8px 32px rgba(0,0,0,0.18)", minWidth:160 }}>
+                  <div style={{ fontSize:10, fontWeight:700, color:T.textMuted, letterSpacing:"0.8px", textTransform:"uppercase", padding:"4px 8px 8px", borderBottom:`1px solid ${T.border}`, marginBottom:6 }}>{title}</div>
+                  {items.map((item, i) => (
+                    <button key={item} onClick={() => { onSelect(item); setActiveDropdown(null); }}
+                      style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", padding:"9px 10px", borderRadius:9, border:"none", cursor:"pointer", background: active===item ? T.accentDim : "transparent", marginBottom:2 }}>
+                      <span style={{ fontSize:13, color: active===item ? T.accent : T.text, fontWeight: active===item ? 600 : 400 }}>{labels ? labels[i] : item}</span>
+                      {active===item && <svg viewBox="0 0 16 16" width="13" height="13" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke={T.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
 
         {/* Map */}
