@@ -1586,9 +1586,9 @@ export default function App() {
               <button onClick={() => document.getElementById("fotoInput").click()}
                 style={{ background:T.accent, color:"white", border:"none", borderRadius:12, padding:"14px 28px", fontSize:16, fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:8, margin:"0 auto" }}>
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                Foto aufnehmen
+                KI-Kamera
               </button>
-              <p style={{ marginTop:12, fontSize:13, color:T.textMuted }}>Fotografiere einen Ort und erhalte eine Story</p>
+              <p style={{ marginTop:12, fontSize:13, color:T.textMuted }}>Fotografiere einen Ort — KI erzählt die Geschichte</p>
             </div>
             <button onClick={() => { setGpsSubMode(null); setExploreMode("berieselung"); }}
               style={{ width:"100%", marginTop:10, padding:11, background:"transparent", border:"1px solid " + T.border, borderRadius:12, color:T.textMuted, fontSize:14, cursor:"pointer" }}>
