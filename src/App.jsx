@@ -1645,14 +1645,12 @@ export default function App() {
                   <div style={{ fontSize:11, fontWeight:600, color:T.textMuted, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.8px", textAlign:"left" }}>Mit Ziel fahren</div>
                   <div style={{ position:"relative", marginBottom:10 }}>
                     <div style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}><svg width="14" height="18" viewBox="0 0 14 18" fill="none"><path d="M7 0C3.13 0 0 3.13 0 7c0 5.25 7 11 7 11s7-5.75 7-11c0-3.87-3.13-7-7-7z" fill="#34C759"/><circle cx="7" cy="7" r="2.5" fill="white"/></svg></div>
-                    <div style={{ width:"100%", background:T.bgInput, border:"1px solid " + T.border, borderRadius:10, padding:"10px 14px 10px 30px", color:T.textMuted, fontFamily:"sans-serif", fontSize:".88rem", boxSizing:"border-box" }}>{currentLoc || "Warte auf GPS..."}</div>
+                    <div style={{ width:"100%", background:T.bgInput, border:"1px solid " + T.border, borderRadius:10, padding:"10px 14px 10px 30px", color:T.textMuted, fontFamily:"sans-serif", fontSize:".88rem", boxSizing:"border-box", outline:"none" }}>{currentLoc || "Warte auf GPS..."}</div>
                   </div>
                   <div style={{ position:"relative", marginBottom:10 }}>
-                    <div style={{ position:"relative" }}>
-                      <div style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}><svg width="14" height="18" viewBox="0 0 14 18" fill="none"><path d="M7 0C3.13 0 0 3.13 0 7c0 5.25 7 11 7 11s7-5.75 7-11c0-3.87-3.13-7-7-7z" fill="#FF3B30"/><circle cx="7" cy="7" r="2.5" fill="white"/></svg></div>
-                      <input value={gpsEndInput} onChange={e => onGpsEndInput(e.target.value)} placeholder="Ziel eingeben, z.B. München"
-                        style={{ width:"100%", background:T.bgInput, border:"1px solid " + T.border, borderRadius:10, padding:"10px 14px 10px 30px", color:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none", boxSizing:"border-box" }} />
-                    </div>
+                    <div style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}><svg width="14" height="18" viewBox="0 0 14 18" fill="none"><path d="M7 0C3.13 0 0 3.13 0 7c0 5.25 7 11 7 11s7-5.75 7-11c0-3.87-3.13-7-7-7z" fill="#FF3B30"/><circle cx="7" cy="7" r="2.5" fill="white"/></svg></div>
+                    <input value={gpsEndInput} onChange={e => onGpsEndInput(e.target.value)} placeholder="Ziel eingeben, z.B. München"
+                      style={{ width:"100%", background:T.bgInput, border:"1px solid " + T.border, borderRadius:10, padding:"10px 14px 10px 30px", color:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none", boxSizing:"border-box" }} />
                     {gpsEndSugg.length > 0 && (
                       <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, background:T.bgCard, border:"1px solid " + T.border, borderRadius:12, overflow:"hidden", zIndex:100, boxShadow:"0 8px 24px rgba(0,0,0,0.15)" }}>
                         {gpsEndSugg.map((s,i) => {
