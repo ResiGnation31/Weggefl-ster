@@ -1671,17 +1671,21 @@ export default function App() {
         {gpsMode === "real" && (
           <div style={{ marginBottom:16 }}>
 
-            {/* MIT ZIEL FAHREN — immer sichtbar als Toggle */}
+            {/* MIT ZIEL FAHREN — einklappbar */}
             <div style={{ marginBottom:10 }}>
-              <button onClick={() => setGpsZielOpen(o => !o)} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", background:"none", border:"none", cursor:"pointer", padding:"0 0 10px 0" }}>
-                <span style={{ fontSize:11, fontWeight:700, color:T.textMuted, textTransform:"uppercase", letterSpacing:"0.8px" }}>Mit Ziel fahren</span>
-                <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke={T.textMuted} strokeWidth="2" strokeLinecap="round" style={{ transform: gpsZielOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}><path d="M2 4l4 4 4-4"/></svg>
-              </button>
+              {!gpsZielOpen && (
+                <button onClick={() => setGpsZielOpen(true)} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", padding:"4px 0", marginBottom:6, color:T.textMuted, fontSize:13 }}>
+                  <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke={T.textMuted} strokeWidth="2" strokeLinecap="round"><path d="M2 4l4 4 4-4"/></svg>
+                </button>
+              )}
               {(gpsZielOpen &&
                 <div>
                   <div style={{ position:"relative", marginBottom:8 }}>
                     <div style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}><svg width="14" height="18" viewBox="0 0 14 18" fill="none"><path d="M7 0C3.13 0 0 3.13 0 7c0 5.25 7 11 7 11s7-5.75 7-11c0-3.87-3.13-7-7-7z" fill="#34C759"/><circle cx="7" cy="7" r="2.5" fill="white"/></svg></div>
                     <input readOnly value={currentLoc || "Warte auf GPS..."} style={{ width:"100%", background:T.bgInput, border:"1px solid " + T.border, borderRadius:10, padding:"10px 14px 10px 30px", color:T.textMuted, fontFamily:"sans-serif", fontSize:".88rem", boxSizing:"border-box", outline:"none", cursor:"default", textAlign:"left" }} />
+                    <button onClick={() => setGpsZielOpen(o => !o)} style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", padding:4 }}>
+                      <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke={T.textMuted} strokeWidth="2" strokeLinecap="round" style={{ transform: gpsZielOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}><path d="M2 4l4 4 4-4"/></svg>
+                    </button>
                   </div>
                   <div style={{ display:"flex", gap:8, marginBottom:8 }}>
                     <div style={{ position:"relative", flex:1 }}>
