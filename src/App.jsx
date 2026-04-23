@@ -1527,6 +1527,76 @@ export default function App() {
           </div>
         )}
 
+        {/* Foto Modus */}
+        {exploreMode === "foto" && gpsSubMode === "free" && (
+          <div style={{ marginBottom:14 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:T.textMuted, textTransform:"uppercase", letterSpacing:"0.8px", marginBottom:8 }}>Foto erkunden</div>
+            <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+              <button onClick={() => { setExploreMode("berieselung"); startGPS("free", null); }}
+                style={{ flex:1, padding:9, background:"transparent", border:"1px solid " + T.border, borderRadius:10, color:T.textMuted, fontSize:13, cursor:"pointer", fontFamily:"sans-serif" }}>
+                Berieselung
+              </button>
+              <button onClick={() => { setExploreMode("stadtguide"); setGpsSubMode("free"); startGPS("free", null); }}
+                style={{ flex:1, padding:9, background:"transparent", border:"1px solid " + T.border, borderRadius:10, color:T.textMuted, fontSize:13, cursor:"pointer", fontFamily:"sans-serif" }}>
+                Kartenguide
+              </button>
+              <button style={{ flex:1, padding:9, background:T.accentDim, border:"1px solid " + T.accent, borderRadius:10, color:T.accent, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"sans-serif" }}>
+                Foto
+              </button>
+            </div>
+            <div style={{ borderRadius:16, overflow:"hidden", border:"1px solid " + T.border, padding:20, textAlign:"center" }}>
+              <input type="file" accept="image/*" capture="environment" id="fotoInput" style={{ display:"none" }}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = async (ev) => {
+                    const base64 = ev.target.result.split(",")[1];
+                    setStoryLoading(true);
+                    setStoryTitle("Foto wird analysiert...");
+                    setStoryText("");
+                    try {
+                      const res = await fetch("/api/story", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          placeName: "Foto",
+                          category: categoryR.current,
+                          speedKmh: 0,
+                          transport: "walk",
+                          voiceEngine: voiceEngineR.current,
+                          lat: gpsPos?.lat, lon: gpsPos?.lon,
+                          imageBase64: base64,
+                          customPrompt: null
+                        })
+                      });
+                      const data = await res.json();
+                      if (res.ok && data.text) {
+                        setStoryTitle("Foto-Story");
+                        setStoryText(data.text);
+                        setStoryAudio(data.audio || null);
+                        setStoryLoading(false);
+                        await speakText(data.text, null);
+                      }
+                    } catch(e) { setStoryLoading(false); }
+                  };
+                  reader.readAsDataURL(file);
+                }}
+              />
+              <button onClick={() => document.getElementById("fotoInput").click()}
+                style={{ background:T.accent, color:"white", border:"none", borderRadius:12, padding:"14px 28px", fontSize:16, fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:8, margin:"0 auto" }}>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Foto aufnehmen
+              </button>
+              <p style={{ marginTop:12, fontSize:13, color:T.textMuted }}>Fotografiere einen Ort und erhalte eine Story</p>
+            </div>
+            <button onClick={() => { setGpsSubMode(null); setExploreMode("berieselung"); }}
+              style={{ width:"100%", marginTop:10, padding:11, background:"transparent", border:"1px solid " + T.border, borderRadius:12, color:T.textMuted, fontSize:14, cursor:"pointer" }}>
+              Stop
+            </button>
+          </div>
+        )}
+
         {/* Progress */}
         {routeDist > 0 && (
           <div style={{ marginBottom:12 }}>
@@ -1682,6 +1752,10 @@ export default function App() {
                   <button onClick={() => { setExploreMode("stadtguide"); setGpsSubMode("free"); startGPS("free", null); }}
                     style={{ flex:1, padding:13, background:T.accentDim, border:"none", borderRadius:12, color:T.textMuted, fontSize:15, fontWeight:500, cursor:"pointer", fontFamily:"sans-serif" }}>
                     Kartenguide
+                  </button>
+                  <button onClick={() => { setExploreMode("foto"); setGpsSubMode("free"); startGPS("free", null); }}
+                    style={{ flex:1, padding:13, background:T.accentDim, border:"none", borderRadius:12, color:T.textMuted, fontSize:15, fontWeight:500, cursor:"pointer", fontFamily:"sans-serif" }}>
+                    Foto
                   </button>
                 </div>
               </div>

@@ -8,7 +8,7 @@ export default async function handler(req) {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
 
   try {
-    const { placeName, category, speedKmh, transport, voiceEngine, surroundings, lat, lon, previousStories, streetAlreadyMentioned, customPrompt } = await req.json();
+    const { placeName, category, speedKmh, transport, voiceEngine, surroundings, lat, lon, previousStories, streetAlreadyMentioned, customPrompt, imageBase64 } = await req.json();
     const anthropicKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
     const elevenKey = process.env.ELEVENLABS_API_KEY;
     const braveKey = process.env.BRAVE_SEARCH_API_KEY;
@@ -160,10 +160,19 @@ export default async function handler(req) {
       "\n\nWAEHLE einen dieser Blickwinkel der noch NICHT in den vorherigen Stories verwendet wurde: (1) Geschichte und Vergangenheit, (2) Menschen und Persoenlichkeiten, (3) Natur und Landschaft, (4) Wirtschaft und Alltag, (5) Kultur und Brauchtum. Nimm den Blickwinkel der am wenigsten abgedeckt wurde.";
 
     // 7. Claude
+    let claudeMessages;
+    if (imageBase64) {
+      claudeMessages = [{ role: "user", content: [
+        { type: "image", source: { type: "base64", media_type: "image/jpeg", data: imageBase64 } },
+        { type: "text", text: "Du bist ein Reisebegleiter. Erkenne was auf diesem Foto zu sehen ist (Gebäude, Ort, Sehenswürdigkeit). Erzähle dann eine interessante Geschichte darüber — Geschichte, Fakten, Besonderheiten. Auf Deutsch, ca. 80-120 Wörter, fließender Text, kein #." }
+      ]}];
+    } else {
+      claudeMessages = [{ role: "user", content: prompt }];
+    }
     const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-api-key": anthropicKey, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 1000, messages: [{ role: "user", content: prompt }] }),
+      body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 1000, messages: claudeMessages }),
     });
 
     const claudeData = await claudeRes.json();
