@@ -339,6 +339,7 @@ export default function App() {
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeError, setRouteError] = useState("");
   const [gpsMode, setGpsMode]       = useState("sim");
+  const [gpsZielOpen, setGpsZielOpen] = useState(false);
   const [simDist, setSimDist]       = useState(0);
   const [simSpeed, setSimSpeed]     = useState(1);
   const [simRunning, setSimRunning] = useState(false);
@@ -1709,65 +1710,81 @@ export default function App() {
 
         {gpsMode === "real" && (
           <div style={{ marginBottom:16 }}>
-            {!gpsSubMode ? (
-              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                <div style={{ padding:"0" }}>
-                  <div style={{ fontSize:11, fontWeight:600, color:T.textMuted, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.8px", textAlign:"left" }}>Mit Ziel fahren</div>
-                  <div style={{ position:"relative", marginBottom:10 }}>
+
+            {/* MIT ZIEL FAHREN — immer sichtbar als Toggle */}
+            <div style={{ marginBottom:10 }}>
+              <button onClick={() => setGpsSubMode(gpsSubMode === "guided" ? null : null) || setGpsZielOpen(o => !o)}
+                style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", background:"none", border:"none", cursor:"pointer", padding:"4px 0", marginBottom: gpsZielOpen ? 10 : 0 }}>
+                <span style={{ fontSize:11, fontWeight:700, color:T.textMuted, textTransform:"uppercase", letterSpacing:"0.8px" }}>Mit Ziel fahren</span>
+                <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke={T.textMuted} strokeWidth="2" strokeLinecap="round" style={{ transform: gpsZielOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>
+                  <path d="M2 4l4 4 4-4"/>
+                </svg>
+              </button>
+
+              {gpsZielOpen && (
+                <div>
+                  <div style={{ position:"relative", marginBottom:8 }}>
                     <div style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}><svg width="14" height="18" viewBox="0 0 14 18" fill="none"><path d="M7 0C3.13 0 0 3.13 0 7c0 5.25 7 11 7 11s7-5.75 7-11c0-3.87-3.13-7-7-7z" fill="#34C759"/><circle cx="7" cy="7" r="2.5" fill="white"/></svg></div>
                     <input readOnly value={currentLoc || "Warte auf GPS..."} style={{ width:"100%", background:T.bgInput, border:"1px solid " + T.border, borderRadius:10, padding:"10px 14px 10px 30px", color:T.textMuted, fontFamily:"sans-serif", fontSize:".88rem", boxSizing:"border-box", outline:"none", cursor:"default", textAlign:"left" }} />
                   </div>
-                  <div style={{ position:"relative", marginBottom:10 }}>
-                    <div style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}><svg width="14" height="18" viewBox="0 0 14 18" fill="none"><path d="M7 0C3.13 0 0 3.13 0 7c0 5.25 7 11 7 11s7-5.75 7-11c0-3.87-3.13-7-7-7z" fill="#FF3B30"/><circle cx="7" cy="7" r="2.5" fill="white"/></svg></div>
-                    <input value={gpsEndInput} onChange={e => onGpsEndInput(e.target.value)} placeholder="Ziel eingeben, z.B. München"
-                      style={{ width:"100%", background:T.bgInput, border:"1px solid " + T.border, borderRadius:10, padding:"10px 14px 10px 30px", color:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none", boxSizing:"border-box" }} />
-                    {gpsEndSugg.length > 0 && (
-                      <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, background:T.bgCard, border:"1px solid " + T.border, borderRadius:12, overflow:"hidden", zIndex:100, boxShadow:"0 8px 24px rgba(0,0,0,0.15)" }}>
-                        {gpsEndSugg.map((s,i) => {
-                          const p = s.display_name.split(", ");
-                          return (
-                            <div key={i} onClick={() => { const fullAddrG = formatNominatimAddress(s); setGpsEndPlace({name:fullAddrG,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setGpsEndInput(fullAddrG); setGpsEndSugg([]); }}
-                              style={{ padding:"10px 14px", cursor:"pointer", borderBottom:"1px solid " + T.border }}
-                              onMouseEnter={e=>e.currentTarget.style.background=T.accentDim}
-                              onMouseLeave={e=>e.currentTarget.style.background=""}>
-                              <div style={{ fontSize:".85rem", color:T.text }}>{p[0]}</div>
-                              <div style={{ fontSize:".7rem", color:T.textMuted, marginTop:2 }}>{p.slice(1,3).join(", ")}</div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                  <div style={{ display:"flex", gap:8, marginBottom:8 }}>
+                    <div style={{ position:"relative", flex:1 }}>
+                      <div style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}><svg width="14" height="18" viewBox="0 0 14 18" fill="none"><path d="M7 0C3.13 0 0 3.13 0 7c0 5.25 7 11 7 11s7-5.75 7-11c0-3.87-3.13-7-7-7z" fill="#FF3B30"/><circle cx="7" cy="7" r="2.5" fill="white"/></svg></div>
+                      <input value={gpsEndInput} onChange={e => onGpsEndInput(e.target.value)} placeholder="Ziel eingeben, z.B. München"
+                        style={{ width:"100%", background:T.bgInput, border:"1px solid " + T.border, borderRadius:10, padding:"10px 14px 10px 30px", color:T.inputColor, fontFamily:"sans-serif", fontSize:".88rem", outline:"none", boxSizing:"border-box" }} />
+                      {gpsEndSugg.length > 0 && (
+                        <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, background:T.bgCard, border:"1px solid " + T.border, borderRadius:12, overflow:"hidden", zIndex:100, boxShadow:"0 8px 24px rgba(0,0,0,0.15)" }}>
+                          {gpsEndSugg.map((s,i) => {
+                            const p = s.display_name.split(", ");
+                            return (
+                              <div key={i} onClick={() => { const fullAddrG = formatNominatimAddress(s); setGpsEndPlace({name:fullAddrG,lat:parseFloat(s.lat),lon:parseFloat(s.lon)}); setGpsEndInput(fullAddrG); setGpsEndSugg([]); }}
+                                style={{ padding:"10px 14px", cursor:"pointer", borderBottom:"1px solid " + T.border }}
+                                onMouseEnter={e=>e.currentTarget.style.background=T.accentDim}
+                                onMouseLeave={e=>e.currentTarget.style.background=""}>
+                                <div style={{ fontSize:".85rem", color:T.text }}>{p[0]}</div>
+                                <div style={{ fontSize:".7rem", color:T.textMuted, marginTop:2 }}>{p.slice(1,3).join(", ")}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                    <button onClick={() => { if (gpsEndPlace) { stopGPS(); setGpsSubMode("guided"); startGPS("guided", gpsEndPlace); setGpsZielOpen(false); } }}
+                      style={{ padding:"10px 16px", background:gpsEndPlace?T.btnPrimary:T.accentDim, border:"none", borderRadius:10, color:gpsEndPlace?T.btnText:T.textMuted, fontFamily:"sans-serif", fontSize:14, fontWeight:600, cursor:gpsEndPlace?"pointer":"default", whiteSpace:"nowrap" }}>
+                      Starten
+                    </button>
                   </div>
-                  <button onClick={() => { if (gpsEndPlace) { setGpsSubMode("guided"); startGPS("guided", gpsEndPlace); } }}
-                    style={{ width:"100%", padding:13, background:gpsEndPlace?T.btnPrimary:T.accentDim, border:"none", borderRadius:12, color:gpsEndPlace?T.btnText:T.textMuted, fontSize:15, fontWeight:500, cursor:gpsEndPlace?"pointer":"default", transition:"all 0.2s" }}>
-                    {gpsEndPlace ? "Mit Ziel fahren" : "Ziel eingeben"}
-                  </button>
                 </div>
-                <div style={{ fontSize:".72rem", color:T.textMuted, textAlign:"center" }}>— oder —</div>
-                <div style={{ display:"flex", gap:8 }}>
-                  <button onClick={() => { setExploreMode("berieselung"); setGpsSubMode("free"); startGPS("free", null); }}
-                    style={{ flex:1, padding:13, background:T.accentDim, border:"none", borderRadius:12, color:T.textMuted, fontSize:15, fontWeight:500, cursor:"pointer", fontFamily:"sans-serif" }}>
-                    Berieselung
-                  </button>
-                  <button onClick={() => { setExploreMode("stadtguide"); setGpsSubMode("free"); startGPS("free", null); }}
-                    style={{ flex:1, padding:13, background:T.accentDim, border:"none", borderRadius:12, color:T.textMuted, fontSize:15, fontWeight:500, cursor:"pointer", fontFamily:"sans-serif" }}>
-                    Kartenguide
-                  </button>
-                  <button onClick={() => { setExploreMode("foto"); setGpsSubMode("free"); startGPS("free", null); }}
-                    style={{ flex:1, padding:13, background:T.accentDim, border:"none", borderRadius:12, color:T.textMuted, fontSize:15, fontWeight:500, cursor:"pointer", fontFamily:"sans-serif" }}>
-                    Foto
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div style={{ display:"flex", gap:9 }}>
-                <div style={{ flex:1, padding:"12px 16px", background:T.bgCard, border:"1px solid " + T.border, borderRadius:14, fontSize:".84rem", color:T.textMuted }}>
-                  GPS aktiv — {gpsSubMode === "free" ? "Freies Erkunden" : "Nach " + (gpsEndPlace ? gpsEndPlace.name : "")}
-                </div>
-                <button onClick={() => { stopGPS(); setGpsSubMode(null); setGpsEndPlace(null); setGpsEndInput(""); setGpsEndSugg([]); }}
-                  style={{ padding:"12px 16px", background:T.bgCard, border:"1px solid " + T.border, borderRadius:14, color:T.textMuted, fontFamily:"sans-serif", fontSize:".88rem", cursor:"pointer" }}>
-                  Stop
+              )}
+            </div>
+
+            {/* FREI ERKUNDEN — immer sichtbar */}
+            <div style={{ fontSize:".72rem", color:T.textMuted, textAlign:"center", marginBottom:8 }}>— oder —</div>
+            <div style={{ display:"flex", gap:8, marginBottom: (gpsSubMode==="free") ? 10 : 0 }}>
+              {["berieselung","stadtguide","foto"].map(mode => (
+                <button key={mode} onClick={() => {
+                  stopGPS();
+                  window.speechSynthesis?.cancel();
+                  if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
+                  setExploreMode(mode);
+                  setGpsSubMode("free");
+                  setGpsZielOpen(false);
+                  startGPS("free", null);
+                  if (mode === "foto") setTimeout(() => document.getElementById("fotoInput")?.click(), 300);
+                }}
+                  style={{ flex:1, padding:11, background: gpsSubMode==="free" && exploreMode===mode ? T.btnPrimary : T.accentDim, border:"none", borderRadius:12, color: gpsSubMode==="free" && exploreMode===mode ? T.btnText : T.textMuted, fontSize:13, fontWeight: gpsSubMode==="free" && exploreMode===mode ? 600 : 500, cursor:"pointer", fontFamily:"sans-serif" }}>
+                  {mode === "berieselung" ? "Berieselung" : mode === "stadtguide" ? "Kartenguide" : "KI-Kamera"}
                 </button>
+              ))}
+            </div>
+
+            {/* Stop wenn aktiv */}
+            {gpsSubMode && (
+              <button onClick={() => { stopGPS(); setGpsSubMode(null); setGpsEndPlace(null); setGpsEndInput(""); setGpsEndSugg([]); window.speechSynthesis?.cancel(); if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; } }}
+                style={{ width:"100%", marginTop:6, padding:10, background:"transparent", border:"1px solid " + T.border, borderRadius:12, color:T.textMuted, fontSize:13, cursor:"pointer" }}>
+                Stop
+              </button>
+            )}
               </div>
             )}
           </div>
