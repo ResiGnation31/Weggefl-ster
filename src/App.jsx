@@ -1875,7 +1875,7 @@ export default function App() {
         onTouchStart={e => { sheetDragY.current = e.touches[0].clientY; sheetDragging.current = true; if(sheetRef.current) sheetRef.current.style.transition = "none"; e.stopPropagation(); }}
         style={{
         position:"fixed", bottom:0, left:"50%", transform: profileOpen ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(100%)",
-        width:"100%", maxWidth:480, zIndex:301,
+        width:"100%", maxWidth:480, zIndex:1000,
         background: isDark ? "#1C1917" : "#F5F0E8",
         borderRadius:"24px 24px 0 0",
         padding:"0 0 40px",
