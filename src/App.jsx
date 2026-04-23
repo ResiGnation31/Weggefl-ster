@@ -1723,23 +1723,34 @@ export default function App() {
 
             {/* FREI ERKUNDEN — immer sichtbar */}
             <div style={{ fontSize:".72rem", color:T.textMuted, textAlign:"center", marginBottom:8 }}>— oder —</div>
-            <div style={{ display:"flex", background: isDark?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.7)", borderRadius:14, padding:4, gap:2, marginBottom: (gpsSubMode==="free") ? 10 : 0 }}>
-              {["berieselung","stadtguide","foto"].map(mode => (
-                <button key={mode} onClick={() => {
-                  stopGPS();
-                  window.speechSynthesis?.cancel();
-                  if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
-                  setExploreMode(mode);
-                  setGpsSubMode("free");
-                  setGpsZielOpen(false);
-                  startGPS("free", null);
-                  if (mode === "foto") setTimeout(() => document.getElementById("fotoInput")?.click(), 300);
-                }}
-                  style={{ flex:1, padding:10, background: gpsSubMode==="free" && exploreMode===mode ? (isDark?"rgba(255,255,255,0.12)":"white") : "transparent", border:"none", borderRadius:10, color: gpsSubMode==="free" && exploreMode===mode ? T.accent : T.textMuted, fontSize:13, fontWeight: gpsSubMode==="free" && exploreMode===mode ? 600 : 500, cursor:"pointer", fontFamily:"sans-serif", boxShadow: gpsSubMode==="free" && exploreMode===mode ? "0 2px 8px rgba(0,0,0,0.12)" : "none", transition:"all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}>
-                  {mode === "berieselung" ? "Berieselung" : mode === "stadtguide" ? "Kartenguide" : "KI-Kamera"}
-                </button>
-              ))}
-            </div>
+            {(() => {
+              const modes = ["berieselung","stadtguide","foto"];
+              const labels = ["Berieselung","Kartenguide","KI-Kamera"];
+              const activeIdx = gpsSubMode==="free" ? modes.indexOf(exploreMode) : -1;
+              return (
+                <div style={{ position:"relative", display:"flex", background: isDark?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.7)", borderRadius:14, padding:4, marginBottom: (gpsSubMode==="free") ? 10 : 0 }}>
+                  {/* Gleitender Hintergrund */}
+                  {activeIdx >= 0 && (
+                    <div style={{ position:"absolute", top:4, left:`calc(${activeIdx} * (100% - 8px) / 3 + 4px)`, width:"calc((100% - 8px) / 3)", height:"calc(100% - 8px)", background: isDark?"rgba(255,255,255,0.12)":"white", borderRadius:10, boxShadow:"0 2px 8px rgba(0,0,0,0.12)", transition:"left 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }} />
+                  )}
+                  {modes.map((mode, i) => (
+                    <button key={mode} onClick={() => {
+                      stopGPS();
+                      window.speechSynthesis?.cancel();
+                      if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
+                      setExploreMode(mode);
+                      setGpsSubMode("free");
+                      setGpsZielOpen(false);
+                      startGPS("free", null);
+                      if (mode === "foto") setTimeout(() => document.getElementById("fotoInput")?.click(), 300);
+                    }}
+                      style={{ flex:1, padding:10, background:"transparent", border:"none", borderRadius:10, color: activeIdx===i ? T.accent : T.textMuted, fontSize:13, fontWeight: activeIdx===i ? 600 : 500, cursor:"pointer", fontFamily:"sans-serif", position:"relative", zIndex:1, transition:"color 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}>
+                      {labels[i]}
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Stop wenn aktiv */}
             {gpsSubMode && (
