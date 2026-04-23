@@ -1713,7 +1713,7 @@ export default function App() {
 
             {/* MIT ZIEL FAHREN — immer sichtbar als Toggle */}
             <div style={{ marginBottom:10 }}>
-              <div style={{ fontSize:11, fontWeight:700, color:T.textMuted, textTransform:"uppercase", letterSpacing:"0.8px", marginBottom:10 }}>Mit Ziel fahren</div>
+              <div style={{ fontSize:11, fontWeight:700, color:T.textMuted, textTransform:"uppercase", letterSpacing:"0.8px", marginBottom:10, textAlign:"left" }}>Mit Ziel fahren</div>
               {(
                 <div>
                   <div style={{ position:"relative", marginBottom:8 }}>
