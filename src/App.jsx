@@ -1696,7 +1696,7 @@ export default function App() {
                     <span style={{ fontSize:10, color:T.textMuted, flexShrink:0, minWidth:32 }}>
                       {audioRef.current?.duration ? Math.floor((audioRef.current.duration - (audioRef.current.currentTime||0)) / 60) + ":" + String(Math.floor((audioRef.current.duration - (audioRef.current.currentTime||0)) % 60)).padStart(2,"0") : "--:--"}
                     </span>
-                    <button onClick={() => { stopGPS(); setGpsSubMode(null); setExploreMode("berieselung"); setStoryText(""); setStoryTitle(""); setStoryLoading(false); generatingR.current = false; window.speechSynthesis?.cancel(); if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; } }}
+                    <button onClick={() => { setStoryText(""); setStoryTitle(""); setStoryLoading(false); generatingR.current = false; window.speechSynthesis?.cancel(); if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; } }}
                       style={{ width:28, height:28, borderRadius:8, background:"#FF3B30", border:"none", cursor:"pointer", color:"white", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:11, fontWeight:700 }}>
                       ■
                     </button>
