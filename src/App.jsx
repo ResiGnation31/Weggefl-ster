@@ -1384,16 +1384,7 @@ export default function App() {
               </svg>
             )}
             </button>
-            <button onClick={() => setProfileOpen(true)} style={{ width:36, height:36, borderRadius:"50%", border:"none", background: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.5)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(8px)", overflow:"hidden" }}>
-              {profilePhoto ? (
-                <img src={profilePhoto} style={{ width:36, height:36, objectFit:"cover" }}/>
-              ) : (
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={T.textMuted} strokeWidth="1.8" strokeLinecap="round">
-                  <circle cx="12" cy="8" r="4"/>
-                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                </svg>
-              )}
-            </button>
+
           </div>
         </div>
 
