@@ -1663,22 +1663,7 @@ export default function App() {
               );
             })()}
 
-            {/* Kartenguide Karte */}
-            {gpsSubMode === "free" && exploreMode === "stadtguide" && (
-              <div style={{ height:400, borderRadius:16, overflow:"hidden", border:"1px solid " + T.border, marginBottom:10 }}>
-                <MapboxView
-                  userLat={gpsPos?.lat}
-                  userLon={gpsPos?.lon}
-                  isDark={isDark}
-                  accent={T.accent}
-                  heading={gpsPos?.heading}
-                  onLocationSelect={(place) => {
-                    generateStory(place.name, false, null, place.lat, place.lon, "walk");
-                  }}
-                />
-              </div>
-            )}
-
+            {/* Persistente Playbar VOR der Karte — bereits weiter oben definiert, hier nur Karte */}
             {/* Persistente Playbar */}
             {(storyTitle || storyLoading || speaking) && (
               <div style={{ background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:14, padding:"10px 14px", marginBottom:10 }}>
@@ -1688,7 +1673,7 @@ export default function App() {
                   </div>
                 ) : (
                   <>
-                    {storyTitle && <div style={{ fontSize:12, color:T.accent, fontWeight:600, marginBottom:8, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{storyTitle}</div>}
+
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                       <button onClick={() => { if (audioRef.current) audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 15); }}
                         style={{ width:32, height:32, borderRadius:"50%", background:T.accentDim, border:"none", cursor:"pointer", color:T.accent, display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -1714,6 +1699,23 @@ export default function App() {
                     </div>
                   </>
                 )}
+              </div>
+            )}
+
+            
+            {/* Kartenguide Karte */}
+            {gpsSubMode === "free" && exploreMode === "stadtguide" && (
+              <div style={{ height:400, borderRadius:16, overflow:"hidden", border:"1px solid " + T.border, marginBottom:10 }}>
+                <MapboxView
+                  userLat={gpsPos?.lat}
+                  userLon={gpsPos?.lon}
+                  isDark={isDark}
+                  accent={T.accent}
+                  heading={gpsPos?.heading}
+                  onLocationSelect={(place) => {
+                    generateStory(place.name, false, null, place.lat, place.lon, "walk");
+                  }}
+                />
               </div>
             )}
 
