@@ -1679,10 +1679,6 @@ export default function App() {
               );
             })()}
 
-            {/* Playbar ist jetzt fixed unten */
-              </div>
-            )}
-
             
             {/* Kartenguide Karte */}
             {gpsSubMode === "free" && exploreMode === "stadtguide" && (
