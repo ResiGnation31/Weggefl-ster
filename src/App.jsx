@@ -1679,6 +1679,44 @@ export default function App() {
               </div>
             )}
 
+            {/* Persistente Playbar */}
+            {(storyTitle || storyLoading || speaking) && (
+              <div style={{ background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:14, padding:"10px 14px", marginBottom:10 }}>
+                {storyLoading ? (
+                  <div style={{ display:"flex", gap:6, justifyContent:"center", padding:"4px 0" }}>
+                    {[0,1,2].map(i => <div key={i} style={{ width:7, height:7, borderRadius:"50%", background:T.accent, animation:"dp 1.2s "+(i*.2)+"s infinite" }}/>)}
+                  </div>
+                ) : (
+                  <>
+                    {storyTitle && <div style={{ fontSize:12, color:T.accent, fontWeight:600, marginBottom:8, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{storyTitle}</div>}
+                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                      <button onClick={() => { if (audioRef.current) audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 15); }}
+                        style={{ width:32, height:32, borderRadius:"50%", background:T.accentDim, border:"none", cursor:"pointer", color:T.accent, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 17l-5-5 5-5"/><path d="M18 17l-5-5 5-5"/></svg>
+                      </button>
+                      <button onClick={() => speaking ? stopAudio(true) : (manualStopR.current = false, speakText(storyText, storyAudio || null))}
+                        style={{ width:40, height:40, borderRadius:"50%", background:T.accent, border:"none", cursor:"pointer", color:T.btnText, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>
+                        {speaking ? "⏸" : "▶"}
+                      </button>
+                      <button onClick={() => { if (audioRef.current) audioRef.current.currentTime = Math.min(audioRef.current.duration || 0, audioRef.current.currentTime + 15); }}
+                        style={{ width:32, height:32, borderRadius:"50%", background:T.accentDim, border:"none", cursor:"pointer", color:T.accent, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M13 17l5-5-5-5"/><path d="M6 17l5-5-5-5"/></svg>
+                      </button>
+                      <div style={{ flex:1, height:4, background:T.accentDim, borderRadius:2, cursor:"pointer", position:"relative" }}
+                        onClick={e => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const pct = (e.clientX - rect.left) / rect.width;
+                          if (audioRef.current?.duration) audioRef.current.currentTime = pct * audioRef.current.duration;
+                        }}>
+                        <div style={{ height:"100%", width:spProgress+"%", background:T.accent, borderRadius:2, transition:"width .3s linear" }}/>
+                      </div>
+                      {speaking && <span style={{ fontSize:10, color:T.accent, flexShrink:0 }}>● LIVE</span>}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* KI-Kamera Input */}
             <input type="file" accept="image/*" capture="environment" id="fotoInput" style={{ display:"none" }}
               onChange={async (e) => {
