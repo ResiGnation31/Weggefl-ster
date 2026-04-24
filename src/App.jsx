@@ -1469,6 +1469,31 @@ export default function App() {
           {routeError && <div style={{ fontSize:".75rem", color:T.errorText, marginTop:10 }}>⚠️ {routeError}</div>}
         </div>}
 
+        {/* Transport Selector */}
+        <div style={{ display:"flex", background: isDark?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.7)", borderRadius:14, padding:4, marginBottom:10, position:"relative" }}>
+          {(() => {
+            const tabs = [
+              { id:"car", label:"Auto", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:18,height:18}}><rect x="1" y="11" width="22" height="9" rx="2"/><path d="M5 11L7 6h10l2 5"/><circle cx="7.5" cy="20" r="1.5"/><circle cx="16.5" cy="20" r="1.5"/></svg> },
+              { id:"bus", label:"Bus", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:18,height:18}}><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 10h18M8 19v2M16 19v2"/><circle cx="7" cy="15" r="1"/><circle cx="17" cy="15" r="1"/></svg> },
+              { id:"bike", label:"Fahrrad", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:18,height:18}}><circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M6 15l4-8h4l2 4-4 4-2-4"/><path d="M14 7h2"/></svg> },
+              { id:"walk", label:"Zu Fuß", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:18,height:18}}><circle cx="12" cy="4" r="1.5"/><path d="M10 8l-2 5h4l2 5M8 13l-2 6M16 13l1 6"/></svg> },
+            ];
+            const activeIdx = tabs.findIndex(t => t.id === transport);
+            return (
+              <>
+                <div style={{ position:"absolute", top:4, left:`calc(${activeIdx} * (100% - 8px) / 4 + 4px)`, width:"calc((100% - 8px) / 4)", height:"calc(100% - 8px)", background: isDark?"rgba(255,255,255,0.12)":"white", borderRadius:10, boxShadow:"0 1px 4px rgba(0,0,0,0.1)", transition:"left 0.5s cubic-bezier(0.34,1.56,0.64,1)", pointerEvents:"none" }}/>
+                {tabs.map(({ id, label, svg }) => (
+                  <button key={id} onClick={() => handleTransport(id)}
+                    style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:2, background:"transparent", border:"none", cursor:"pointer", padding:"6px 4px", position:"relative", zIndex:1 }}>
+                    <div style={{ color: transport===id ? T.accent : T.textMuted, transition:"color 0.3s" }}>{svg}</div>
+                    <span style={{ fontSize:10, color: transport===id ? T.accent : T.textMuted, fontWeight: transport===id ? 700 : 400, transition:"color 0.3s" }}>{label}</span>
+                  </button>
+                ))}
+              </>
+            );
+          })()}
+        </div>
+
         {/* Settings Bar */}
         <div style={{ display:"flex", gap:6, marginBottom:14, background: isDark?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.7)", borderRadius:16, padding:5, backdropFilter:"blur(8px)", position:"relative", zIndex:100 }}>
           {[
@@ -1964,41 +1989,22 @@ export default function App() {
         </div>
       </div>
 
-      {/* Transport Bar */}
+      {/* Neue Nav-Bar: Home | Verlauf | Entdecken | Profil */}
       <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background: isDark ? "rgba(26,23,20,0.92)" : "rgba(245,240,232,0.88)", backdropFilter:"blur(20px)", borderTop:"0.5px solid " + T.border, padding:"10px 0 18px", zIndex:200, transition:"background 0.4s" }}>
-        {(() => {
-          const tabs = [
-            { id:"car", label:"Auto", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:22,height:22}}><rect x="1" y="11" width="22" height="9" rx="2"/><path d="M5 11L7 6h10l2 5"/><circle cx="7.5" cy="20" r="1.5"/><circle cx="16.5" cy="20" r="1.5"/></svg> },
-            { id:"bus", label:"Bus", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:22,height:22}}><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 10h18M8 19v2M16 19v2"/><circle cx="7" cy="15" r="1"/><circle cx="17" cy="15" r="1"/></svg> },
-            { id:"bike", label:"Fahrrad", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:22,height:22}}><circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M6 15l4-8h4l2 4-4 4-2-4"/><path d="M14 7h2"/></svg> },
-            { id:"walk", label:"Zu Fuß", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:22,height:22}}><circle cx="12" cy="4" r="1.5"/><path d="M10 8l-2 5h4l2 5M8 13l-2 6M16 13l1 6"/></svg> },
-          ];
-          const activeIdx = tabs.findIndex(t => t.id === transport);
-          return (
-            <div style={{ display:"flex", position:"relative", width:"100%" }}>
-              {/* Sliding background */}
-              <div style={{
-                position:"absolute",
-                top: "50%",
-                left: `calc(${activeIdx * 25}% + 12.5%)`,
-                transform: "translate(-50%, -50%)",
-                width: 72,
-                height: 56,
-                background: T.accentDim,
-                borderRadius: 20,
-                transition: "left 0.7s cubic-bezier(0.34,1.56,0.64,1)",
-                pointerEvents: "none",
-              }}/>
-              {tabs.map(({ id, label, svg }) => (
-                <button key={id} onClick={() => handleTransport(id)}
-                  style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"transparent", border:"none", cursor:"pointer", padding:"8px 4px", position:"relative", zIndex:1, WebkitTapHighlightColor:"transparent", outline:"none" }}>
-                  <div style={{ color: transport===id ? T.accent : T.textMuted, transition:"color 0.3s ease", display:"flex" }}>{svg}</div>
-                  <span style={{ fontSize:10, color: transport===id ? T.accent : T.textMuted, fontWeight: transport===id ? 700 : 400, transition:"color 0.3s ease", whiteSpace:"nowrap" }}>{label}</span>
-                </button>
-              ))}
-            </div>
-          );
-        })()}
+        <div style={{ display:"flex", width:"100%" }}>
+          {[
+            { id:"home", label:"Home", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:22,height:22}}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
+            { id:"verlauf", label:"Verlauf", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:22,height:22}}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> },
+            { id:"entdecken", label:"Entdecken", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:22,height:22}}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> },
+            { id:"profil", label:"Profil", svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:22,height:22}}><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> },
+          ].map(({ id, label, svg }) => (
+            <button key={id} onClick={() => { if (id === "profil") setProfileOpen(true); }}
+              style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"transparent", border:"none", cursor:"pointer", padding:"8px 4px", WebkitTapHighlightColor:"transparent", outline:"none" }}>
+              <div style={{ color: id==="home" ? T.accent : T.textMuted }}>{svg}</div>
+              <span style={{ fontSize:10, color: id==="home" ? T.accent : T.textMuted, fontWeight: id==="home" ? 700 : 400, whiteSpace:"nowrap" }}>{label}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
